@@ -202,7 +202,9 @@ def create_loader(image):
 
 
 def inference_nn(dataloader):
-    modelViT.load_state_dict(torch.load(r'models\model-e15.pt', map_location=torch.device('cpu'))['model_state_dict'])
+    checkpoint = torch.load('./models/model-e15.pt', map_location=torch.device('cpu'))
+    modelViT.load_state_dict(checkpoint['model_state_dict'])
+
     modelViT.eval()
     with torch.no_grad():
         batch = next(iter(dataloader))

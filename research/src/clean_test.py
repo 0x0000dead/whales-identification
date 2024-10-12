@@ -3,10 +3,10 @@ import cv2
 import pandas as pd
 
     
-image = list(cv2.imread(r'resources\defaultPhoto.jpg'))
+image = list(cv2.imread(r'./resources/defaultPhoto.jpg'))
 test_loader = create_loader(image)
 tags, prob = inference_nn(test_loader)
-db = pd.read_csv(r'resources/database.csv')
+db = pd.read_csv(r'./resources/database.csv')
 
 animals = []
 for i in tags:

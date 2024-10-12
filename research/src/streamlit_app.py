@@ -13,10 +13,10 @@ from collections import Counter
 
 @st.cache_data()
 def load_data():
-    return Image.open(r'resources\defaultPhoto.jpg')
+    return Image.open(r'./resources/defaultPhoto.jpg')
 
 
-db = pd.read_csv(r'resources\database.csv')
+db = pd.read_csv(r'./resources/database.csv')
 
 
 

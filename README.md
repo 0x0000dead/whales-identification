@@ -35,7 +35,10 @@ pip install git+https://github.com/yourusername/whales-identification.git
 ```bash
 pip install whales_identification_library
 ```
-
+4) 
+```
+streamlit run streamlit_app.py
+```
 ## Перечень Работ, выполняемых в рамках проекта, распределение Работ между членами проектной команды.
 Этап 1.
 - [ ] (Балцат К.И.) Настройка репозитория для автоматической проверки и одобрения изменений в коде для расширения функциональности. 
