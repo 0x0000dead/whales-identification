@@ -6,9 +6,10 @@
 
 ### **Установка и запуск**
 
-Clone the repo and change to the project root directory:
+1. Скачать веса для использования модели, и положить их в папку `./models`: [скачать можно тут](https://disk.yandex.com/d/lH17kkrYgv2-1w)
 
-Install requirements:
+2.
+
 ```
 pip install -r requirements.txt
 ```
