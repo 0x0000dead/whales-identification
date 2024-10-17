@@ -1,0 +1,9 @@
+heapq
+numpy
+pandas
+streamlit
+PIL
+opencv-python
+torch
+segmentation-models-pytorch
+albumentations
