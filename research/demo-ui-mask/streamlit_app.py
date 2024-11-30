@@ -7,12 +7,15 @@ from PIL import Image
 
 MODEL_PATH = "./6_0.4796_0.3058.pth"
 
+
 @st.cache(suppress_st_warning=True)
 def load_data():
     return Image.open('./resources/defaultPhoto.jpg'), Image.open('./resources/defaultMask.png')
 
+
 def use_network(img, model):
-    preprocessing_fn = smp.encoders.get_preprocessing_fn('resnet50', 'imagenet')
+    preprocessing_fn = smp.encoders.get_preprocessing_fn(
+        'resnet50', 'imagenet')
     # resize 256 256
     img = cv2.resize(img, (256, 256))
     trf = albu.Compose([albu.Lambda(image=preprocessing_fn)])
@@ -51,7 +54,8 @@ def main():
     file_photo = st.file_uploader("Загрузите фото кита:", type=['jpg'])
     file_mask = st.file_uploader("Загрузите маску:", type=['png'])
 
-    top_size = st.number_input('Размер ТОПа:', min_value=1, max_value=50, value=5)
+    top_size = st.number_input(
+        'Размер ТОПа:', min_value=1, max_value=50, value=5)
 
     # load default image
     if file_photo is not None and file_mask is not None:
@@ -71,13 +75,14 @@ def main():
         st.text("Маска:")
         # multiply img with mask with pil
 
-        photo_with_mask = Image.composite(photo, Image.new("RGB", photo.size, (255, 255, 255)), mask)
+        photo_with_mask = Image.composite(photo, Image.new(
+            "RGB", photo.size, (255, 255, 255)), mask)
         st.image(photo_with_mask)
-        
-    photo_with_mask = Image.composite(photo, Image.new("RGB", photo.size, (255, 255, 255)), mask)
+
+    photo_with_mask = Image.composite(photo, Image.new(
+        "RGB", photo.size, (255, 255, 255)), mask)
     photo_arr, mask_arr = np.array(photo), np.array(mask)
     predict_list = use_network(np.array(photo_with_mask), model)
-
 
     # find top 5 with indexes
     top_ls = find_top(predict_list, top_size)

@@ -52,7 +52,8 @@ class WhaleDataset(Dataset):
         """
         img_path = os.path.join(self.img_dir, self.image_files[idx])
         image = Image.open(img_path).convert("RGB")  # открываем изображение
-        label = self.labels.get(self.image_files[idx], -1)  # метка или -1 если нет метки
+        # метка или -1 если нет метки
+        label = self.labels.get(self.image_files[idx], -1)
 
         # Применяем аугментации через Albumentations
         if self.transform:

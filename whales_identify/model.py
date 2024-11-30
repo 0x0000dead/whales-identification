@@ -72,7 +72,8 @@ class ArcMarginProduct(nn.Module):
         self.m = m
         self.easy_margin = easy_margin
         self.ls_eps = ls_eps
-        self.weight = nn.Parameter(torch.FloatTensor(out_features, in_features))
+        self.weight = nn.Parameter(
+            torch.FloatTensor(out_features, in_features))
         nn.init.xavier_uniform_(self.weight)
 
     def forward(self, input, label):
@@ -91,7 +92,8 @@ class ArcMarginProduct(nn.Module):
         phi = cosine * torch.cos(self.m) - sine * torch.sin(self.m)
         output = (torch.where(cosine > torch.cos(torch.pi - self.m), phi,
                               cosine - torch.sin(torch.pi - self.m) * self.m) * self.s)
-        one_hot = torch.zeros(cosine.size(), device=label.device).scatter_(1, label.view(-1, 1).long(), 1)
+        one_hot = torch.zeros(cosine.size(), device=label.device).scatter_(
+            1, label.view(-1, 1).long(), 1)
         return (one_hot * output + (1.0 - one_hot) * cosine) * self.s
 
 
@@ -126,7 +128,8 @@ class HappyWhaleModel(nn.Module):
         self.model.global_pool = nn.Identity()
         self.pooling = GeM()
         self.embedding = nn.Linear(in_features, embedding_size)
-        self.fc = ArcMarginProduct(embedding_size, num_classes, s=s, m=m, ls_eps=ls_eps, easy_margin=easy_margin)
+        self.fc = ArcMarginProduct(
+            embedding_size, num_classes, s=s, m=m, ls_eps=ls_eps, easy_margin=easy_margin)
 
     def forward(self, images, labels):
         """
