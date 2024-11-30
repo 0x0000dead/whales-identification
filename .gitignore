@@ -26,6 +26,18 @@ share/python-wheels/
 *.egg
 MANIFEST
 
+# Poetry
+.poetry/
+*.toml
+*.lock
+
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.venv
+
 # PyInstaller
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
