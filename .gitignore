@@ -28,8 +28,6 @@ MANIFEST
 
 # Poetry
 .poetry/
-*.toml
-*.lock
 
 # Python
 *.pyc
