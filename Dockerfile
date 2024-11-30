@@ -2,9 +2,8 @@ FROM python:3.10.15-slim
 
 WORKDIR /app
 
-# Install Poetry
-RUN curl -sSL https://install.python-poetry.org | python3 -
-ENV PATH="/root/.local/bin:$PATH"
+# Установка Poetry через pip
+RUN pip install poetry
 
 COPY pyproject.toml poetry.lock /app/
 
