@@ -8,7 +8,6 @@ from inference_transformers import create_loader, inference_nn
 import cv2
 import pandas as pd
 from collections import Counter
-    
 
 
 @st.cache_data()
@@ -17,7 +16,6 @@ def load_data():
 
 
 db = pd.read_csv(r'./resources/database.csv')
-
 
 
 def use_network(img):
@@ -56,12 +54,10 @@ def main():
     else:
         photo = load_data()
 
-
     # show images
     st.header("Фото млекопитающего:")
     st.image(photo, width=300, use_column_width='always')
 
-        
     animals, probs, tags = use_network(list(np.array(photo)))
     print(animals, tags, probs)
 
@@ -76,10 +72,9 @@ def main():
     # # Inject CSS with Markdown
     st.markdown(hide_table_row_index, unsafe_allow_html=True)
 
-
     st.subheader(Counter(animals).most_common(1)[0][0])
-    st.table(pandas.DataFrame({'individual ID': tags, 'Animals': animals, 'Prob': [str(f'{round(i*1000, 2)}%') for i in probs]}, 
-                              index=[i for i in range(len(tags))]))   
+    st.table(pandas.DataFrame({'individual ID': tags, 'Animals': animals, 'Prob': [str(f'{round(i*1000, 2)}%') for i in probs]},
+                              index=[i for i in range(len(tags))]))
     st.caption('при поддержке Фонда содействия инновациям')
 
 

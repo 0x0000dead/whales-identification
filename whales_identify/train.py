@@ -48,15 +48,19 @@ def run_training(df_train: pd.DataFrame, img_dir: str):
     model.to(device)
 
     data_transforms = augmentation_data_transforms()
-    train_labels = {row['file_path']: row['individual_id'] for index, row in df_train.iterrows()}
+    train_labels = {row['file_path']: row['individual_id']
+                    for index, row in df_train.iterrows()}
 
     train_dataset = WhaleDataset(img_dir=img_dir,
                                  labels=train_labels,
                                  transform=data_transforms["train"])
-    train_loader = DataLoader(train_dataset, batch_size=CONFIG['train_batch_size'])
+    train_loader = DataLoader(
+        train_dataset, batch_size=CONFIG['train_batch_size'])
 
-    optimizer = Adam(model.parameters(), lr=CONFIG['learning_rate'], weight_decay=CONFIG['weight_decay'])
-    scheduler = CosineAnnealingLR(optimizer, T_max=CONFIG['T_max'], eta_min=CONFIG['min_lr'])
+    optimizer = Adam(model.parameters(
+    ), lr=CONFIG['learning_rate'], weight_decay=CONFIG['weight_decay'])
+    scheduler = CosineAnnealingLR(
+        optimizer, T_max=CONFIG['T_max'], eta_min=CONFIG['min_lr'])
 
     # Цикл по эпохам для обучения.
     for epoch in range(CONFIG['epochs']):

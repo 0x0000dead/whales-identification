@@ -51,19 +51,10 @@
 ```bash
 git clone https://github.com/0x0000dead/whales-identification
 cd whales-identification
-pip install -r requirements.txt
+docker build . -t whales
 ```
 
-2) Установите из GitHub:
-```bash
-pip install git+https://github.com/yourusername/whales-identification.git
-```
-
-3) Использовать PyPy
-```bash
-pip install whales_identification_library
-```
-4) 
+2) 
 ```
 streamlit run streamlit_app.py
 ```
