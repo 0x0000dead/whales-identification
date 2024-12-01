@@ -52,11 +52,15 @@
 git clone https://github.com/0x0000dead/whales-identification
 cd whales-identification
 docker build . -t whales
+docker run -p 8501:8501 whales
 ```
 
 2) 
 ```
-streamlit run streamlit_app.py
+pip install poetry
+poetry install
+cd research/demo-ui/
+poetry run streamlit run streamlit_app.py --server.port=8501 --server.address=0.0.0.0
 ```
 ## Перечень Работ, выполняемых в рамках проекта, распределение Работ между членами проектной команды.
 Этап 1.

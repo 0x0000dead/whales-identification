@@ -4,8 +4,12 @@ import numpy as np
 import pandas
 import streamlit as st
 from PIL import Image
+import cv2
+import torch
+import segmentation_models_pytorch as smp
+import albumentations as albu
 
-MODEL_PATH = "./6_0.4796_0.3058.pth"
+MODEL_PATH = "./models/resnet101.pth"
 
 
 @st.cache(suppress_st_warning=True)
@@ -18,13 +22,12 @@ def use_network(img, model):
         'resnet50', 'imagenet')
     # resize 256 256
     img = cv2.resize(img, (256, 256))
+    
     trf = albu.Compose([albu.Lambda(image=preprocessing_fn)])
     img = trf(image=img)['image']
     img = img.transpose(2, 0, 1).astype('float32')
     x_tensor = torch.from_numpy(img).to("cuda").unsqueeze(0)
     out = model(x_tensor)
-    # top_2 = torch.topk(out, 5)
-    # top_2_arg = top_2.indices.cpu().numpy()[0]
     return out[0][1:]
 
 
