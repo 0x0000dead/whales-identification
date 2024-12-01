@@ -35,7 +35,7 @@ def get_prediction_resnet(img, model):
 
 def form_result_to_submission(raw_data_path):
     model = torch.load(
-        r"C:\Users\Sergey\Desktop\MODELS\resnet50\5_0.4741_0.3084.pth")
+        f"./models/resnet101.pth")
     model.eval()
     for whale in os.listdir(raw_data_path):
         res = dict()
@@ -59,4 +59,4 @@ def form_result_to_submission(raw_data_path):
 
 
 if __name__ == '__main__':
-    form_result_to_submission('C:/Users/Sergey/Downloads/Whale_ReId_test_mm/')
+    form_result_to_submission('./resources/')
