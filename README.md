@@ -15,6 +15,7 @@
 - `research/notebooks/04_resnet_classification_experiments.ipynb` - сравнение CNN classification подходов на основе CNN Resnet54, Resnet101 архитектур
 - `research/notebooks/05_swinT_experiments.ipynb` - оценка результатов модели с использованием Metric Learning подхода на основе трансформерной архитектуры SwinTransformers.
 - `research/notebooks/06_benchmark.ipynb` - сравнение всех перспективных моделей на одном наборе данных.
+- `research/notebooks/07_onnx_inference_compare.ipynb` - сравнение ускорения за счет использования ONNX фреймворка.
 
 Модели можно скачать по этой ссылке (ввиду ограничения объема на бесплатный git lfs): https://disk.yandex.ru/d/GshqU9o6nNz7ZA
 
