@@ -9,12 +9,14 @@
 ### Исследования, эксперименты, сравнение
 - `research/notebooks/*` - набор исследовательских ipynb ноутбуков с сравнением различных методов идентификации
 - `research/notebooks/README.md` - вывод о результатах и границах применимости в результате проведенных сравнений.
-- `research/notebooks/01_dataset_clusterization_analysis.ipynb` - кластеризация и анализ исходного набора данных.
 - `research/notebooks/02_ViT_train_effiecientnet.ipynb` - обучение модели идентификации с использованием Metric Learning подхода на основе трансформерной архитектуры ViT.
 - `research/notebooks/02_ViT_inference_efficientnet.ipynb` - оценка результатов модели с использованием Metric Learning подхода на основе трансформерной архитектуры ViT.
 - `research/notebooks/03_efficientnet_experiments.ipynb` - сравнение Metric Learning подходов на основе CNN EfficientnetB0, EfficientnetB3, EfficientnetB5 архитектур.
 - `research/notebooks/04_resnet_classification_experiments.ipynb` - сравнение CNN classification подходов на основе CNN Resnet54, Resnet101 архитектур
 - `research/notebooks/05_swinT_experiments.ipynb` - оценка результатов модели с использованием Metric Learning подхода на основе трансформерной архитектуры SwinTransformers.
+- `research/notebooks/06_benchmark.ipynb` - сравнение всех перспективных моделей на одном наборе данных.
+
+Модели можно скачать по этой ссылке (ввиду ограничения объема на бесплатный git lfs): https://disk.yandex.ru/d/GshqU9o6nNz7ZA
 
 - `research/demo-ui/*` - демо веб-приложение с выбранным наилучшим решением для наглядной оценки качества его работы, с возможностью загрузить изображение для анализа. Более подробная информация в разделе `./demo-ui/README.md`.
 - `research/demo-ui-mask/*` - демо веб-приложение иного подхода, позволяющее улучшить качество работы алгоритма, за счет использования бинарной маски с изображением млекопитающего. Более подробная информация в разделе `./demo-ui/README.md`.
