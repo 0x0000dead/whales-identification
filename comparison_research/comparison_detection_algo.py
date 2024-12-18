@@ -63,7 +63,6 @@ def compare_algorithms(image_path, models):
         results.append({
             "Model": model_name,
             "Inference Time (s)": round(inference_time, 4),
-            "Accuracy (simulated)": np.random.uniform(0.85, 0.95)  # Симуляция точности для примера
         })
     return pd.DataFrame(results)
 
