@@ -14,7 +14,8 @@
 - `research/notebooks/03_efficientnet_experiments.ipynb` - сравнение Metric Learning подходов на основе CNN EfficientnetB0, EfficientnetB3, EfficientnetB5 архитектур.
 - `research/notebooks/04_resnet_classification_experiments.ipynb` - сравнение CNN classification подходов на основе CNN Resnet54, Resnet101 архитектур
 - `research/notebooks/05_swinT_experiments.ipynb` - оценка результатов модели с использованием Metric Learning подхода на основе трансформерной архитектуры SwinTransformers.
-- `research/notebooks/06_benchmark.ipynb` - сравнение всех перспективных моделей на одном наборе данных.
+- `research/notebooks/06_benchmark_binary.ipynb` - сравнение всех перспективных моделей на одном наборе данных. Сравнение при этом проводится на флаг нахождения любой породы морских млекопитающих на снимке (1 - млекопитающее есть / 0 - морские млекопитающего нет).
+- `research/notebooks/06_benchmark_multiclass.ipynb` - сравнение всех перспективных моделей на одном наборе данных. Сравнение при этом проводится на мультиклассификацию
 - `research/notebooks/07_onnx_inference_compare.ipynb` - сравнение ускорения за счет использования ONNX фреймворка.
 
 Модели можно скачать по этой ссылке (ввиду ограничения объема на бесплатный git lfs): https://disk.yandex.ru/d/GshqU9o6nNz7ZA
