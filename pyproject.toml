@@ -144,6 +144,8 @@ wrapt = "1.16.0"
 zipp = "3.20.2"
 pytest = "^8.3.3"
 pylint = "^3.3.1"
+kaggle = "^1.6.17"
+fvcore = "^0.1.5.post20221221"
 
 
 [tool.poetry.group.dev.dependencies]
