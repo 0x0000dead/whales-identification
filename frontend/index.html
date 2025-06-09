@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Whale ID — ML Frontend</title>
+
+    <!-- Tailwind CDN (быстро; для prod лучше postcss) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+
+  <body class="bg-slate-50 min-h-screen flex flex-col">
+    <div id="root" class="flex-1 flex flex-col"></div>
+
+    <footer class="text-center text-xs py-4 text-slate-500">
+      © 2025 Whale Vision
+    </footer>
+
+    <!-- Vite соберёт и подставит bundle -->
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

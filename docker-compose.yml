@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./whales_be_service
+      dockerfile: Dockerfile
+    container_name: whales-be
+    ports:
+      - "8000:8000"
+    networks:
+      - whale-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: whale-frontend
+    ports:
+      - "8080:80"
+    environment:
+      - VITE_BACKEND=http://backend:8000
+    depends_on:
+      - backend
+    networks:
+      - whale-net
+
+networks:
+  whale-net:
+    driver: bridge
