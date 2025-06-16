@@ -174,3 +174,6 @@ cython_debug/
 
 .DS_Store
 .venv
+
+# Model files downloaded to models/ directory
+models/

@@ -1,0 +1,14 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+-   repo: https://github.com/psf/black
+    rev: 24.4.2  # Use a recent stable version of black
+    hooks:
+    -   id: black
+        args: [--line-length=88] # Consistent with existing black config
+-   repo: https://github.com/PyCQA/flake8
+    rev: 7.1.0  # Use a recent stable version of flake8
+    hooks:
+    -   id: flake8
+        args: [--max-line-length=88, --extend-ignore=E203,W503] # Consistent with existing flake8 config
+        # Consider adding: --show-source (to show the problematic code line)

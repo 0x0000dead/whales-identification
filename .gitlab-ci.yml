@@ -1,47 +1,155 @@
-# Define the stages of the pipeline
-stages:
-  - test
-  - build
-  - deploy
-
-# Use Docker as the default image
 image: docker:latest
 
-# Define services needed for Docker in Docker
 services:
   - docker:dind
 
-# Define global variables
 variables:
   DOCKER_DRIVER: overlay2
-  IMAGE_NAME: registry.gitlab.com/$CI_PROJECT_PATH/whales_identify
+  # CI_REGISTRY_IMAGE is predefined by GitLab (e.g., registry.example.com/group/project)
+  CI_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA}
+  CI_IMAGE_NAME: ${CI_REGISTRY_IMAGE}:${CI_IMAGE_TAG}
+  CI_IMAGE_LATEST: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG}-latest
 
-# Test Stage
+stages:
+  - build_base # Build the main docker image that contains all dependencies
+  - quality_checks # Linting and testing
+  - test_integration # For running integration tests like model inference
+  - build_artifacts # Build python package
+  - publish # Publish package
+  - deploy # Deploy pages
+
+build_ci_image:
+  stage: build_base
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+  script:
+    - echo "Building CI Docker image: ${CI_IMAGE_NAME}"
+    - docker build -t "${CI_IMAGE_NAME}" . # Uses Dockerfile at root
+    - echo "Pushing CI Docker image: ${CI_IMAGE_NAME}"
+    - docker push "${CI_IMAGE_NAME}"
+    - echo "Tagging and Pushing CI Docker image as latest for the branch: ${CI_IMAGE_LATEST}"
+    - docker tag "${CI_IMAGE_NAME}" "${CI_IMAGE_LATEST}"
+    - docker push "${CI_IMAGE_LATEST}"
+
+lint:
+  stage: quality_checks
+  image: ${CI_IMAGE_NAME} # Use the image built in build_ci_image
+  needs:
+    - job: build_ci_image
+      artifacts: false
+  script:
+    - echo "Linting code..."
+    - poetry run black --check .
+    - poetry run flake8 .
+
 test:
-  stage: test
+  stage: quality_checks
+  image: ${CI_IMAGE_NAME} # Use the image built in build_ci_image
+  needs:
+    - job: build_ci_image
+      artifacts: false
   script:
-    - apk add --no-cache curl
-    - curl -sSL https://install.python-poetry.org | python3 -
-    - export PATH="$HOME/.local/bin:$PATH"
-    - poetry install
-    - poetry run pytest  # Assumes you have tests configured with pytest
+    - echo "Running tests..."
+    - poetry run pytest # Assumes pytest is a poetry dev dependency
 
-# Build Stage
-build:
-  stage: build
+integration_test_resnet_inference:
+  stage: test_integration
+  image: ${CI_IMAGE_NAME} # Use the image built in build_ci_image
+  needs:
+    - job: build_ci_image
+      artifacts: false
+  before_script:
+    # Assuming pip is available in the CI_IMAGE_NAME (python:3.10-slim should have it)
+    - pip install --upgrade pip
+    - pip install huggingface-hub # huggingface-cli is part of this
+    - echo "Installed huggingface-cli via huggingface-hub."
   script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t $IMAGE_NAME:$CI_COMMIT_REF_NAME .
-    - docker push $IMAGE_NAME:$CI_COMMIT_REF_NAME
+    - echo "Making download script executable..."
+    - chmod +x scripts/download_models.sh
+    - echo "Running download script for resnet101.pth..."
+    - ./scripts/download_models.sh # This script now downloads to models/resnet101.pth
 
-# Deploy Stage
-deploy:
+    - echo "Verifying downloaded model..."
+    - if [ ! -f models/resnet101.pth ]; then echo "Model models/resnet101.pth not found!"; exit 1; fi
+    - echo "Model models/resnet101.pth found."
+
+    - echo "Preparing model location for inference_resnet.py script..."
+    - mkdir -p research/demo-ui-mask/models
+    - cp models/resnet101.pth research/demo-ui-mask/models/resnet101.pth
+    - echo "Model copied to research/demo-ui-mask/models/resnet101.pth"
+
+    - echo "Ensuring resources directory exists for the script..."
+    - mkdir -p research/demo-ui-mask/resources # Script expects ./resources/ from its path
+
+    - echo "Running ResNet inference script from research/demo-ui-mask/ directory..."
+    # The script inference_resnet.py uses relative paths like ./models/ and ./resources/
+    - cd research/demo-ui-mask/
+    - poetry run python inference_resnet.py
+    - echo "ResNet inference script completed."
+  artifacts:
+    when: always # To help debug, save artifacts even if the job fails
+    paths:
+      - models/resnet101.pth # Save the downloaded model
+      # Add other paths here if the inference script produces logs/outputs to save
+      # e.g., - research/demo-ui-mask/output/
+    expire_in: 1 day
+
+build_python_package:
+  stage: build_artifacts
+  image: ${CI_IMAGE_NAME} # Can use the same CI image as it has poetry and project code
+  needs:
+    - job: build_ci_image # Ensures image is available, though not strictly needed if commands are self-contained with poetry
+      artifacts: false
+  script:
+    - echo "Building Python package..."
+    - poetry build
+  artifacts:
+    paths:
+      - dist/*.whl
+      - dist/*.tar.gz
+    expire_in: 1 day
+
+publish_python_package:
+  stage: publish
+  image: python:3.10-slim # Use a small image with python/pip for twine
+  needs:
+    - job: build_python_package # Depends on the artifacts from build_python_package
+      artifacts: true
+  before_script:
+    - pip install twine
+    # Setup .pypirc for GitLab Package Registry
+    - echo "[distutils]" > ~/.pypirc
+    - echo "index-servers =" >> ~/.pypirc
+    - echo "    gitlab" >> ~/.pypirc
+    - echo "[gitlab]" >> ~/.pypirc
+    - echo "repository: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi" >> ~/.pypirc
+    - echo "username: gitlab-ci-token" >> ~/.pypirc
+    - echo "password: ${CI_JOB_TOKEN}" >> ~/.pypirc
+  script:
+    - echo "Publishing Python package to GitLab Package Registry..."
+    - python -m twine upload --repository gitlab dist/*
+
+deploy_gitlab_pages:
   stage: deploy
-  only:
-    - main  # Only deploy from the main branch
+  image: alpine:latest
   script:
-    - docker pull $IMAGE_NAME:$CI_COMMIT_REF_NAME
-    - docker tag $IMAGE_NAME:$CI_COMMIT_REF_NAME $IMAGE_NAME:latest
-    - docker push $IMAGE_NAME:latest
-  environment:
-    name: production
+    - mkdir public
+    - echo "<h1>GitLab Pages for Whales Identification</h1>" > public/index.html
+    - echo "<p>Project: ${CI_PROJECT_NAME}</p>" >> public/index.html
+    - echo "<p>Branch: ${CI_COMMIT_REF_NAME}</p>" >> public/index.html
+    - |
+      if [ -f README.md ]; then
+        # Install pandoc if README.md exists and needs conversion
+        apk add --no-cache pandoc git
+        # Checkout the specific commit to ensure README.md is the correct version
+        git checkout ${CI_COMMIT_SHA} -- README.md
+        pandoc README.md -o public/README.html
+      else
+        echo "README.md not found, skipping conversion." > public/README.html
+      fi
+    - echo "Deploying to GitLab Pages..."
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH' # Only run on the default branch (e.g., main or master)
