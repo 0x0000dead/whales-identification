@@ -7,7 +7,7 @@ license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "3.10.15"
+python = "~3.10"
 absl-py = "2.1.0"
 albucore = "0.0.17"
 albumentations = "1.4.18"
@@ -154,7 +154,19 @@ matplotlib = "^3.10.0"
 
 [tool.poetry.group.dev.dependencies]
 autopep8 = "^2.3.1"
+flake8 = "^7.0.0"
+black = "^24.4.0"
+pre-commit = "^3.7.0"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ["py310"]
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = "E203,W503"
+exclude = ".git,__pycache__,docs,build,dist,.venv"
