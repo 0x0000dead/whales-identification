@@ -14,7 +14,7 @@ dependencies = [
 
 [tool.poetry]
 name = "whales-be-service"
-version = "0.0.0"
+version = "0.1.0"
 description = ""
 authors = ["Tarasov Artyom"]
 packages = [{include = "whales_be_service", from = "src"}]
