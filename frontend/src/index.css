@@ -1,0 +1,5 @@
+/* базовая стилизация; можешь оставить пустым */
+body {
+  font-family: system-ui, sans-serif;
+  margin: 0;
+}
