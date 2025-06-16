@@ -67,7 +67,7 @@ cd research/demo-ui/
 poetry run streamlit run streamlit_app.py --server.port=8501 --server.address=0.0.0.0
 ```
 
-## Для того, чтобы поднять подноценное приложение с FE и BE
+## Для того, чтобы поднять полноценное приложение с FE и BE
 Необходимо выполнить следующую команду в корне проекта
 ```bash
 docker compose up --build 
