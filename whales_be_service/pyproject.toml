@@ -2,9 +2,10 @@
 name = "whales-identification"
 version = "0.1.0"
 description = "Библиотека для идентификации морских млекопитающих"
-authors = ["Sergey Vandanov"]
+authors = ["Sergey Vandanov", "Tarasov Artem"]
 license = "MIT"
 readme = "README.md"
+packages = [{include = "whales_be_service", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "3.11.6"
