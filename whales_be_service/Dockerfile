@@ -1,30 +1,32 @@
-# -------- export-deps stage --------
-FROM python:3.11-slim AS export
+FROM python:3.11.6-slim
+
+# 1) Системные зависимости для сборки
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      build-essential \
+      libssl-dev \
+      libffi-dev \
+      python3-dev \
+ && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
-# ставим Poetry и экспортируем prod-зависимости
-RUN pip install --no-cache-dir poetry==1.8.2
+# 2) Устанавливаем Poetry
+RUN pip install --no-cache-dir poetry==1.8.5
+
+# 3) Копируем pyproject + lock и сразу ставим prod-зависимости
 COPY pyproject.toml poetry.lock ./
 RUN poetry config virtualenvs.create false \
- && poetry export --without-hashes -f requirements.txt -o requirements.txt
+ && poetry install --no-dev --no-interaction --no-ansi
 
-# -------- final app stage --------
-FROM python:3.11-slim
-WORKDIR /app
-
-ENV PYTHONUNBUFFERED=1
-
-# deps + uvicorn
-COPY --from=export /app/requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt uvicorn fastapi python-multipart
-
-# копируем исходники
+# 4) Копируем исходники
 COPY src ./src
 
-# чтобы Python нашёл whales_be_service в src/
-ENV PYTHONPATH=/app/src
+# 5) Переменные окружения
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app/src
 
 EXPOSE 8000
 
-# запускаем через python -m uvicorn
+# 6) Запуск через модуль uvicorn
 CMD ["python", "-m", "uvicorn", "whales_be_service.main:app", "--host", "0.0.0.0", "--port", "8000"]

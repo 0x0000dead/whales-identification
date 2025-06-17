@@ -7,7 +7,7 @@ license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "3.10.15"
+python = "3.11.6"
 absl-py = "2.1.0"
 albucore = "0.0.17"
 albumentations = "1.4.18"
@@ -150,6 +150,9 @@ numba = "^0.60.0"
 rembg = "^2.0.61"
 onnxruntime = "^1.20.1"
 matplotlib = "^3.10.0"
+uvicorn = "^0.34.3"
+fastapi = "^0.115.12"
+python-multipart = "^0.0.20"
 
 
 [tool.poetry.group.dev.dependencies]

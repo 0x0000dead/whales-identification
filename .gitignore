@@ -174,3 +174,4 @@ cython_debug/
 
 .DS_Store
 .venv
+frontend/node_modules
