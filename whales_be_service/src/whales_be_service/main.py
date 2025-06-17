@@ -1,10 +1,14 @@
-from fastapi import FastAPI, File, UploadFile, Response, HTTPException
-from fastapi.responses import StreamingResponse, JSONResponse
-from starlette import status
-from zipfile import ZipFile, BadZipFile
-import csv, io, uuid, random
+from pathlib import Path
 
+from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
+from zipfile import ZipFile, BadZipFile
+from pydantic import BaseModel
+import io, random, base64, yaml
+from PIL import Image, UnidentifiedImageError
+
+from .response_models import Detection
 
 app = FastAPI(title="Whales Identification API")
 
@@ -16,53 +20,71 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# --- загружаем маппинг id → человекочитаемое имя ---
+BASE_DIR = Path(__file__).parent
+with open(BASE_DIR / "config.yaml", "r") as f:
+    cfg = yaml.safe_load(f)
+ID_TO_NAME = cfg.get("id_to_name", {})
 
-def mock_single_prediction() -> dict:
-    """Возвращает предикт"""
+
+def detection_id(filename: str, img_bytes: bytes) -> dict:
+    bbox = [random.randint(0, 50) for _ in range(4)]
+    class_id = "whale"
+    prob = round(random.uniform(0.8, 1.0), 3)
+
+    img = Image.open(io.BytesIO(img_bytes)).convert("RGBA")
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    mask_b64 = base64.b64encode(buf.getvalue()).decode()
+
     return {
-        "whale_id": f"W-{random.randint(1, 999):03}",
-        "confidence": round(random.uniform(0.8, 1.0), 3),
-        "length_cm": random.randint(80, 200),
+        "image_ind": filename,
+        "bbox": bbox,
+        "class_animal": class_id,
+        "id_animal": ID_TO_NAME.get(class_id, class_id),
+        "probability": prob,
+        "mask": mask_b64
     }
 
 
-@app.post("/predict-single", summary="Фото → JSON")
+@app.post("/predict-single", response_model=Detection, summary="Фото → JSON с bbox+mask")
 async def predict_single(file: UploadFile = File(...)):
     if not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-                            detail="Только изображения.")
-
-    _ = await file.read()  # передаём в ML-модель
-    result = mock_single_prediction()
-    return JSONResponse(result)
+        raise HTTPException(415, "Только изображения.")
+    data = await file.read()
+    det = detection_id(file.filename, data)
+    return JSONResponse(content=det)
 
 
-@app.post("/predict-batch", summary="ZIP → CSV")
+@app.post("/predict-batch", summary="ZIP → JSON[]")
 async def predict_batch(archive: UploadFile = File(...)):
-    if archive.content_type not in {"application/zip", "application/x-zip-compressed"}:
-        raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-                            detail="Ожидается ZIP-архив.")
+    if archive.content_type not in ("application/zip", "application/x-zip-compressed"):
+        raise HTTPException(415, "Ожидается ZIP-архив.")
 
+    raw = await archive.read()
     try:
-        buf = io.BytesIO(await archive.read())
-        with ZipFile(buf) as zf:
-            names = [n for n in zf.namelist() if not n.endswith("/")]
+        zf = ZipFile(io.BytesIO(raw))
     except BadZipFile:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="Не удаётся распаковать архив.")
+        raise HTTPException(400, "Не удаётся распаковать архив.")
 
-    csv_buf = io.StringIO()
-    writer = csv.writer(csv_buf)
-    writer.writerow(["image", "whale_id", "confidence"])
+    results: list[dict] = []
+    for name in zf.namelist():
+        if name.endswith("/"):
+            continue
 
-    for name in names:
-        pred = mock_single_prediction()
-        writer.writerow([name, pred["whale_id"], pred["confidence"]])
+        try:
+            img_bytes = zf.read(name)
 
-    csv_buf.seek(0)
-    headers = {
-        "Content-Disposition": 'attachment; filename="predictions.csv"'
-    }
-    return StreamingResponse(iter([csv_buf.getvalue()]),
-                             media_type="text/csv",
-                             headers=headers)
+            with Image.open(io.BytesIO(img_bytes)) as img:
+                img.verify()
+
+            det = detection_id(name, img_bytes)
+            results.append(det)
+
+        except (KeyError, UnidentifiedImageError):
+            continue
+        except Exception:
+            continue
+
+    zf.close()
+    return JSONResponse(content=results)

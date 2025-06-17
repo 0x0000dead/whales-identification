@@ -174,6 +174,8 @@ cython_debug/
 
 .DS_Store
 .venv
+frontend/node_modules
+
 
 # Model files downloaded to models/ directory
-models/
+>>>>>>> 0731abba639657aa27e11dfedc24a0f3cbd77d00
