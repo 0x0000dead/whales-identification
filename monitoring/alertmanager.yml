@@ -1,0 +1,26 @@
+global:
+  smtp_smarthost: 'localhost:587'
+  smtp_from: 'alertmanager@whales-api.local'
+
+# Шаблоны для маршрутизации
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'telegram-webhook'
+
+# Получатели уведомлений
+receivers:
+  - name: 'telegram-webhook'
+    webhook_configs:
+      - url: 'http://telegram-notifier:8080/webhook'
+        send_resolved: true
+
+# Подавление дублирующихся алертов
+inhibit_rules:
+  - source_matchers:
+      - severity="critical"
+    target_matchers:
+      - severity="warning"
+    equal: ['alertname', 'model'] 

@@ -1,0 +1,153 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Whales Models Performance",
+    "tags": ["whales", "ml", "models"],
+    "style": "dark",
+    "timezone": "browser",
+    "refresh": "10s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Время инференса по моделям",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "targets": [
+          {
+            "expr": "whales_api_inference_time_seconds",
+            "legendFormat": "{{model}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "min": 0,
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 1},
+                {"color": "red", "value": 5}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Количество запросов в секунду",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "targets": [
+          {
+            "expr": "rate(whales_api_requests_total[5m])",
+            "legendFormat": "{{model}}"
+          }
+        ],
+        "yAxes": [
+          {"label": "RPS", "min": 0},
+          {"show": false}
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Коэффициент ошибок",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 8},
+        "targets": [
+          {
+            "expr": "whales_api_error_rate",
+            "legendFormat": "{{model}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percentunit",
+            "min": 0,
+            "max": 1,
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 0.05},
+                {"color": "red", "value": 0.1}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Статус загрузки моделей",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 8},
+        "targets": [
+          {
+            "expr": "whales_api_model_loaded",
+            "legendFormat": "{{model}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {"options": {"0": {"text": "НЕ ЗАГРУЖЕНА"}}, "type": "value"},
+              {"options": {"1": {"text": "ЗАГРУЖЕНА"}}, "type": "value"}
+            ],
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "green", "value": 1}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Использование системных ресурсов",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 8},
+        "targets": [
+          {
+            "expr": "whales_api_cpu_percent",
+            "legendFormat": "CPU %"
+          },
+          {
+            "expr": "whales_api_memory_percent",
+            "legendFormat": "Memory %"
+          }
+        ],
+        "yAxes": [
+          {"label": "%", "min": 0, "max": 100},
+          {"show": false}
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Общее количество запросов",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 16},
+        "targets": [
+          {
+            "expr": "whales_api_requests_total",
+            "legendFormat": "Всего - {{model}}"
+          },
+          {
+            "expr": "whales_api_requests_successful",
+            "legendFormat": "Успешных - {{model}}"
+          },
+          {
+            "expr": "whales_api_requests_errors",
+            "legendFormat": "Ошибок - {{model}}"
+          }
+        ],
+        "yAxes": [
+          {"label": "Количество", "min": 0},
+          {"show": false}
+        ]
+      }
+    ]
+  }
+} 

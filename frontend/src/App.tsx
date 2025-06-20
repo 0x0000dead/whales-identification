@@ -1,15 +1,10 @@
-// src/App.tsx
 import { useState } from 'react';
-import { predictSingle, predictBatch, Detection } from './api';
-import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer
-} from 'recharts';
+import { predictSingle, predictBatch } from './api';
 
 export default function App() {
   const [singleFile, setSingleFile] = useState<File | null>(null);
   const [batchFile,  setBatchFile]  = useState<File | null>(null);
-  const [result, setResult]         = useState<Detection | null>(null);
-  const [batchResults, setBatchResults] = useState<Detection[] | null>(null);
+  const [result, setResult]         = useState<unknown>(null);
   const [busy, setBusy]             = useState(false);
   const [error, setError]           = useState<string | null>(null);
 
@@ -27,63 +22,55 @@ export default function App() {
   const handleBatch = async () => {
     if (!batchFile) return;
     setBusy(true); setError(null);
-    try {
-      const data = await predictBatch(batchFile);
-      setBatchResults(data);
-    } catch (e: any) {
-      setError(e.message);
-    } finally { setBusy(false); }
+    try { await predictBatch(batchFile); }
+    catch (e: any) { setError(e.message); }
+    finally { setBusy(false); }
   };
-
-  // сгруппировать по id_animal
-  const chartData = batchResults
-    ? Object.entries(
-        batchResults.reduce<Record<string,number>>((acc, d) => {
-          acc[d.id_animal] = (acc[d.id_animal]||0) + 1;
-          return acc;
-        }, {})
-      ).map(([name, count]) => ({ name, count }))
-    : [];
 
   return (
     <main className="mx-auto max-w-xl p-6 font-sans">
-      <h1 className="text-2xl font-bold mb-6">Whale ID Frontend</h1>
+      <h1 className="text-2xl font-bold mb-6">Whale ID frontend</h1>
 
-      {/* Single */}
+      {/* ---- Single image ---- */}
       <section className="mb-8">
-        <h2 className="font-semibold mb-2">1️⃣ Single</h2>
-        <input type="file" accept="image/*" onChange={e=>setSingleFile(e.target.files?.[0]||null)} />
-        <button onClick={handleSingle} disabled={!singleFile||busy}>
-          {busy?'…':'Send'}
+        <h2 className="font-semibold mb-2">1️⃣ Предикт по одному фото</h2>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={e => setSingleFile(e.target.files?.[0] ?? null)}
+          className="mb-2"
+        />
+        <button
+          onClick={handleSingle}
+          disabled={!singleFile || busy}
+          className="px-4 py-2 rounded bg-blue-600 text-white disabled:opacity-50"
+        >
+          {busy ? 'Ждём...' : 'Отправить'}
         </button>
+
         {result && (
-          <pre className="mt-4 p-3 bg-gray-100 rounded">
+          <pre className="mt-4 p-3 bg-gray-100 rounded overflow-auto">
             {JSON.stringify(result, null, 2)}
           </pre>
         )}
       </section>
 
-      {/* Batch + Dashboard */}
+      {/* ---- Batch ZIP ---- */}
       <section>
-        <h2 className="font-semibold mb-2">2️⃣ Batch + Dashboard</h2>
-        <input type="file" accept=".zip" onChange={e=>setBatchFile(e.target.files?.[0]||null)} />
-        <button onClick={handleBatch} disabled={!batchFile||busy}>
-          {busy?'…':'Run Batch'}
+        <h2 className="font-semibold mb-2">2️⃣ ZIP → CSV</h2>
+        <input
+          type="file"
+          accept=".zip"
+          onChange={e => setBatchFile(e.target.files?.[0] ?? null)}
+          className="mb-2"
+        />
+        <button
+          onClick={handleBatch}
+          disabled={!batchFile || busy}
+          className="px-4 py-2 rounded bg-green-600 text-white disabled:opacity-50"
+        >
+          {busy ? 'Ждём...' : 'Скачать CSV'}
         </button>
-
-        {batchResults && (
-          <div className="mt-6">
-            <h3 className="font-medium mb-2">Whale Types Distribution</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData}>
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="count" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        )}
       </section>
 
       {error && <p className="mt-4 text-red-600">{error}</p>}

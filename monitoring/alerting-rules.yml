@@ -1,0 +1,112 @@
+groups:
+  - name: whales_models_alerts
+    rules:
+      # Высокое время инференса
+      - alert: HighInferenceTime
+        expr: whales_api_inference_time_seconds > 5
+        for: 30s
+        labels:
+          severity: warning
+          service: whales-api
+        annotations:
+          summary: "Высокое время инференса для модели {{ $labels.model }}"
+          description: "Модель {{ $labels.model }} имеет время инференса {{ $value }} секунд, что превышает пороговое значение 5 секунд"
+
+      # Критически высокое время инференса
+      - alert: CriticalInferenceTime
+        expr: whales_api_inference_time_seconds > 10
+        for: 15s
+        labels:
+          severity: critical
+          service: whales-api
+        annotations:
+          summary: "КРИТИЧНО: Очень высокое время инференса для модели {{ $labels.model }}"
+          description: "Модель {{ $labels.model }} имеет критически высокое время инференса {{ $value }} секунд"
+
+      # Высокий коэффициент ошибок
+      - alert: HighErrorRate
+        expr: whales_api_error_rate > 0.1
+        for: 1m
+        labels:
+          severity: warning
+          service: whales-api
+        annotations:
+          summary: "Высокий коэффициент ошибок для модели {{ $labels.model }}"
+          description: "Модель {{ $labels.model }} имеет коэффициент ошибок {{ $value | humanizePercentage }}, что превышает 10%"
+
+      # Критически высокий коэффициент ошибок
+      - alert: CriticalErrorRate
+        expr: whales_api_error_rate > 0.2
+        for: 30s
+        labels:
+          severity: critical
+          service: whales-api
+        annotations:
+          summary: "КРИТИЧНО: Очень высокий коэффициент ошибок для модели {{ $labels.model }}"
+          description: "Модель {{ $labels.model }} имеет критически высокий коэффициент ошибок {{ $value | humanizePercentage }}"
+
+      # Модель не загружена
+      - alert: ModelNotLoaded
+        expr: whales_api_model_loaded == 0
+        for: 2m
+        labels:
+          severity: warning
+          service: whales-api
+        annotations:
+          summary: "Модель {{ $labels.model }} не загружена"
+          description: "Модель {{ $labels.model }} не загружена в память более 2 минут"
+
+      # Высокое использование CPU
+      - alert: HighCPUUsage
+        expr: whales_api_cpu_percent > 80
+        for: 3m
+        labels:
+          severity: warning
+          service: whales-api
+        annotations:
+          summary: "Высокое использование CPU"
+          description: "Использование CPU составляет {{ $value }}%, что превышает 80%"
+
+      # Высокое использование памяти
+      - alert: HighMemoryUsage
+        expr: whales_api_memory_percent > 85
+        for: 3m
+        labels:
+          severity: warning
+          service: whales-api
+        annotations:
+          summary: "Высокое использование памяти"
+          description: "Использование памяти составляет {{ $value }}%, что превышает 85%"
+
+      # Критическое использование памяти
+      - alert: CriticalMemoryUsage
+        expr: whales_api_memory_percent > 95
+        for: 1m
+        labels:
+          severity: critical
+          service: whales-api
+        annotations:
+          summary: "КРИТИЧНО: Очень высокое использование памяти"
+          description: "Использование памяти составляет {{ $value }}%, система может быть нестабильной"
+
+      # Отсутствие запросов к модели
+      - alert: NoRequestsToModel
+        expr: increase(whales_api_requests_total[10m]) == 0
+        for: 10m
+        labels:
+          severity: info
+          service: whales-api
+        annotations:
+          summary: "Нет запросов к модели {{ $labels.model }}"
+          description: "К модели {{ $labels.model }} не поступало запросов в течение 10 минут"
+
+      # API недоступен
+      - alert: APIDown
+        expr: up{job=~"whales-api.*"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: whales-api
+        annotations:
+          summary: "API сервис {{ $labels.job }} недоступен"
+          description: "API сервис {{ $labels.job }} недоступен более 1 минуты" 

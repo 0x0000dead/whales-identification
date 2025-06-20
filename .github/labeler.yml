@@ -1,0 +1,68 @@
+# Configuration for GitHub Labeler
+# https://github.com/actions/labeler
+
+# API и Backend
+api:
+  - changed-files:
+    - any-glob-to-any-file: 'whales_be_service/**/*'
+
+# Docker и инфраструктура  
+docker:
+  - changed-files:
+    - any-glob-to-any-file: '**/Dockerfile*'
+    - any-glob-to-any-file: 'docker-compose*.yml'
+
+# Конфигурация
+config:
+  - changed-files:
+    - any-glob-to-any-file: '**/*config*.py'
+    - any-glob-to-any-file: 'nginx.conf'
+
+# Скрипты
+scripts:
+  - changed-files:
+    - any-glob-to-any-file: 'scripts/**/*'
+
+# Мониторинг
+monitoring:
+  - changed-files:
+    - any-glob-to-any-file: 'monitoring/**/*'
+
+# Документация
+documentation:
+  - changed-files:
+    - any-glob-to-any-file: '**/*.md'
+
+# ML и исследования
+research:
+  - changed-files:
+    - any-glob-to-any-file: 'research/**/*'
+    - any-glob-to-any-file: 'comparison_research/**/*'
+
+# ML core библиотека
+mlcore:
+  - changed-files:
+    - any-glob-to-any-file: 'whales_identify/**/*'
+
+# Зависимости
+dependencies:
+  - changed-files:
+    - any-glob-to-any-file: 'requirements*.txt'
+    - any-glob-to-any-file: 'pyproject.toml'
+    - any-glob-to-any-file: 'poetry.lock'
+
+# Тесты
+tests:
+  - changed-files:
+    - any-glob-to-any-file: 'tests/**/*'
+    - any-glob-to-any-file: '**/*test*.py'
+
+# Frontend
+frontend:
+  - changed-files:
+    - any-glob-to-any-file: 'frontend/**/*'
+
+# CI/CD
+ci:
+  - changed-files:
+    - any-glob-to-any-file: '.github/**/*'

@@ -132,3 +132,21 @@ wcwidth==0.2.13
 Werkzeug==3.0.4
 wrapt==1.16.0
 zipp==3.20.2
+pytest==8.3.3
+pylint==3.3.1
+kaggle==1.6.17
+fvcore==0.1.5.post20221221
+llvmlite==0.43.0
+numba==0.60.0
+rembg==2.0.61
+onnxruntime==1.20.1
+matplotlib==3.10.0
+
+# API dependencies
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# Benchmark dependencies
+aiohttp==3.9.0
+seaborn==0.13.0
