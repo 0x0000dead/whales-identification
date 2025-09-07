@@ -8,7 +8,7 @@ from pydantic import BaseModel
 import io, random, base64, yaml
 from PIL import Image, UnidentifiedImageError
 
-from .response_models import Detection
+from .response_models import Detection, generate_base64_mask_with_removed_background
 
 app = FastAPI(title="Whales Identification API")
 
@@ -29,13 +29,14 @@ ID_TO_NAME = cfg.get("id_to_name", {})
 
 def detection_id(filename: str, img_bytes: bytes) -> dict:
     bbox = [random.randint(0, 50) for _ in range(4)]
-    class_id = "whale"
+    class_id = "cadddb1636b9"
     prob = round(random.uniform(0.8, 1.0), 3)
 
     img = Image.open(io.BytesIO(img_bytes)).convert("RGBA")
     buf = io.BytesIO()
     img.save(buf, format="PNG")
-    mask_b64 = base64.b64encode(buf.getvalue()).decode()
+    
+    mask_b64 = generate_base64_mask_with_removed_background(img_bytes)
 
     return {
         "image_ind": filename,
