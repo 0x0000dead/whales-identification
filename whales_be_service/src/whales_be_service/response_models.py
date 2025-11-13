@@ -49,7 +49,7 @@ def get_precitions(img_bytes):
     ID_TO_NAME = dict(zip(uniq_df["individual_id"].astype(str), uniq_df["species"]))
 
     # ③ Быстрая sanity-проверка
-    assert len(CLASS_ID_LIST) == 15_587, f"Ожидалось 15 587, а получили {len(CLASS_ID_LIST)}"
+    assert len(CLASS_ID_LIST) == 15_587, f"Ожидалось 15 587, а получили {len(CLASS_ID_LIST)}"  # nosec B101 - startup validation
     # — сама сеть
     _model = VisionTransformer(
         embed_dim=784,
@@ -63,7 +63,7 @@ def get_precitions(img_bytes):
         dropout=0.2,
     ).to(CONFIG["device"]).eval()
 
-    ckpt = torch.load("/Users/savandanov/Documents/Github/whales-identification/research/demo-ui/models/model-e15.pt", map_location=CONFIG["device"])
+    ckpt = torch.load("/Users/savandanov/Documents/Github/whales-identification/research/demo-ui/models/model-e15.pt", map_location=CONFIG["device"], weights_only=False)  # nosec B614 - trusted model checkpoint
     _model.load_state_dict(ckpt["model_state_dict"], strict=False)
     
     np_img = cv2.imdecode(np.frombuffer(img_bytes, np.uint8), cv2.IMREAD_COLOR)

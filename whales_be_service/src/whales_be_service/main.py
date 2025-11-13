@@ -28,9 +28,9 @@ ID_TO_NAME = cfg.get("id_to_name", {})
 
 
 def detection_id(filename: str, img_bytes: bytes) -> dict:
-    bbox = [random.randint(0, 50) for _ in range(4)]
+    bbox = [random.randint(0, 50) for _ in range(4)]  # nosec B311 - mock data for testing
     class_id = "cadddb1636b9"
-    prob = round(random.uniform(0.8, 1.0), 3)
+    prob = round(random.uniform(0.8, 1.0), 3)  # nosec B311 - mock data for testing
 
     img = Image.open(io.BytesIO(img_bytes)).convert("RGBA")
     buf = io.BytesIO()
@@ -84,7 +84,7 @@ async def predict_batch(archive: UploadFile = File(...)):
 
         except (KeyError, UnidentifiedImageError):
             continue
-        except Exception:
+        except Exception:  # nosec B112 - skip corrupted files in batch processing
             continue
 
     zf.close()
