@@ -31,9 +31,7 @@ ID_TO_NAME = cfg.get("id_to_name", {})
 
 
 def detection_id(filename: str, img_bytes: bytes) -> dict:
-    bbox = [
-        random.randint(0, 50) for _ in range(4)
-    ]  # nosec B311 - mock data for testing
+    bbox = [random.randint(0, 50) for _ in range(4)]  # nosec B311
     class_id = "cadddb1636b9"
     prob = round(random.uniform(0.8, 1.0), 3)  # nosec B311 - mock data for testing
 

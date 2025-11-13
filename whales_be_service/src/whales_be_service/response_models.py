@@ -59,9 +59,9 @@ def get_precitions(img_bytes):
 
     # ③ Быстрая sanity-проверка
     # nosec B101 - startup validation
-    assert len(CLASS_ID_LIST) == 15_587, (
-        f"Ожидалось 15 587, а получили {len(CLASS_ID_LIST)}"
-    )
+    assert (
+        len(CLASS_ID_LIST) == 15_587
+    ), f"Ожидалось 15 587, а получили {len(CLASS_ID_LIST)}"
     # — сама сеть
     _model = (
         VisionTransformer(
@@ -79,12 +79,11 @@ def get_precitions(img_bytes):
         .eval()
     )
 
-    # nosec B614 - trusted model checkpoint
     model_path = (
         "/Users/savandanov/Documents/Github/whales-identification/"
         "research/demo-ui/models/model-e15.pt"
     )
-    ckpt = torch.load(
+    ckpt = torch.load(  # nosec B614 - trusted model checkpoint
         model_path,
         map_location=CONFIG["device"],
         weights_only=False,
