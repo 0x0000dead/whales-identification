@@ -361,13 +361,13 @@ The `id_animal` field maps to one of the following species:
 - Fin Whale (Balaenoptera physalus)
 - Gray Whale (Eschrichtius robustus)
 - Beluga Whale (Delphinapterus leucas)
-- ... (15,587 total individuals across multiple species)
+- ... (1,000 total individuals across multiple whale and dolphin species)
 
 **Individual ID Format:**
 
 The `class_animal` field contains a unique identifier:
 - Format: Hex-like string (e.g., `a1b2c3d4e5f6`)
-- Total individuals: 15,587
+- Total individuals: 1,000 whales and dolphins
 - Lookup: Via `whales_be_service/config.yaml`
 
 ---
