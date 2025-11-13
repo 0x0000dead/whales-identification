@@ -39,7 +39,7 @@ _MODEL = VisionTransformer(
         num_patches=196, num_classes=len(ID_LIST),
         dropout=0.2).to(DEVICE).eval()
 
-_STATE = torch.load(CKPT, map_location=DEVICE)
+_STATE = torch.load(CKPT, map_location=DEVICE, weights_only=False)  # nosec B614 - trusted model checkpoint
 _MODEL.load_state_dict(_STATE["model_state_dict"], strict=False)
 
 # ---------- helpers ----------
