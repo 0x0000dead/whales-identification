@@ -161,6 +161,15 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Free up disk space
+        run: |
+          echo "Disk space before cleanup:"
+          df -h
+          docker system prune -af --volumes
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost
+          echo "Disk space after cleanup:"
+          df -h
+
       - name: Cache Docker layers
         uses: actions/cache@v4
         with:
