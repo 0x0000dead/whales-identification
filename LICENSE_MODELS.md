@@ -205,7 +205,7 @@ For inquiries regarding commercial use, custom licensing, or partnerships:
 
 - **GitHub Issues:** https://github.com/0x0000dead/whales-identification/issues
 - **Data Provider (HappyWhale):** support@happywhale.com
-- **Data Provider (Ministry):** [Appropriate ministry contact]
+- **Data Provider (Ministry):** minprirody@mnr.gov.ru, +7 (499) 657-57-00
 
 ---
 
