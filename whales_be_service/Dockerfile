@@ -7,7 +7,7 @@ RUN apt-get update \
       libssl-dev \
       libffi-dev \
       python3-dev \
-      libgl1-mesa-glx \
+      libgl1 \
       libglib2.0-0 \
       libsm6 \
       libxext6 \
@@ -20,8 +20,8 @@ WORKDIR /app
 # 2) Устанавливаем Poetry
 RUN pip install --no-cache-dir poetry==1.8.5
 
-# 3) Копируем pyproject + lock и сразу ставим prod-зависимости
-COPY pyproject.toml poetry.lock ./
+# 3) Копируем pyproject + lock + README и сразу ставим prod-зависимости
+COPY pyproject.toml poetry.lock README.md ./
 RUN poetry config virtualenvs.create false \
  && poetry install --no-dev --no-interaction --no-ansi
 
