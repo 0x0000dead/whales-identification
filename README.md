@@ -1,9 +1,8 @@
 # whales-identification
 
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
-![Python](https://img.shields.io/badge/python-3.11.6-blue.svg)
+![Python](https://img.shields.io/badge/python-3.11-blue.svg)
 ![CI/CD](https://github.com/0x0000dead/whales-identification/actions/workflows/ci.yml/badge.svg)
-![Docs](https://github.com/0x0000dead/whales-identification/actions/workflows/deploy-docs.yml/badge.svg)
 
 Библиотека для идентификации морских млекопитающих со снимков аэрофотосъемки
 
