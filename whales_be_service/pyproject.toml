@@ -2,7 +2,12 @@
 name = "whales-identification"
 version = "0.1.0"
 description = "Библиотека для идентификации морских млекопитающих"
-authors = ["Sergey Vandanov", "Tarasov Artem"]
+authors = [
+    "Baltsat Konstantin",
+    "Tarasov Artem",
+    "Vandanov Sergey",
+    "Serov Alexandr"
+]
 license = "MIT"
 readme = "README.md"
 packages = [{include = "whales_be_service", from = "src"}]
