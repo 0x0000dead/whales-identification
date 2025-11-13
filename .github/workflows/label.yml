@@ -6,7 +6,7 @@
 # https://github.com/actions/labeler
 
 name: Labeler
-on: [pull_request_target]
+on: [pull_request]
 
 jobs:
   label:
@@ -19,9 +19,6 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      with:
-        ref: ${{ github.event.pull_request.head.ref }}
-        repository: ${{ github.event.pull_request.head.repo.full_name }}
 
     - uses: actions/labeler@v4
       with:
