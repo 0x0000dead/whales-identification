@@ -136,7 +136,6 @@ docker compose up --build
 
 - **Issues:** [Report a bug](https://github.com/0x0000dead/whales-identification/issues)
 - **Discussions:** [Ask a question](https://github.com/0x0000dead/whales-identification/discussions)
-- **Email:** konstantin.baltsat@example.com
 
 ---
 

@@ -592,7 +592,6 @@ The model predicts **one whale per image**. For multiple whales:
 
 - **GitHub Issues:** [Report a bug](https://github.com/0x0000dead/whales-identification/issues)
 - **GitHub Discussions:** [Ask a question](https://github.com/0x0000dead/whales-identification/discussions)
-- **Email:** konstantin.baltsat@example.com
 
 ### Before Asking
 

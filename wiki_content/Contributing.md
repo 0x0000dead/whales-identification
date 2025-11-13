@@ -697,7 +697,6 @@ git commit -m "chore: add package_name dependency"
 
 - **GitHub Issues:** Bug reports, feature requests
 - **GitHub Discussions:** Questions, ideas
-- **Email:** konstantin.baltsat@example.com
 
 ### Getting Help
 

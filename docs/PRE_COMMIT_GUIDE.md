@@ -666,7 +666,7 @@ git commit -m "fix: resolve libGL dependency in Docker (fixes #123)"
 
 If you encounter issues with pre-commit hooks or have suggestions:
 1. Open an issue: https://github.com/0x0000dead/whales-identification/issues
-2. Contact: Baltsat Konstantin (konstantin.baltsat@example.com)
+2. Check GitHub Discussions: https://github.com/0x0000dead/whales-identification/discussions
 
 ---
 

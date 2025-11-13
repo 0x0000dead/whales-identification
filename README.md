@@ -278,7 +278,7 @@ kill -9 <PID>
 Для получения коммерческих прав свяжитесь с:
 - **HappyWhale:** support@happywhale.com
 - **Минприроды РФ:** [Через официальные каналы]
-- **Команда проекта:** konstantin.baltsat@example.com
+- **Команда:** Baltsat K.I., Tarasov A.A., Vandanov S.A., Serov A.I.
 
 ---
 
