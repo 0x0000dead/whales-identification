@@ -18,6 +18,8 @@ System architecture and technical design of the Whales Identification project.
 
 ## System Overview
 
+**Project Name:** Whales Identification (EcoMarineAI)
+
 ### High-Level Architecture
 
 ```
@@ -46,7 +48,7 @@ System architecture and technical design of the Whales Identification project.
 ├───────────────────────────────────────────────────────────────────┤
 │  ┌──────────────────┐  ┌──────────────────┐  ┌────────────────┐ │
 │  │  Vision Trans-   │  │  Background      │  │  Config        │ │
-│  │  former Model    │  │  Removal (rembg) │  │  (15,587 IDs)  │ │
+│  │  former Model    │  │  Removal (rembg) │  │  (1,000 IDs)   │ │
 │  └──────────────────┘  └──────────────────┘  └────────────────┘ │
 └───────────────────────────────────────────────────────────────────┘
                                   │
@@ -56,7 +58,7 @@ System architecture and technical design of the Whales Identification project.
 │                      Storage Layer                                 │
 ├────────────────────────────────────────────────────────────────────┤
 │  models/model-e15.pt  │  whales_be_service/config.yaml           │
-│  (2.1 GB checkpoint)  │  (ID → Species mapping)                   │
+│  (2.1 GB checkpoint)  │  (ID → Species mapping, 1,000 whales)    │
 └────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -121,7 +123,7 @@ whales_be_service/
 │   ├── routers.py               # API route definitions
 │   ├── response_models.py       # Pydantic models + inference logic
 │   ├── whale_infer.py           # Model loading and inference
-│   └── config.yaml              # 15,587 whale ID → species
+│   └── config.yaml              # 1,000 whale ID → species
 ├── tests/
 │   └── api/
 │       └── test_post_endpoints.py  # Integration tests
@@ -239,7 +241,7 @@ whales_identify/
 
 ```python
 class HappyWhaleModel(nn.Module):
-    def __init__(self, backbone: str, num_classes: int, embedding_size: int = 512):
+    def __init__(self, backbone: str, num_classes: int = 1000, embedding_size: int = 512):
         super().__init__()
 
         # 1. Backbone (Vision Transformer or CNN)
@@ -251,10 +253,10 @@ class HappyWhaleModel(nn.Module):
         # 3. Embedding layer
         self.fc_embedding = nn.Linear(self.backbone.num_features, embedding_size)
 
-        # 4. ArcFace head (metric learning)
+        # 4. ArcFace head (metric learning) - 1,000 whales and dolphins
         self.arcface = ArcMarginProduct(
             in_features=embedding_size,
-            out_features=num_classes,
+            out_features=num_classes,  # 1,000 individuals
             s=30.0,  # Scale
             m=0.50   # Margin
         )
@@ -355,7 +357,7 @@ class ArcMarginProduct(nn.Module):
 
 7. Model inference
    ├─ Backbone → embeddings (512-dim)
-   ├─ ArcFace → logits (15,587-dim)
+   ├─ ArcFace → logits (1,000-dim)
    └─ Softmax → probabilities
    └─▶ PyTorch model
 
@@ -426,7 +428,7 @@ class ArcMarginProduct(nn.Module):
    ├─ Backbone: timm.create_model("vit_large_patch32_224")
    ├─ Pretrained: ImageNet weights
    ├─ GeM pooling
-   └─ ArcFace head (15,587 classes)
+   └─ ArcFace head (1,000 classes)
 
 4. Training Loop (15 epochs)
    ├─ Optimizer: AdamW (lr=1e-4, weight_decay=1e-4)

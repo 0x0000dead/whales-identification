@@ -285,7 +285,7 @@ dataset = WhaleDataset(
 # Initialize model
 model = HappyWhaleModel(
     backbone="efficientnet_b0",
-    num_classes=15587,
+    num_classes=1000,  # 1,000 individual whales and dolphins
     embedding_size=512
 )
 

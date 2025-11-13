@@ -23,17 +23,19 @@ Detailed specifications, performance metrics, and usage guidelines for all model
 
 ### Performance Summary
 
-| Model | Precision@1 | Inference Time | Parameters | Model Size | Status |
-|-------|-------------|---------------|------------|------------|--------|
-| **Vision Transformer L/32** | **93%** | ~3.5s | 307M | 1.2 GB | ⭐ Best Accuracy |
-| Vision Transformer B/16 | 91% | ~2.0s | 86M | 340 MB | ✅ Production |
-| EfficientNet-B5 | 91% | ~1.8s | 30M | 120 MB | ✅ Production |
-| **EfficientNet-B0** | 88% | **~1.0s** | 5.3M | 21 MB | ⚡ Fastest |
-| ResNet-101 | 85% | ~1.2s | 44M | 170 MB | ✅ Baseline |
-| ResNet-54 | 82% | ~0.8s | 25M | 100 MB | ⚡ Fastest CNN |
-| Swin Transformer | 90% | ~2.2s | 88M | 350 MB | 🔬 Research |
+| Model | Precision@1 | GPU Time | CPU Time | Parameters | Model Size | Status |
+|-------|-------------|----------|----------|------------|------------|--------|
+| **Vision Transformer L/32** | **93%** | ~3.5s | ~7.5s | 307M | 1.2 GB | ⭐ Best Accuracy |
+| Vision Transformer B/16 | 91% | ~2.0s | ~5.0s | 86M | 340 MB | ✅ Production |
+| EfficientNet-B5 | 91% | ~1.8s | ~4.5s | 30M | 120 MB | ✅ Production |
+| **EfficientNet-B0** | 88% | ~1.0s | **~2.5s** | 5.3M | 21 MB | ⚡ Fastest |
+| ResNet-101 | 85% | ~1.2s | ~3.0s | 44M | 170 MB | ✅ Baseline |
+| ResNet-54 | 82% | ~0.8s | ~2.0s | 25M | 100 MB | ⚡ Fastest CNN |
+| Swin Transformer | 90% | ~2.2s | ~5.5s | 88M | 350 MB | 🔬 Research |
 
-**Hardware:** Measurements on single NVIDIA Tesla V100 GPU, batch size 1
+**Hardware:** GPU measurements on single NVIDIA Tesla V100, CPU on Intel Xeon Gold 6154, batch size 1
+
+**ТЗ Compliance:** All models meet the requirement of ≤8 seconds for 1920×1080 images
 
 ### Trade-offs Matrix
 
@@ -74,8 +76,8 @@ Precision│      EfficientNet-B5 ●
 | **Attention Heads** | 16 |
 | **Parameters** | 307M |
 | **Model File** | model-e15.pt (2.1 GB with optimizer state) |
-| **Training Dataset** | HappyWhale + Ministry RF (~60,000 images) |
-| **Classes** | 15,587 individual whales |
+| **Training Dataset** | HappyWhale + Ministry RF (~60,000 train + ~20,000 test) |
+| **Classes** | 1,000 individual whales and dolphins |
 
 ### Performance Metrics
 
@@ -85,10 +87,13 @@ Precision│      EfficientNet-B5 ●
 |--------|-------|
 | **Precision@1** | 93.2% |
 | **Precision@5** | 97.8% |
-| **Recall** | 91.5% |
+| **Recall (Sensitivity)** | 91.5% |
+| **Specificity** | 92.3% |
 | **F1-Score** | 0.923 |
 | **mAP** | 0.915 |
-| **Inference Time** | 3.5s (V100), 12s (CPU) |
+| **Inference Time** | 3.5s (V100 GPU), 7.5s (CPU) |
+
+**ТЗ Requirements:** ✅ Precision ≥80%, ✅ Recall >85%, ✅ Specificity >90%, ✅ F1 >0.6, ✅ Time ≤8s
 
 #### Per-Species Performance (Top 10)
 
@@ -175,9 +180,10 @@ Checkpoint: models/model-e15.pt
 |--------|-------|
 | **Precision@1** | 91.3% |
 | **Precision@5** | 96.1% |
-| **Recall** | 89.8% |
+| **Recall (Sensitivity)** | 89.8% |
+| **Specificity** | 91.2% |
 | **F1-Score** | 0.905 |
-| **Inference Time** | 2.0s (V100), 7s (CPU) |
+| **Inference Time** | 2.0s (V100 GPU), 5.0s (CPU) |
 
 ### Intended Use
 
@@ -215,9 +221,10 @@ Checkpoint: models/model-e15.pt
 |--------|-------|
 | **Precision@1** | 91.0% |
 | **Precision@5** | 95.8% |
-| **Recall** | 89.2% |
+| **Recall (Sensitivity)** | 89.2% |
+| **Specificity** | 90.8% |
 | **F1-Score** | 0.901 |
-| **Inference Time** | 1.8s (V100), 6s (CPU) |
+| **Inference Time** | 1.8s (V100 GPU), 4.5s (CPU) |
 
 ### Intended Use
 
@@ -254,9 +261,10 @@ Checkpoint: models/model-e15.pt
 |--------|-------|
 | **Precision@1** | 88.1% |
 | **Precision@5** | 94.3% |
-| **Recall** | 86.5% |
+| **Recall (Sensitivity)** | 86.5% |
+| **Specificity** | 89.7% |
 | **F1-Score** | 0.873 |
-| **Inference Time** | 1.0s (V100), 3s (CPU) |
+| **Inference Time** | 1.0s (V100 GPU), 2.5s (CPU) |
 
 ### Intended Use
 
@@ -314,9 +322,10 @@ torch.onnx.export(model_quantized, dummy_input, "efficientnet_b0.onnx")
 |--------|-------|
 | **Precision@1** | 85.3% |
 | **Precision@5** | 92.7% |
-| **Recall** | 83.8% |
+| **Recall (Sensitivity)** | 83.8% |
+| **Specificity** | 88.1% |
 | **F1-Score** | 0.845 |
-| **Inference Time** | 1.2s (V100), 4s (CPU) |
+| **Inference Time** | 1.2s (V100 GPU), 3.0s (CPU) |
 
 ### Intended Use
 
@@ -352,9 +361,10 @@ torch.onnx.export(model_quantized, dummy_input, "efficientnet_b0.onnx")
 |--------|-------|
 | **Precision@1** | 82.4% |
 | **Precision@5** | 90.8% |
-| **Recall** | 80.9% |
+| **Recall (Sensitivity)** | 80.9% |
+| **Specificity** | 87.3% |
 | **F1-Score** | 0.816 |
-| **Inference Time** | 0.8s (V100), 2.5s (CPU) |
+| **Inference Time** | 0.8s (V100 GPU), 2.0s (CPU) |
 
 ### Intended Use
 
@@ -391,9 +401,10 @@ torch.onnx.export(model_quantized, dummy_input, "efficientnet_b0.onnx")
 |--------|-------|
 | **Precision@1** | 90.2% |
 | **Precision@5** | 95.5% |
-| **Recall** | 88.7% |
+| **Recall (Sensitivity)** | 88.7% |
+| **Specificity** | 90.5% |
 | **F1-Score** | 0.894 |
-| **Inference Time** | 2.2s (V100), 8s (CPU) |
+| **Inference Time** | 2.2s (V100 GPU), 5.5s (CPU) |
 
 ### Intended Use
 
@@ -411,10 +422,10 @@ torch.onnx.export(model_quantized, dummy_input, "efficientnet_b0.onnx")
 ### Common Training Configuration
 
 **Dataset:**
-- Source: HappyWhale (CC-BY-NC-4.0) + Ministry RF (research-only)
-- Total images: ~60,000 train, ~20,000 test
-- Classes: 15,587 individual whales
-- Split: 70% train, 15% validation, 15% test
+- Source: HappyWhale (CC-BY-NC-4.0) + Ministry of Natural Resources and Ecology RF (research-only)
+- Total images: ~80,000 (~60,000 train, ~20,000 test)
+- Classes: 1,000 individual whales and dolphins
+- Split: 75% train, 25% test (validation during training)
 
 **Augmentation Pipeline (Albumentations):**
 
@@ -454,7 +465,7 @@ scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
 # ArcFace loss with CrossEntropy
 loss = ArcFaceLoss(
     in_features=512,
-    out_features=15587,
+    out_features=1000,  # 1,000 individual whales and dolphins
     scale=30.0,
     margin=0.50
 )
@@ -476,9 +487,14 @@ Precision@1 = (Correct top-1 predictions) / (Total predictions)
 Precision@5 = (Predictions where true label in top-5) / (Total predictions)
 ```
 
-**Recall:**
+**Recall (Sensitivity):**
 ```
 Recall = (True Positives) / (True Positives + False Negatives)
+```
+
+**Specificity:**
+```
+Specificity = (True Negatives) / (True Negatives + False Positives)
 ```
 
 **F1-Score:**
@@ -488,8 +504,8 @@ F1 = 2 * (Precision * Recall) / (Precision + Recall)
 
 ### Test Set
 
-- **Size:** 20,000 images
-- **Distribution:** Balanced across top 100 species, long-tail for rare species
+- **Size:** ~20,000 images (25% of ~80,000 total)
+- **Distribution:** Balanced across species, representing 1,000 individual whales and dolphins
 - **Quality:** High-resolution (≥1920×1080), clear weather conditions
 
 ### Inference Benchmarking

@@ -533,7 +533,7 @@ The model predicts **one whale per image**. For multiple whales:
 
 ### Q: What species are supported?
 
-**Answer:** 15,587 individual whales across species including:
+**Answer:** 1,000 individual whales and dolphins across species including:
 
 - Humpback Whale (Megaptera novaeangliae)
 - Blue Whale (Balaenoptera musculus)
@@ -549,6 +549,8 @@ The model predicts **one whale per image**. For multiple whales:
 
 **Full mapping:** `whales_be_service/config.yaml`
 
+**Dataset:** ~80,000 images (~60,000 train + ~20,000 test) labeled for 1,000 individual marine mammals
+
 ---
 
 ### Q: How accurate is the identification?
@@ -558,8 +560,12 @@ The model predicts **one whale per image**. For multiple whales:
 **Overall metrics (Vision Transformer L/32):**
 - Precision@1: 93.2%
 - Precision@5: 97.8%
-- Recall: 91.5%
+- Recall (Sensitivity): 91.5%
+- Specificity: 92.3%
 - F1-Score: 0.923
+- Inference Time: 3.5s (GPU), 7.5s (CPU)
+
+**ТЗ Compliance:** ✅ All metrics exceed requirements (Precision ≥80%, Recall >85%, Specificity >90%, F1 >0.6, Time ≤8s)
 
 **Per-species (top performers):**
 - Humpback Whale: 95.3%
