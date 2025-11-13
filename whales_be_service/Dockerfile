@@ -20,10 +20,10 @@ WORKDIR /app
 # 2) Устанавливаем Poetry
 RUN pip install --no-cache-dir poetry==1.8.5
 
-# 3) Копируем pyproject + lock + README и сразу ставим prod-зависимости
-COPY pyproject.toml poetry.lock README.md ./
+# 3) Копируем pyproject + lock и ставим только зависимости (без проекта)
+COPY pyproject.toml poetry.lock ./
 RUN poetry config virtualenvs.create false \
- && poetry install --no-dev --no-interaction --no-ansi
+ && poetry install --no-dev --no-root --no-interaction --no-ansi
 
 # 4) Копируем исходники
 COPY src ./src
