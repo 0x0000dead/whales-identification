@@ -329,4 +329,4 @@ THE DATA IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
 
 **Last Updated:** January 2025
 **Maintained By:** EcoMarineAI Project Team
-**Contact:** konstantin.baltsat@example.com (project lead)
+**Contact:** https://github.com/0x0000dead/whales-identification/issues

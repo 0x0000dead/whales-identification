@@ -619,7 +619,7 @@ The API provides interactive documentation via **Swagger UI**:
 ## Support
 
 - **GitHub Issues:** [Report API issues](https://github.com/0x0000dead/whales-identification/issues)
-- **Email:** konstantin.baltsat@example.com
+- **GitHub Discussions:** [Ask questions](https://github.com/0x0000dead/whales-identification/discussions)
 
 ---
 

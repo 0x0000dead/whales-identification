@@ -178,7 +178,7 @@ docker compose up --build
 
 - **GitHub Issues:** [Report a bug](https://github.com/0x0000dead/whales-identification/issues)
 - **GitHub Discussions:** [Ask a question](https://github.com/0x0000dead/whales-identification/discussions)
-- **Email:** konstantin.baltsat@example.com
+- **Team:** Baltsat K., Tarasov A., Vandanov S., Serov A.
 
 ---
 
