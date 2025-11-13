@@ -6,7 +6,7 @@
 # https://github.com/actions/labeler
 
 name: Labeler
-on: [pull_request_target]
+on: [pull_request]
 
 jobs:
   label:
@@ -17,6 +17,9 @@ jobs:
       pull-requests: write
 
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
     - uses: actions/labeler@v4
       with:
         repo-token: "${{ secrets.GITHUB_TOKEN }}"

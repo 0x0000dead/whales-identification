@@ -1,9 +1,10 @@
+import base64
 import io
 import zipfile
-import base64
+
 import pytest
-from PIL import Image
 from fastapi.testclient import TestClient
+from PIL import Image
 
 from whales_be_service.main import app
 
@@ -25,7 +26,14 @@ def test_predict_single_success():
     assert resp.status_code == 200
     data = resp.json()
     # required keys
-    for key in ("image_ind", "bbox", "class_animal", "id_animal", "probability", "mask"):
+    for key in (
+        "image_ind",
+        "bbox",
+        "class_animal",
+        "id_animal",
+        "probability",
+        "mask",
+    ):
         assert key in data
     # types and basic validation
     assert data["image_ind"] == "test.png"
@@ -65,7 +73,14 @@ def test_predict_batch_success():
     assert isinstance(results, list) and len(results) == 2
 
     for det in results:
-        for key in ("image_ind", "bbox", "class_animal", "id_animal", "probability", "mask"):
+        for key in (
+            "image_ind",
+            "bbox",
+            "class_animal",
+            "id_animal",
+            "probability",
+            "mask",
+        ):
             assert key in det
         assert isinstance(det["image_ind"], str)
         assert isinstance(det["bbox"], list) and len(det["bbox"]) == 4

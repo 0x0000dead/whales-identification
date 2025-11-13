@@ -1,12 +1,18 @@
 FROM python:3.11.6-slim
 
-# 1) Системные зависимости для сборки
+# 1) Системные зависимости для сборки и OpenCV
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       build-essential \
       libssl-dev \
       libffi-dev \
       python3-dev \
+      libgl1 \
+      libglib2.0-0 \
+      libsm6 \
+      libxext6 \
+      libxrender-dev \
+      libgomp1 \
  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -14,10 +20,10 @@ WORKDIR /app
 # 2) Устанавливаем Poetry
 RUN pip install --no-cache-dir poetry==1.8.5
 
-# 3) Копируем pyproject + lock и сразу ставим prod-зависимости
+# 3) Копируем pyproject + lock и ставим только зависимости (без проекта)
 COPY pyproject.toml poetry.lock ./
 RUN poetry config virtualenvs.create false \
- && poetry install --no-dev --no-interaction --no-ansi
+ && poetry install --no-dev --no-root --no-interaction --no-ansi
 
 # 4) Копируем исходники
 COPY src ./src

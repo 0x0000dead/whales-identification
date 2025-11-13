@@ -2,6 +2,13 @@
   "name": "whaale-frontend",
   "version": "1.0.0",
   "type": "module",
+  "authors": [
+    "Baltsat Konstantin",
+    "Tarasov Artem",
+    "Vandanov Sergey",
+    "Serov Alexandr"
+  ],
+  "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

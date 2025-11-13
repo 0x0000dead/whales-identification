@@ -1,15 +1,20 @@
-from pydantic import BaseModel
-from rembg import remove
-from PIL import Image
 import base64
 import io
+import random
 
-import io, random, yaml, cv2, numpy as np, torch
-from PIL import Image
-from torch.utils.data import DataLoader
-from albumentations.pytorch import ToTensorV2
 import albumentations as A
+import cv2
+import numpy
+import numpy as np
 import pandas as pd
+import torch
+import yaml
+from albumentations.pytorch import ToTensorV2
+from PIL import Image
+from pydantic import BaseModel
+from rembg import remove
+from torch.utils.data import DataLoader
+
 
 class Detection(BaseModel):
     image_ind: str
@@ -17,10 +22,11 @@ class Detection(BaseModel):
     class_animal: str
     id_animal: str
     probability: float
-    mask: str | None = None # base64 PNG с удалённым фоном
+    mask: str | None = None  # base64 PNG с удалённым фоном
 
 
 # MASK MODULE
+
 
 def generate_base64_mask_with_removed_background(img_bytes: bytes) -> str:
     """
@@ -28,7 +34,7 @@ def generate_base64_mask_with_removed_background(img_bytes: bytes) -> str:
     """
     # Удаление фона
     output = remove(img_bytes)
-    
+
     # Преобразование результата в PNG и кодирование в base64
     processed_image = Image.open(io.BytesIO(output)).convert("RGBA")
     buf = io.BytesIO()
@@ -36,36 +42,54 @@ def generate_base64_mask_with_removed_background(img_bytes: bytes) -> str:
     return base64.b64encode(buf.getvalue()).decode()
 
 
-
 # BEST TRAINED MODEL for probability
 
+
 def get_precitions(img_bytes):
-    CSV_PATH = "/Users/savandanov/Documents/Github/whales-identification/research/demo-ui/resources/database.csv"
+    CSV_PATH = (
+        "/Users/savandanov/Documents/Github/whales-identification/"
+        "research/demo-ui/resources/database.csv"
+    )
     df = pd.read_csv(CSV_PATH)
-    uniq_df = df.drop_duplicates("individual_id")        # ← только 15 587 строк
+    uniq_df = df.drop_duplicates("individual_id")  # ← только 15 587 строк
     CLASS_ID_LIST = uniq_df["individual_id"].astype(str).tolist()
 
     # ② Словарь id → species
     ID_TO_NAME = dict(zip(uniq_df["individual_id"].astype(str), uniq_df["species"]))
 
     # ③ Быстрая sanity-проверка
-    assert len(CLASS_ID_LIST) == 15_587, f"Ожидалось 15 587, а получили {len(CLASS_ID_LIST)}"
+    # nosec B101 - startup validation
+    assert (
+        len(CLASS_ID_LIST) == 15_587
+    ), f"Ожидалось 15 587, а получили {len(CLASS_ID_LIST)}"
     # — сама сеть
-    _model = VisionTransformer(
-        embed_dim=784,
-        hidden_dim=1568,
-        num_heads=8,
-        num_layers=6,
-        patch_size=32,
-        num_channels=3,
-        num_patches=196,
-        num_classes=len(CLASS_ID_LIST),
-        dropout=0.2,
-    ).to(CONFIG["device"]).eval()
+    _model = (
+        VisionTransformer(
+            embed_dim=784,
+            hidden_dim=1568,
+            num_heads=8,
+            num_layers=6,
+            patch_size=32,
+            num_channels=3,
+            num_patches=196,
+            num_classes=len(CLASS_ID_LIST),
+            dropout=0.2,
+        )
+        .to(CONFIG["device"])
+        .eval()
+    )
 
-    ckpt = torch.load("/Users/savandanov/Documents/Github/whales-identification/research/demo-ui/models/model-e15.pt", map_location=CONFIG["device"])
+    model_path = (
+        "/Users/savandanov/Documents/Github/whales-identification/"
+        "research/demo-ui/models/model-e15.pt"
+    )
+    ckpt = torch.load(  # nosec B614 - trusted model checkpoint
+        model_path,
+        map_location=CONFIG["device"],
+        weights_only=False,
+    )
     _model.load_state_dict(ckpt["model_state_dict"], strict=False)
-    
+
     np_img = cv2.imdecode(np.frombuffer(img_bytes, np.uint8), cv2.IMREAD_COLOR)
     loader = DataLoader(
         HappyWhaleTestDataset([np_img], transforms=data_transforms),
@@ -80,8 +104,8 @@ def get_precitions(img_bytes):
         top_prob, top_idx = probs[0].max(0)
 
     class_idx = int(top_idx.item())
-    class_id = CLASS_ID_LIST[class_idx]          # hex-id из соревки
-    name = ID_TO_NAME.get(class_id, class_id)    # читаемое имя / fallback
+    class_id = CLASS_ID_LIST[class_idx]  # hex-id из соревки
+    name = ID_TO_NAME.get(class_id, class_id)  # читаемое имя / fallback
 
     # --- простая заглушка bbox (если ещё не детектируешь) ---
     bbox = [0, 0, np_img.shape[1], np_img.shape[0]]
@@ -123,7 +147,6 @@ class HappyWhaleTestDataset(torch.utils.data.Dataset):
         if self.transforms:
             img = self.transforms(image=img)["image"]
         return {"image": img}
-
 
 
 class AttentionBlock(torch.nn.Module):
@@ -171,9 +194,12 @@ class VisionTransformer(torch.nn.Module):
     ):
         super().__init__()
         self.patch_size = patch_size
-        self.inp = torch.nn.Linear(num_channels * patch_size ** 2, embed_dim)
+        self.inp = torch.nn.Linear(num_channels * patch_size**2, embed_dim)
         self.blocks = torch.nn.Sequential(
-            *[AttentionBlock(embed_dim, hidden_dim, num_heads, dropout) for _ in range(num_layers)]
+            *[
+                AttentionBlock(embed_dim, hidden_dim, num_heads, dropout)
+                for _ in range(num_layers)
+            ]
         )
         self.mlp_head = torch.nn.Sequential(
             torch.nn.LayerNorm(embed_dim), torch.nn.Linear(embed_dim, num_classes)
@@ -192,4 +218,3 @@ class VisionTransformer(torch.nn.Module):
         x = self.drop(x).transpose(0, 1)  # [T+1, B, D]
         x = self.blocks(x)
         return self.mlp_head(x[0])
-

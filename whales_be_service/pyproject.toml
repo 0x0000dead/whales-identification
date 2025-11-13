@@ -2,13 +2,18 @@
 name = "whales-identification"
 version = "0.1.0"
 description = "Библиотека для идентификации морских млекопитающих"
-authors = ["Sergey Vandanov", "Tarasov Artem"]
+authors = [
+    "Baltsat Konstantin",
+    "Tarasov Artem",
+    "Vandanov Sergey",
+    "Serov Alexandr"
+]
 license = "MIT"
 readme = "README.md"
 packages = [{include = "whales_be_service", from = "src"}]
 
 [tool.poetry.dependencies]
-python = "3.11.6"
+python = ">=3.11,<3.13"
 absl-py = "2.1.0"
 albucore = "0.0.17"
 albumentations = "1.4.18"
@@ -146,8 +151,8 @@ pytest = "^8.3.3"
 pylint = "^3.3.1"
 kaggle = "^1.6.17"
 fvcore = "^0.1.5.post20221221"
-llvmlite = "^0.43.0"
-numba = "^0.60.0"
+llvmlite = "^0.44.0"
+numba = "^0.61.0"
 rembg = "^2.0.61"
 onnxruntime = "^1.20.1"
 matplotlib = "^3.10.0"
@@ -158,6 +163,83 @@ python-multipart = "^0.0.20"
 
 [tool.poetry.group.dev.dependencies]
 autopep8 = "^2.3.1"
+black = "^24.0.0"
+isort = "^5.13.0"
+flake8 = "^7.0.0"
+mypy = "^1.8.0"
+pytest-cov = "^6.0.0"
+bandit = {extras = ["toml"], version = "^1.7.0"}
+httpx = "^0.27.0"
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 88
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]
+exclude = [
+    ".git",
+    "__pycache__",
+    ".venv",
+    "venv",
+    "build",
+    "dist"
+]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+exclude = [
+    "tests/",
+    ".venv/"
+]
+
+[tool.bandit]
+exclude_dirs = ["tests", ".venv"]
+skips = ["B101"]  # Skip assert_used check for tests
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["*/tests/*", "*/__pycache__/*"]
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+skip_covered = false
 
 [build-system]
 requires = ["poetry-core"]

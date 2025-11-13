@@ -1,0 +1,45 @@
+# Configuration for actions/labeler
+# Automatically add labels to PRs based on files changed
+
+documentation:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.md'
+      - 'docs/**/*'
+
+backend:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'whales_be_service/**/*'
+      - 'whales_identify/**/*'
+
+frontend:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'frontend/**/*'
+
+ci-cd:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '.github/**/*'
+      - '.gitlab-ci.yml'
+
+dependencies:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/poetry.lock'
+      - '**/pyproject.toml'
+      - '**/package.json'
+      - '**/package-lock.json'
+
+tests:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/tests/**/*'
+      - '**/*test*.py'
+
+docker:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/Dockerfile'
+      - 'docker-compose.yml'
