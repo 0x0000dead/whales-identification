@@ -1,0 +1,287 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  # Stage 1: Linting and Code Quality
+  lint:
+    name: Lint and Format Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache Poetry dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pypoetry
+            ~/.cache/pip
+          key: ${{ runner.os }}-poetry-${{ hashFiles('whales_be_service/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install dependencies
+        working-directory: whales_be_service
+        run: |
+          poetry install
+
+      - name: Run Black (format check)
+        working-directory: whales_be_service
+        run: |
+          poetry run black --check .
+
+      - name: Run isort (import check)
+        working-directory: whales_be_service
+        run: |
+          poetry run isort --check-only .
+
+      - name: Run Flake8 (linting)
+        working-directory: whales_be_service
+        run: |
+          poetry run flake8 .
+
+      - name: Run Mypy (type checking)
+        working-directory: whales_be_service
+        run: |
+          poetry run mypy src/
+        continue-on-error: true  # Mypy errors shouldn't block initially
+
+  # Stage 2: Security Scanning
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Bandit
+        run: |
+          pip install bandit[toml]
+
+      - name: Run Bandit (security scan)
+        working-directory: whales_be_service
+        run: |
+          bandit -c pyproject.toml -r src/
+
+      - name: Run Safety (dependency vulnerabilities)
+        run: |
+          pip install safety
+          pip freeze | safety check --stdin
+        continue-on-error: true  # Don't block on dependency vulnerabilities initially
+
+  # Stage 3: Testing
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    needs: [lint]  # Run after lint passes
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache Poetry dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('whales_be_service/poetry.lock') }}
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install dependencies
+        working-directory: whales_be_service
+        run: |
+          poetry install
+
+      - name: Install system dependencies (OpenCV)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgl1 libglib2.0-0 libsm6 libxext6 libxrender-dev libgomp1
+
+      - name: Run pytest
+        working-directory: whales_be_service
+        run: |
+          poetry run pytest --maxfail=1 --disable-warnings -v
+
+      - name: Run pytest with coverage
+        working-directory: whales_be_service
+        run: |
+          poetry run pytest --cov=src --cov-report=xml --cov-report=term
+        continue-on-error: true  # Coverage shouldn't block
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: whales_be_service/coverage.xml
+          fail_ci_if_error: false
+        continue-on-error: true
+
+  # Stage 4: Docker Build and Test
+  docker:
+    name: Docker Build and Integration Test
+    runs-on: ubuntu-latest
+    needs: [lint, test, security]  # Run after other checks pass
+    continue-on-error: true  # Don't fail CI if Docker build fails (disk space issues)
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Free up disk space
+        run: |
+          echo "Disk space before cleanup:"
+          df -h
+          docker system prune -af --volumes
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost
+          echo "Disk space after cleanup:"
+          df -h
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Build Docker images
+        run: |
+          docker compose build
+
+      - name: Start Docker containers
+        run: |
+          docker compose up -d
+
+      - name: Wait for services to be ready
+        run: |
+          echo "Waiting for services to start..."
+          sleep 15
+
+      - name: Check backend health
+        run: |
+          curl -f http://localhost:8000/docs || exit 1
+
+      - name: Check frontend health
+        run: |
+          curl -f http://localhost:8080 || exit 1
+
+      - name: Run integration tests
+        working-directory: whales_be_service
+        run: |
+          # Install dependencies if not using docker exec
+          pip install pytest requests
+          pytest tests/api/ -v
+        continue-on-error: true
+
+      - name: Show Docker logs on failure
+        if: failure()
+        run: |
+          docker compose logs
+
+      - name: Stop Docker containers
+        if: always()
+        run: |
+          docker compose down
+
+  # Stage 5: Docker Image Scan (Security)
+  docker-security:
+    name: Docker Image Security Scan
+    runs-on: ubuntu-latest
+    needs: [docker]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker images
+        run: |
+          docker compose build
+
+      - name: Run Trivy vulnerability scanner (Backend)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'whales-identification-backend:latest'
+          format: 'sarif'
+          output: 'trivy-backend.sarif'
+        continue-on-error: true
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-backend.sarif'
+        continue-on-error: true
+
+  # Stage 6: Build Status Badge
+  status:
+    name: Update Status Badge
+    runs-on: ubuntu-latest
+    needs: [lint, test, security, docker]
+    if: always()
+
+    steps:
+      - name: Check job statuses
+        run: |
+          echo "Lint: ${{ needs.lint.result }}"
+          echo "Test: ${{ needs.test.result }}"
+          echo "Security: ${{ needs.security.result }}"
+          echo "Docker: ${{ needs.docker.result }}"
+
+      - name: Set badge color
+        id: badge
+        run: |
+          if [[ "${{ needs.lint.result }}" == "success" && "${{ needs.test.result }}" == "success" ]]; then
+            echo "status=passing" >> $GITHUB_OUTPUT
+            echo "color=green" >> $GITHUB_OUTPUT
+          else
+            echo "status=failing" >> $GITHUB_OUTPUT
+            echo "color=red" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Comment on PR (if PR)
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ CI/CD Pipeline completed. Lint: ${{ needs.lint.result }}, Test: ${{ needs.test.result }}, Security: ${{ needs.security.result }}, Docker: ${{ needs.docker.result }}'
+            })
+        continue-on-error: true

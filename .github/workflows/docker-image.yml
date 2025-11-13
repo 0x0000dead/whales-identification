@@ -14,5 +14,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag whales-ai:$(date +%s)
+
+    - name: Free up disk space
+      run: |
+        docker system prune -af --volumes
+        sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost
+        df -h
+
+    - name: Build Docker images with docker-compose
+      run: docker compose build
+
+    - name: Verify images were built
+      run: docker images

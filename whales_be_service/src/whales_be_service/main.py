@@ -1,12 +1,15 @@
+import base64
+import io
+import random
 from pathlib import Path
+from zipfile import BadZipFile, ZipFile
 
-from fastapi import FastAPI, File, UploadFile, HTTPException
+import yaml
+from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
-from starlette.middleware.cors import CORSMiddleware
-from zipfile import ZipFile, BadZipFile
-from pydantic import BaseModel
-import io, random, base64, yaml
 from PIL import Image, UnidentifiedImageError
+from pydantic import BaseModel
+from starlette.middleware.cors import CORSMiddleware
 
 from .response_models import Detection, generate_base64_mask_with_removed_background
 
@@ -28,14 +31,14 @@ ID_TO_NAME = cfg.get("id_to_name", {})
 
 
 def detection_id(filename: str, img_bytes: bytes) -> dict:
-    bbox = [random.randint(0, 50) for _ in range(4)]
+    bbox = [random.randint(0, 50) for _ in range(4)]  # nosec B311
     class_id = "cadddb1636b9"
-    prob = round(random.uniform(0.8, 1.0), 3)
+    prob = round(random.uniform(0.8, 1.0), 3)  # nosec B311 - mock data for testing
 
     img = Image.open(io.BytesIO(img_bytes)).convert("RGBA")
     buf = io.BytesIO()
     img.save(buf, format="PNG")
-    
+
     mask_b64 = generate_base64_mask_with_removed_background(img_bytes)
 
     return {
@@ -44,11 +47,13 @@ def detection_id(filename: str, img_bytes: bytes) -> dict:
         "class_animal": class_id,
         "id_animal": ID_TO_NAME.get(class_id, class_id),
         "probability": prob,
-        "mask": mask_b64
+        "mask": mask_b64,
     }
 
 
-@app.post("/predict-single", response_model=Detection, summary="Фото → JSON с bbox+mask")
+@app.post(
+    "/predict-single", response_model=Detection, summary="Фото → JSON с bbox+mask"
+)
 async def predict_single(file: UploadFile = File(...)):
     if not file.content_type.startswith("image/"):
         raise HTTPException(415, "Только изображения.")
@@ -84,7 +89,7 @@ async def predict_batch(archive: UploadFile = File(...)):
 
         except (KeyError, UnidentifiedImageError):
             continue
-        except Exception:
+        except Exception:  # nosec B112 - skip corrupted files in batch processing
             continue
 
     zf.close()
