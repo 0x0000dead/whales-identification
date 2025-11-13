@@ -107,7 +107,8 @@ License: Government Data for Research Purposes
 ### Contact for Data Access
 For inquiries about data access, permissions, or reporting:
 - **Ministry Website:** https://www.mnr.gov.ru
-- **Email:** [Appropriate department email]
+- **Email:** minprirody@mnr.gov.ru
+- **Phone:** +7 (499) 657-57-00
 - **Note:** Additional documentation may be required for data access authorization
 
 ---
