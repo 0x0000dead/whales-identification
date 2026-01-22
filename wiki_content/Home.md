@@ -123,6 +123,8 @@ docker compose up --build
 - [LICENSE_DATA.md](https://github.com/0x0000dead/whales-identification/blob/main/LICENSE_DATA.md) - Датасеты
 - [LICENSES_ANALYSIS.md](https://github.com/0x0000dead/whales-identification/blob/main/LICENSES_ANALYSIS.md) - Анализ зависимостей
 
+> **⚠️ Disclaimer:** Информация о лицензиях предоставлена для ознакомительных целей и не является юридической консультацией. Для коммерческого использования рекомендуется консультация с квалифицированным юристом.
+
 ---
 
 ## 👥 Команда разработки
