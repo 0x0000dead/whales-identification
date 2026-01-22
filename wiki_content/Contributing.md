@@ -369,14 +369,14 @@ poetry run pre-commit install
 
 We use 20 pre-commit hooks:
 
-| Category | Hooks | Auto-fix |
-|----------|-------|----------|
-| **Formatting** | black, isort, prettier | ✅ Yes |
-| **Linting** | flake8 | ❌ No |
-| **Type Checking** | mypy | ❌ No |
-| **Security** | bandit | ❌ No |
-| **Jupyter** | nbstripout, nbqa-* | ✅ Partial |
-| **Basic** | trailing-whitespace, end-of-file-fixer, etc. | ✅ Most |
+| Category          | Hooks                                        | Auto-fix   |
+| ----------------- | -------------------------------------------- | ---------- |
+| **Formatting**    | black, isort, prettier                       | ✅ Yes     |
+| **Linting**       | flake8                                       | ❌ No      |
+| **Type Checking** | mypy                                         | ❌ No      |
+| **Security**      | bandit                                       | ❌ No      |
+| **Jupyter**       | nbstripout, nbqa-\*                          | ✅ Partial |
+| **Basic**         | trailing-whitespace, end-of-file-fixer, etc. | ✅ Most    |
 
 **See [PRE_COMMIT_GUIDE.md](https://github.com/0x0000dead/whales-identification/blob/main/docs/PRE_COMMIT_GUIDE.md) for full documentation.**
 
@@ -490,6 +490,7 @@ def test_new_function_integration():
 ### Before Opening PR
 
 **Checklist:**
+
 - [ ] Code follows style guide (black, flake8, mypy pass)
 - [ ] All tests pass (`poetry run pytest`)
 - [ ] New tests added for new features
@@ -501,6 +502,7 @@ def test_new_function_integration():
 ### Opening PR
 
 1. **Push to your fork:**
+
    ```bash
    git push origin feature/my-feature
    ```
@@ -511,27 +513,33 @@ def test_new_function_integration():
    - Select your branch
 
 3. **Fill PR template:**
+
    ```markdown
    ## Description
+
    Brief description of changes
 
    ## Type of Change
+
    - [ ] Bug fix
    - [ ] New feature
    - [ ] Breaking change
    - [ ] Documentation update
 
    ## Testing
+
    - [ ] Unit tests added
    - [ ] Integration tests added
    - [ ] Manual testing completed
 
    ## Checklist
+
    - [ ] Code follows style guide
    - [ ] Tests pass
    - [ ] Documentation updated
 
    ## Related Issues
+
    Closes #42
    ```
 
@@ -552,6 +560,7 @@ def test_new_function_integration():
      - Security
 
 3. **Address feedback:**
+
    ```bash
    # Make changes
    git add .
@@ -570,6 +579,7 @@ def test_new_function_integration():
 ### As a Reviewer
 
 **What to check:**
+
 - ✅ Code correctness and logic
 - ✅ Test coverage (>80% for new code)
 - ✅ Documentation and comments
@@ -578,32 +588,41 @@ def test_new_function_integration():
 - ✅ Consistency with existing code
 
 **How to provide feedback:**
+
 ```markdown
 # Good - constructive, specific
+
 Consider using a list comprehension here for better readability:
 ``python
+
 # Instead of
+
 results = []
 for item in items:
-    results.append(process(item))
+results.append(process(item))
 
 # Use
+
 results = [process(item) for item in items]
 ``
 
 # Bad - vague, unhelpful
+
 This code is bad.
 ```
 
 ### As an Author
 
 **Responding to feedback:**
+
 ```markdown
 # Good - acknowledge, explain, implement
+
 Thanks for the suggestion! You're right that a list comprehension
 is cleaner here. I've updated the code in commit abc123.
 
 # Bad - defensive
+
 My code is fine. This is just your opinion.
 ```
 
@@ -614,6 +633,7 @@ My code is fine. This is just your opinion.
 ### Adding a New API Endpoint
 
 1. **Define endpoint in routers.py:**
+
 ```python
 @router.post("/new-endpoint", response_model=NewResponse)
 async def new_endpoint(request: NewRequest):
@@ -622,6 +642,7 @@ async def new_endpoint(request: NewRequest):
 ```
 
 2. **Add Pydantic models:**
+
 ```python
 # response_models.py
 class NewRequest(BaseModel):
@@ -632,6 +653,7 @@ class NewResponse(BaseModel):
 ```
 
 3. **Write tests:**
+
 ```python
 # tests/api/test_new_endpoint.py
 def test_new_endpoint_success(client):
@@ -646,6 +668,7 @@ def test_new_endpoint_success(client):
 ### Adding a New Model
 
 1. **Create model class:**
+
 ```python
 # whales_identify/models/new_model.py
 class NewModel(nn.Module):
@@ -654,6 +677,7 @@ class NewModel(nn.Module):
 ```
 
 2. **Add training script:**
+
 ```python
 # whales_identify/train_new_model.py
 def train_new_model():
@@ -665,6 +689,7 @@ def train_new_model():
    - Include metrics, intended use, limitations
 
 4. **Add integration:**
+
 ```python
 # whales_be_service/whale_infer.py
 if model_type == "new_model":
@@ -718,6 +743,7 @@ git commit -m "chore: add package_name dependency"
 ## License
 
 By contributing, you agree that your contributions will be licensed under the same license as the project:
+
 - **Code:** MIT License
 - **Models:** Apache 2.0 (with restrictions)
 - **Data:** CC-BY-NC-4.0
@@ -733,6 +759,7 @@ Thank you for contributing to Whales Identification! Your contributions help pro
 ---
 
 **Related Pages:**
+
 - [Installation](Installation) - Setup development environment
 - [Testing](Testing) - Testing guidelines
 - [Architecture](Architecture) - System design

@@ -25,6 +25,7 @@ http://localhost:8000
 ```
 
 **Production (if deployed):**
+
 ```
 https://your-domain.com
 ```
@@ -36,6 +37,7 @@ https://your-domain.com
 Currently, the API does **not require authentication**.
 
 **Future versions** may implement:
+
 - API Keys
 - JWT tokens
 - OAuth 2.0
@@ -51,22 +53,25 @@ Predict species and individual ID for a single whale image.
 #### Request
 
 **Endpoint:**
+
 ```
 POST /predict-single
 ```
 
 **Headers:**
+
 ```
 Content-Type: multipart/form-data
 ```
 
 **Body Parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `file` | File | ✅ Yes | Image file (JPG, PNG, JPEG) |
+| Parameter | Type | Required | Description                 |
+| --------- | ---- | -------- | --------------------------- |
+| `file`    | File | ✅ Yes   | Image file (JPG, PNG, JPEG) |
 
 **Supported formats:**
+
 - `.jpg`, `.jpeg`, `.png`
 - Max file size: 10 MB (default)
 - Recommended resolution: 1920×1080 or higher
@@ -88,18 +93,19 @@ Content-Type: multipart/form-data
 
 **Response Fields:**
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `image_ind` | string | Original filename |
-| `bbox` | array[int] | Bounding box [x, y, width, height] |
-| `class_animal` | string | Individual whale ID (hex-like) |
-| `id_animal` | string | Species name (e.g., "Humpback Whale") |
-| `probability` | float | Confidence score (0.0-1.0) |
-| `mask` | string | Base64-encoded PNG with background removed |
+| Field          | Type       | Description                                |
+| -------------- | ---------- | ------------------------------------------ |
+| `image_ind`    | string     | Original filename                          |
+| `bbox`         | array[int] | Bounding box [x, y, width, height]         |
+| `class_animal` | string     | Individual whale ID (hex-like)             |
+| `id_animal`    | string     | Species name (e.g., "Humpback Whale")      |
+| `probability`  | float      | Confidence score (0.0-1.0)                 |
+| `mask`         | string     | Base64-encoded PNG with background removed |
 
 #### Error Responses
 
 **400 Bad Request:**
+
 ```json
 {
   "detail": "Unsupported media type. Allowed: image/jpeg, image/png"
@@ -107,6 +113,7 @@ Content-Type: multipart/form-data
 ```
 
 **422 Unprocessable Entity:**
+
 ```json
 {
   "detail": "No file provided"
@@ -114,6 +121,7 @@ Content-Type: multipart/form-data
 ```
 
 **500 Internal Server Error:**
+
 ```json
 {
   "detail": "Model inference failed"
@@ -159,23 +167,23 @@ else:
 
 ```javascript
 const formData = new FormData();
-formData.append('file', fileInput.files[0]);
+formData.append("file", fileInput.files[0]);
 
-fetch('http://localhost:8000/predict-single', {
-  method: 'POST',
-  body: formData
+fetch("http://localhost:8000/predict-single", {
+  method: "POST",
+  body: formData,
 })
-  .then(response => response.json())
-  .then(data => {
-    console.log('Species:', data.id_animal);
-    console.log('Confidence:', data.probability);
+  .then((response) => response.json())
+  .then((data) => {
+    console.log("Species:", data.id_animal);
+    console.log("Confidence:", data.probability);
 
     // Display mask
-    const maskImg = document.createElement('img');
+    const maskImg = document.createElement("img");
     maskImg.src = `data:image/png;base64,${data.mask}`;
     document.body.appendChild(maskImg);
   })
-  .catch(error => console.error('Error:', error));
+  .catch((error) => console.error("Error:", error));
 ```
 
 ---
@@ -187,22 +195,25 @@ Process multiple images in a ZIP archive.
 #### Request
 
 **Endpoint:**
+
 ```
 POST /predict-batch
 ```
 
 **Headers:**
+
 ```
 Content-Type: application/zip
 ```
 
 **Body Parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `file` | File | ✅ Yes | ZIP archive containing images |
+| Parameter | Type | Required | Description                   |
+| --------- | ---- | -------- | ----------------------------- |
+| `file`    | File | ✅ Yes   | ZIP archive containing images |
 
 **ZIP Structure:**
+
 ```
 batch_images.zip
 ├── whale_001.jpg
@@ -211,6 +222,7 @@ batch_images.zip
 ```
 
 **Requirements:**
+
 - ZIP file size: Max 50 MB
 - Individual images: JPG, PNG, JPEG
 - Max images per batch: 100 (default)
@@ -246,15 +258,16 @@ batch_images.zip
 
 **Response Fields:**
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `results` | array | Array of Detection objects (same as /predict-single) |
-| `total_processed` | int | Number of images successfully processed |
-| `processing_time_seconds` | float | Total processing time |
+| Field                     | Type  | Description                                          |
+| ------------------------- | ----- | ---------------------------------------------------- |
+| `results`                 | array | Array of Detection objects (same as /predict-single) |
+| `total_processed`         | int   | Number of images successfully processed              |
+| `processing_time_seconds` | float | Total processing time                                |
 
 #### Error Responses
 
 **400 Bad Request:**
+
 ```json
 {
   "detail": "Invalid ZIP file"
@@ -262,6 +275,7 @@ batch_images.zip
 ```
 
 **413 Payload Too Large:**
+
 ```json
 {
   "detail": "ZIP file exceeds maximum size (50 MB)"
@@ -318,21 +332,23 @@ else:
 ```javascript
 // Create FormData with ZIP file
 const formData = new FormData();
-formData.append('file', zipFileInput.files[0]);
+formData.append("file", zipFileInput.files[0]);
 
-fetch('http://localhost:8000/predict-batch', {
-  method: 'POST',
-  body: formData
+fetch("http://localhost:8000/predict-batch", {
+  method: "POST",
+  body: formData,
 })
-  .then(response => response.json())
-  .then(data => {
+  .then((response) => response.json())
+  .then((data) => {
     console.log(`Processed ${data.total_processed} images`);
 
-    data.results.forEach(result => {
-      console.log(`${result.image_ind}: ${result.id_animal} (${result.probability})`);
+    data.results.forEach((result) => {
+      console.log(
+        `${result.image_ind}: ${result.id_animal} (${result.probability})`,
+      );
     });
   })
-  .catch(error => console.error('Error:', error));
+  .catch((error) => console.error("Error:", error));
 ```
 
 ---
@@ -356,6 +372,7 @@ class Detection(BaseModel):
 **Species Mapping:**
 
 The `id_animal` field maps to one of the following species:
+
 - Humpback Whale (Megaptera novaeangliae)
 - Blue Whale (Balaenoptera musculus)
 - Fin Whale (Balaenoptera physalus)
@@ -366,6 +383,7 @@ The `id_animal` field maps to one of the following species:
 **Individual ID Format:**
 
 The `class_animal` field contains a unique identifier:
+
 - Format: Hex-like string (e.g., `a1b2c3d4e5f6`)
 - Total individuals: 1,000 whales and dolphins
 - Lookup: Via `whales_be_service/config.yaml`
@@ -376,13 +394,13 @@ The `class_animal` field contains a unique identifier:
 
 ### HTTP Status Codes
 
-| Code | Meaning | Action |
-|------|---------|--------|
-| 200 | Success | Request processed successfully |
-| 400 | Bad Request | Check file format, ZIP structure |
-| 413 | Payload Too Large | Reduce file size |
-| 422 | Unprocessable Entity | Verify required parameters |
-| 500 | Internal Server Error | Contact support, check logs |
+| Code | Meaning               | Action                           |
+| ---- | --------------------- | -------------------------------- |
+| 200  | Success               | Request processed successfully   |
+| 400  | Bad Request           | Check file format, ZIP structure |
+| 413  | Payload Too Large     | Reduce file size                 |
+| 422  | Unprocessable Entity  | Verify required parameters       |
+| 500  | Internal Server Error | Contact support, check logs      |
 
 ### Error Response Format
 
@@ -397,6 +415,7 @@ The `class_animal` field contains a unique identifier:
 #### Unsupported Media Type
 
 **Error:**
+
 ```json
 {
   "detail": "Unsupported media type. Allowed: image/jpeg, image/png"
@@ -404,12 +423,14 @@ The `class_animal` field contains a unique identifier:
 ```
 
 **Solution:**
+
 - Convert image to JPG or PNG
 - Check file extension matches content type
 
 #### Invalid ZIP File
 
 **Error:**
+
 ```json
 {
   "detail": "Invalid ZIP file"
@@ -417,6 +438,7 @@ The `class_animal` field contains a unique identifier:
 ```
 
 **Solution:**
+
 - Verify ZIP is not corrupted
 - Use standard ZIP format (not RAR, 7z)
 - Check ZIP contains only images
@@ -424,6 +446,7 @@ The `class_animal` field contains a unique identifier:
 #### No File Provided
 
 **Error:**
+
 ```json
 {
   "detail": "No file provided"
@@ -431,6 +454,7 @@ The `class_animal` field contains a unique identifier:
 ```
 
 **Solution:**
+
 - Ensure `file` field is present in form data
 - Verify file is not empty
 
@@ -441,6 +465,7 @@ The `class_animal` field contains a unique identifier:
 **Current Status:** Not implemented
 
 **Future Implementation:**
+
 - Limit: 100 requests/minute per IP
 - Headers:
   - `X-RateLimit-Limit`: Total allowed requests
@@ -448,6 +473,7 @@ The `class_animal` field contains a unique identifier:
   - `X-RateLimit-Reset`: Unix timestamp for reset
 
 **Exceeded Rate Limit Response (429):**
+
 ```json
 {
   "detail": "Rate limit exceeded. Try again in 60 seconds."
@@ -526,44 +552,40 @@ print(f"Processed {batch_result['total_processed']} images")
 ### Node.js Client
 
 ```javascript
-const axios = require('axios');
-const FormData = require('form-data');
-const fs = require('fs');
+const axios = require("axios");
+const FormData = require("form-data");
+const fs = require("fs");
 
 class WhaleIdentificationClient {
-  constructor(baseUrl = 'http://localhost:8000') {
+  constructor(baseUrl = "http://localhost:8000") {
     this.baseUrl = baseUrl;
   }
 
   async predictSingle(imagePath) {
     const form = new FormData();
-    form.append('file', fs.createReadStream(imagePath));
+    form.append("file", fs.createReadStream(imagePath));
 
-    const response = await axios.post(
-      `${this.baseUrl}/predict-single`,
-      form,
-      { headers: form.getHeaders() }
-    );
+    const response = await axios.post(`${this.baseUrl}/predict-single`, form, {
+      headers: form.getHeaders(),
+    });
 
     return response.data;
   }
 
   async predictBatch(zipPath) {
     const form = new FormData();
-    form.append('file', fs.createReadStream(zipPath));
+    form.append("file", fs.createReadStream(zipPath));
 
-    const response = await axios.post(
-      `${this.baseUrl}/predict-batch`,
-      form,
-      { headers: form.getHeaders() }
-    );
+    const response = await axios.post(`${this.baseUrl}/predict-batch`, form, {
+      headers: form.getHeaders(),
+    });
 
     return response.data;
   }
 
   saveMask(result, outputPath) {
     if (result.mask) {
-      const buffer = Buffer.from(result.mask, 'base64');
+      const buffer = Buffer.from(result.mask, "base64");
       fs.writeFileSync(outputPath, buffer);
     }
   }
@@ -574,9 +596,9 @@ const client = new WhaleIdentificationClient();
 
 (async () => {
   // Single prediction
-  const result = await client.predictSingle('whale.jpg');
+  const result = await client.predictSingle("whale.jpg");
   console.log(`Species: ${result.id_animal}`);
-  client.saveMask(result, 'whale_mask.png');
+  client.saveMask(result, "whale_mask.png");
 })();
 ```
 
@@ -589,6 +611,7 @@ The API provides interactive documentation via **Swagger UI**:
 **URL:** http://localhost:8000/docs
 
 **Features:**
+
 - Try out endpoints directly in browser
 - View request/response schemas
 - Download OpenAPI specification
@@ -600,15 +623,18 @@ The API provides interactive documentation via **Swagger UI**:
 ### Version 0.1.0 (Current)
 
 **Endpoints:**
+
 - ✅ POST /predict-single
 - ✅ POST /predict-batch
 
 **Features:**
+
 - Background removal with rembg
 - Vision Transformer inference
 - Batch processing
 
 **Planned (v0.2.0):**
+
 - Rate limiting
 - API authentication
 - Webhook notifications
@@ -624,6 +650,7 @@ The API provides interactive documentation via **Swagger UI**:
 ---
 
 **Next Steps:**
+
 - [Usage Guide](Usage) - Learn how to use the API effectively
 - [Testing](Testing) - Run integration tests
 - [Architecture](Architecture) - Understand the backend implementation
