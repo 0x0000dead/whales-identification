@@ -69,8 +69,8 @@ chmod +x scripts/download_models.sh
 
 **Expected output:**
 ```
-Downloading model-e15.pt...
-✓ Downloaded to models/model-e15.pt (2.1 GB)
+Downloading resnet101.pth...
+✓ Downloaded to models/resnet101.pth
 ```
 
 **Alternative (manual download):**
@@ -222,7 +222,7 @@ poetry run streamlit run streamlit_app.py --server.port=8502
 
 **What it does:**
 1. Creates `models/` directory
-2. Uses `huggingface-cli` to download `model-e15.pt` (~2.1 GB)
+2. Uses `huggingface-cli` to download `resnet101.pth`
 3. Verifies download integrity
 
 **Requirements:**
@@ -233,7 +233,7 @@ poetry run streamlit run streamlit_app.py --server.port=8502
 #### From Hugging Face
 
 1. Visit [baltsat/Whales-Identification](https://huggingface.co/baltsat/Whales-Identification/tree/main)
-2. Download `model-e15.pt` (2.1 GB)
+2. Download `resnet101.pth`
 3. Place in `models/` directory
 
 #### From Yandex Disk
@@ -246,7 +246,7 @@ poetry run streamlit run streamlit_app.py --server.port=8502
 ```
 whales-identification/
 ├── models/
-│   └── model-e15.pt  (2.1 GB)
+│   └── resnet101.pth
 ├── whales_be_service/
 ├── frontend/
 └── research/
@@ -410,7 +410,7 @@ ls -lh models/
 ./scripts/download_models.sh
 
 # Verify model exists
-ls -lh models/model-e15.pt
+ls -lh models/resnet101.pth
 ```
 
 ---
