@@ -13,7 +13,6 @@
 ## 📚 Документация и ресурсы
 
 ### Официальная документация
-- **[📖 GitHub Pages Documentation](https://0x0000dead.github.io/whales-identification/)** - Главная страница документации с полным содержанием
 - **[📚 GitHub Wiki](https://github.com/0x0000dead/whales-identification/wiki)** - Детальные гайды и руководства:
   - [Installation Guide](https://github.com/0x0000dead/whales-identification/wiki/Installation) - Установка и настройка
   - [API Reference](https://github.com/0x0000dead/whales-identification/wiki/API-Reference) - REST API endpoints
@@ -31,7 +30,6 @@
 - **[LICENSE](LICENSE)** - MIT License для исходного кода
 - **[LICENSE_MODELS.md](LICENSE_MODELS.md)** - Apache 2.0 для обученных моделей (с ограничениями)
 - **[LICENSE_DATA.md](LICENSE_DATA.md)** - CC-BY-NC-4.0 для датасетов
-- **[LICENSES_ANALYSIS.md](LICENSES_ANALYSIS.md)** - Анализ 159 зависимостей (99.4% совместимость)
 
 ### CI/CD и автоматизация
 - **[GitHub Actions Workflows](https://github.com/0x0000dead/whales-identification/actions)**
@@ -76,7 +74,7 @@
 
 1. **Установите huggingface-cli** (требуется для загрузки моделей):
 ```bash
-pip install huggingface_hub
+pip install huggingface_hub==0.20.3
 ```
 
 2. **Загрузите модели** (обязательный шаг):
@@ -130,7 +128,7 @@ brew install opencv
 #### Проблема: `huggingface-cli: command not found`
 **Решение:** Установите huggingface CLI:
 ```bash
-pip install huggingface_hub
+pip install huggingface_hub==0.20.3
 ```
 
 #### Проблема: `Poetry could not find a pyproject.toml file`
@@ -258,9 +256,7 @@ kill -9 <PID>
 - **Минприроды РФ:** Правительственные данные для исследований
 
 ### Зависимости проекта
-Полный анализ лицензий всех зависимостей (Python + npm) — см. [LICENSES_ANALYSIS.md](LICENSES_ANALYSIS.md).
-
-**Краткий вывод:** Все 159 зависимостей совместимы с MIT лицензией (Apache 2.0, BSD, MIT). GPL зависимости изолированы как dev-only.
+Все зависимости проекта (Python + npm) совместимы с MIT лицензией. Используются лицензии: Apache 2.0, BSD, MIT. GPL зависимости изолированы как dev-only.
 
 ### Предобученные модели (Transfer Learning)
 Наши модели используют следующие предобученные основы:
