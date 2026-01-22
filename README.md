@@ -101,6 +101,14 @@ docker compose up --build
 
 **Примечание:** Первый запуск может занять несколько минут для сборки образов.
 
+**Доступ из сети (с другого устройства):**
+```bash
+# Для доступа к frontend с другого устройства в сети, укажите IP вашего сервера:
+VITE_BACKEND=http://192.168.1.100:8000 docker compose up --build
+```
+
+Переменная `VITE_BACKEND` настраивает адрес backend API для frontend. По умолчанию в Docker используется `http://backend:8000` для внутренней связи контейнеров.
+
 #### Вариант 2: Streamlit Demo (только демонстрация)
 
 Для запуска демонстрационного приложения с лучшей моделью (Vision Transformer):
@@ -179,6 +187,17 @@ kill -9 <PID>
 - Убедитесь, что используете GPU (если доступен)
 - Используйте ONNX оптимизированные модели (см. `research/notebooks/07_onnx_inference_compare.ipynb`)
 - Уменьшите размер batch для batch processing
+
+#### Проблема: Frontend не может подключиться к backend (Network Error)
+**Решение:** Установите переменную `VITE_BACKEND` с правильным адресом backend:
+```bash
+# Для локальной разработки
+cd frontend
+VITE_BACKEND=http://localhost:8000 npm run dev
+
+# Для Docker Compose (доступ из сети)
+VITE_BACKEND=http://YOUR_SERVER_IP:8000 docker compose up --build
+```
 
 ### Пример датасета
 ![img](data/sample.png)

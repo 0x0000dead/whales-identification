@@ -116,6 +116,19 @@ docker compose up --build
 
 **First build may take 10-15 minutes** (downloads dependencies, builds images).
 
+**Environment Variables (Docker Compose):**
+
+| Variable | Default in Docker | Description |
+|----------|-------------------|-------------|
+| `VITE_BACKEND` | `http://backend:8000` | Backend API URL (internal Docker network) |
+
+The `VITE_BACKEND` variable is pre-configured in `docker-compose.yml` for inter-container communication. For network access from external machines, you can override it:
+
+```bash
+# Override for external access (e.g., from mobile or another machine)
+VITE_BACKEND=http://your-server-ip:8000 docker compose up --build
+```
+
 #### Step 5: Verify Services
 
 Open in browser:
@@ -186,10 +199,34 @@ npm run dev
 **Frontend will be available at:**
 - Dev Server: http://localhost:5173
 
+**Environment Variables:**
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `VITE_BACKEND` | `http://localhost:8000` | Backend API URL |
+
+**Network Access Configuration:**
+
+By default, the frontend connects to `http://localhost:8000`. To access the backend from a different machine or IP address, set the `VITE_BACKEND` environment variable:
+
+```bash
+# Access backend on a specific IP (for network access)
+VITE_BACKEND=http://192.168.1.100:8000 npm run dev
+
+# Or export for the session
+export VITE_BACKEND=http://your-server-ip:8000
+npm run dev
+```
+
 **Production build:**
 ```bash
 npm run build      # Build to frontend/dist
 npm run preview    # Preview production build
+```
+
+**Production build with custom backend URL:**
+```bash
+VITE_BACKEND=http://your-server-ip:8000 npm run build
 ```
 
 ---
