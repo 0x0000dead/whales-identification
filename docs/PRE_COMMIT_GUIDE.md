@@ -60,6 +60,182 @@ Pre-commit hooks are automated checks that run before each git commit. They catc
 
 ---
 
+## Hook Output Examples
+
+This section shows what you can expect to see when running pre-commit hooks. Understanding the output helps you quickly identify what needs attention.
+
+### Successful Run (All Checks Passed)
+
+When all hooks pass without any issues:
+
+```console
+$ poetry run pre-commit run --all-files
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Passed
+check yaml...............................................................Passed
+check for added large files..............................................Passed
+check for merge conflicts................................................Passed
+check json...............................................................Passed
+check toml...............................................................Passed
+debug statements (python)................................................Passed
+mixed line ending........................................................Passed
+black....................................................................Passed
+flake8...................................................................Passed
+mypy.....................................................................Passed
+bandit...................................................................Passed
+isort....................................................................Passed
+nbstripout...............................................................Passed
+nbqa-black...............................................................Passed
+nbqa-isort...............................................................Passed
+nbqa-flake8..............................................................Passed
+prettier.................................................................Passed
+```
+
+✅ **All hooks show `Passed`** - your commit will proceed normally.
+
+### Auto-Fix Applied (Reformatted)
+
+When hooks automatically fix issues (e.g., black reformats code):
+
+```console
+$ poetry run pre-commit run --all-files
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Fixed file: whales_be_service/src/whales_be_service/utils.py
+check yaml...............................................................Passed
+check for added large files..............................................Passed
+black....................................................................Failed
+- hook id: black
+- files were modified by this hook
+
+reformatted whales_be_service/src/whales_be_service/routers.py
+reformatted whales_be_service/src/whales_be_service/whale_infer.py
+
+All done! ✨ 🍰 ✨
+2 files reformatted, 15 files left unchanged.
+
+isort....................................................................Failed
+- hook id: isort
+- files were modified by this hook
+
+Fixing whales_be_service/src/whales_be_service/main.py
+
+flake8...................................................................Passed
+mypy.....................................................................Passed
+```
+
+⚠️ **Hooks show `Failed` but files were auto-fixed** - simply run `git add .` and commit again. The hooks will pass on the second attempt.
+
+**What to do:**
+```bash
+# Stage the auto-fixed files
+git add .
+
+# Commit again - hooks will pass this time
+git commit -m "Your commit message"
+```
+
+### Manual Fixes Required (Failed)
+
+When hooks detect issues that require manual intervention:
+
+```console
+$ poetry run pre-commit run --all-files
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Passed
+check yaml...............................................................Passed
+check for added large files..............................................Failed
+- hook id: check-added-large-files
+- exit code: 1
+
+models/large_model.pt (125 MB) exceeds 10 MB limit
+
+black....................................................................Passed
+flake8...................................................................Failed
+- hook id: flake8
+- exit code: 1
+
+whales_be_service/src/whales_be_service/routers.py:45:1: F401 'os' imported but unused
+whales_be_service/src/whales_be_service/routers.py:89:5: F841 local variable 'result' is assigned to but never used
+whales_be_service/src/whales_be_service/utils.py:23:80: E501 line too long (95 > 88 characters)
+
+mypy.....................................................................Failed
+- hook id: mypy
+- exit code: 1
+
+whales_be_service/src/whales_be_service/whale_infer.py:67: error: Argument 1 to "load" has incompatible type "str"; expected "Path"  [arg-type]
+Found 1 error in 1 file (checked 5 source files)
+
+bandit...................................................................Failed
+- hook id: bandit
+- exit code: 1
+
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'admin123'
+   Severity: Low   Confidence: Medium
+   Location: whales_be_service/src/whales_be_service/config.py:15
+```
+
+❌ **Hooks show `Failed` with error details** - you must manually fix these issues before the commit will succeed.
+
+**How to interpret the output:**
+1. **`check-added-large-files`**: Remove or use Git LFS for files > 10MB
+2. **`flake8`**: Fix Python code quality issues (unused imports, long lines)
+3. **`mypy`**: Fix type annotation errors
+4. **`bandit`**: Fix security vulnerabilities (remove hardcoded secrets)
+
+### Mixed Results (Typical Scenario)
+
+A typical development session often shows a mix of results:
+
+```console
+$ poetry run pre-commit run --all-files
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Passed
+check yaml...............................................................Passed
+check for added large files..............................................Passed
+check for merge conflicts................................................Passed
+debug statements (python)................................................Passed
+black....................................................................Failed
+- hook id: black
+- files were modified by this hook
+
+reformatted whales_be_service/src/whales_be_service/new_feature.py
+
+isort....................................................................Failed
+- hook id: isort
+- files were modified by this hook
+
+flake8...................................................................Passed
+mypy.....................................................................Passed
+bandit...................................................................Passed
+nbstripout...............................................................Passed
+prettier.................................................................Passed
+```
+
+**Quick fix workflow:**
+```bash
+# Auto-fixes were applied, stage them
+git add .
+
+# Commit again
+git commit -m "Add new feature"
+
+# This time all hooks pass:
+# trim trailing whitespace.................................................Passed
+# ...
+# black....................................................................Passed
+# ...
+```
+
+### Understanding Exit Codes
+
+| Exit Code | Meaning | Action Required |
+|-----------|---------|-----------------|
+| `0` | Passed | None - commit proceeds |
+| `1` | Failed (auto-fixed) | Stage changes, commit again |
+| `1` | Failed (manual fix needed) | Fix issues manually |
+
+---
+
 ## Hook Categories
 
 Our pre-commit configuration includes **6 categories** of hooks:
