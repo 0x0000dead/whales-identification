@@ -137,8 +137,7 @@ docker compose up --build
 
 ## 📞 Поддержка
 
-- **Issues:** [Report a bug](https://github.com/0x0000dead/whales-identification/issues)
-- **Discussions:** [Ask a question](https://github.com/0x0000dead/whales-identification/discussions)
+- **Issues:** [Report a bug or ask a question](https://github.com/0x0000dead/whales-identification/issues)
 
 ---
 
