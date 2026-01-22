@@ -35,7 +35,6 @@
 
 ### Внешние ресурсы
 - **[GitHub Repository](https://github.com/0x0000dead/whales-identification)** - Исходный код
-- **[GitHub Pages Docs](https://0x0000dead.github.io/whales-identification/)** - Документация с полным содержанием
 - **[Hugging Face](https://huggingface.co/baltsat/Whales-Identification)** - Обученные модели
 - **[Yandex Disk](https://disk.yandex.ru/d/GshqU9o6nNz7ZA)** - Альтернативное хранилище моделей
 

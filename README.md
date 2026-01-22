@@ -13,7 +13,6 @@
 ## 📚 Документация и ресурсы
 
 ### Официальная документация
-- **[📖 GitHub Pages Documentation](https://0x0000dead.github.io/whales-identification/)** - Главная страница документации с полным содержанием
 - **[📚 GitHub Wiki](https://github.com/0x0000dead/whales-identification/wiki)** - Детальные гайды и руководства:
   - [Installation Guide](https://github.com/0x0000dead/whales-identification/wiki/Installation) - Установка и настройка
   - [API Reference](https://github.com/0x0000dead/whales-identification/wiki/API-Reference) - REST API endpoints
