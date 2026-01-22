@@ -24,7 +24,7 @@ This guide provides step-by-step instructions for installing and running the Wha
 | Software | Version | Purpose |
 |----------|---------|---------|
 | **Python** | 3.11.6 | Backend runtime |
-| **Node.js** | ≥16.0 | Frontend build |
+| **Node.js** | ≥20.19 | Frontend build |
 | **Docker** | ≥20.10 | Containerization |
 | **Docker Compose** | ≥2.0 | Multi-container orchestration |
 | **Git** | Any | Version control |

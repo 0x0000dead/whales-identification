@@ -22,7 +22,7 @@ Welcome to the Whales Identification project! This guide will help you get start
 ### Prerequisites
 
 - Python 3.11.6
-- Node.js ≥16
+- Node.js ≥20.19
 - Docker & Docker Compose
 - Git
 - Poetry
