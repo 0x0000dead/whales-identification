@@ -49,7 +49,7 @@ git clone https://github.com/0x0000dead/whales-identification.git
 cd whales-identification
 
 # 2. Установить Hugging Face CLI
-pip install huggingface_hub
+pip install huggingface_hub==0.20.3
 
 # 3. Загрузить модели
 ./scripts/download_models.sh

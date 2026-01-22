@@ -75,7 +75,7 @@ npm run dev
 
 ```bash
 # From project root
-pip install huggingface_hub
+pip install huggingface_hub==0.20.3
 ./scripts/download_models.sh
 ```
 
