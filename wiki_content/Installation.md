@@ -152,8 +152,9 @@ poetry run pre-commit install
 sudo apt-get update
 sudo apt-get install -y libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev libgomp1
 
-# macOS
-brew install opencv  # Usually not required on macOS
+# macOS (only if you encounter import errors - usually not required):
+brew install opencv
+# Note: opencv-python package already includes system libraries on macOS
 
 # Download models (from project root)
 cd ..
@@ -384,8 +385,9 @@ sudo apt-get install -y libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-
 ```
 
 **Solution (macOS):**
+Usually not required on macOS - the `opencv-python` package already includes all required system libraries. Only install if the above packages don't resolve the issue:
 ```bash
-brew install opencv  # Usually not required
+brew install opencv
 ```
 
 ---
