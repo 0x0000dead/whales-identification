@@ -2,6 +2,8 @@
 set -e # Exit immediately if a command exits with a non-zero status.
 
 HF_REPO="baltsat/Whales-Identification"
+# Note: This downloads resnet101.pth (95.2 MB), which is the correct model file.
+# Some older documentation incorrectly refers to "model-e15.pt" - that file does not exist.
 MODEL_FILE="resnet101.pth"
 TARGET_DIR="models"
 
