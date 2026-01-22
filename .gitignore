@@ -178,3 +178,6 @@ frontend/node_modules
 
 
 # Model files downloaded to models/ directory
+
+# Auto Claude data directory
+.auto-claude/

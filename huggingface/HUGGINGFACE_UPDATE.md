@@ -4,10 +4,10 @@ This directory contains files that should be synchronized to the HuggingFace rep
 
 ## Files
 
-| File | Purpose |
-|------|---------|
+| File        | Purpose                                                       |
+| ----------- | ------------------------------------------------------------- |
 | `README.md` | Model card with YAML frontmatter (sets license to Apache 2.0) |
-| `LICENSE` | Apache 2.0 license text with usage restrictions |
+| `LICENSE`   | Apache 2.0 license text with usage restrictions               |
 
 ## Why Update?
 
@@ -86,6 +86,7 @@ The key field is `license: apache-2.0` which updates the repository license.
 ## Keeping in Sync
 
 When updating model documentation or license terms:
+
 1. Edit files in this `huggingface/` directory
 2. Run `./scripts/update_huggingface.sh` to sync changes
 3. Verify changes at https://huggingface.co/baltsat/Whales-Identification

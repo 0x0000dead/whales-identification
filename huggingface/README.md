@@ -34,11 +34,11 @@ This repository contains trained models for whale and dolphin individual identif
 
 ### Available Models
 
-| Model | Architecture | Precision | Speed | Best For |
-|-------|--------------|-----------|-------|----------|
-| `vit_l32_best.pth` | Vision Transformer L/32 | 93% | ~3.5s | Best accuracy |
-| `resnet101.pth` | ResNet-101 | 85% | ~1.2s | Balanced |
-| `efficientnet-b5.pth` | EfficientNet-B5 | 91% | ~1.8s | Good accuracy |
+| Model                 | Architecture            | Precision | Speed | Best For      |
+| --------------------- | ----------------------- | --------- | ----- | ------------- |
+| `vit_l32_best.pth`    | Vision Transformer L/32 | 93%       | ~3.5s | Best accuracy |
+| `resnet101.pth`       | ResNet-101              | 85%       | ~1.2s | Balanced      |
+| `efficientnet-b5.pth` | EfficientNet-B5         | 91%       | ~1.8s | Good accuracy |
 
 ## Usage
 
@@ -88,6 +88,7 @@ Copyright (c) 2024 Baltsat Konstantin, Tarasov Artem, Vandanov Sergey, Serov Ale
 ### Important Usage Restrictions
 
 **The trained models may NOT be used for commercial purposes** without explicit permission from the original data providers:
+
 - **HappyWhale data:** CC-BY-NC-4.0 (non-commercial)
 - **Ministry of Natural Resources RF data:** Government research-only terms
 - **ImageNet pretrained weights:** Non-commercial research-only terms
@@ -111,6 +112,7 @@ See [LICENSE_MODELS.md](https://github.com/0x0000dead/whales-identification/blob
 ## Training Data
 
 Models were trained on:
+
 - **HappyWhale dataset** (CC-BY-NC-4.0)
 - **Ministry of Natural Resources of the Russian Federation** data
 - ~60,000 training images of whales and dolphins

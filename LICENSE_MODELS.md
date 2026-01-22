@@ -40,18 +40,19 @@ The trained models in this repository were developed using datasets that include
 
 Our fine-tuned models are built upon pretrained models from the following sources, all of which use ImageNet for initial training:
 
-| Pretrained Model | Source | Code License | Pretrained Weights | ImageNet Terms |
-|------------------|--------|--------------|-------------------|----------------|
-| **ResNet-50/101** | [torchvision](https://github.com/pytorch/vision) | [BSD-3-Clause](https://github.com/pytorch/vision/blob/main/LICENSE) | [ImageNet-1k](https://www.image-net.org/download.php) | Non-commercial |
-| **EfficientNet-B0/B5** | [TIMM](https://github.com/huggingface/pytorch-image-models) (Google) | [Apache 2.0](https://github.com/huggingface/pytorch-image-models/blob/main/LICENSE) | [ImageNet-1k](https://www.image-net.org/download.php) | Non-commercial |
-| **`tf_efficientnet_b0_ns`** | [Google Noisy Student](https://github.com/google-research/noisystudent) | [Apache 2.0](https://github.com/google-research/noisystudent/blob/master/LICENSE) | ImageNet + JFT-300M | Non-commercial |
-| **ViT-B/16, ViT-L/32** | [Google ViT](https://github.com/google-research/vision_transformer) | [Apache 2.0](https://github.com/google-research/vision_transformer/blob/main/LICENSE) | [ImageNet-21k](https://www.image-net.org/download.php) | Non-commercial |
-| **Swin-T, Swin-L** | [Microsoft Swin](https://github.com/microsoft/Swin-Transformer) | [MIT](https://github.com/microsoft/Swin-Transformer/blob/main/LICENSE) | [ImageNet-22k](https://www.image-net.org/download.php) | Non-commercial |
-| **ConvNeXt-L** | [Facebook ConvNeXt](https://github.com/facebookresearch/ConvNeXt) | [CC-BY-NC 4.0](https://github.com/facebookresearch/ConvNeXt/blob/main/LICENSE) | [ImageNet-22k](https://www.image-net.org/download.php) | Non-commercial |
+| Pretrained Model            | Source                                                                  | Code License                                                                          | Pretrained Weights                                     | ImageNet Terms |
+| --------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------ | -------------- |
+| **ResNet-50/101**           | [torchvision](https://github.com/pytorch/vision)                        | [BSD-3-Clause](https://github.com/pytorch/vision/blob/main/LICENSE)                   | [ImageNet-1k](https://www.image-net.org/download.php)  | Non-commercial |
+| **EfficientNet-B0/B5**      | [TIMM](https://github.com/huggingface/pytorch-image-models) (Google)    | [Apache 2.0](https://github.com/huggingface/pytorch-image-models/blob/main/LICENSE)   | [ImageNet-1k](https://www.image-net.org/download.php)  | Non-commercial |
+| **`tf_efficientnet_b0_ns`** | [Google Noisy Student](https://github.com/google-research/noisystudent) | [Apache 2.0](https://github.com/google-research/noisystudent/blob/master/LICENSE)     | ImageNet + JFT-300M                                    | Non-commercial |
+| **ViT-B/16, ViT-L/32**      | [Google ViT](https://github.com/google-research/vision_transformer)     | [Apache 2.0](https://github.com/google-research/vision_transformer/blob/main/LICENSE) | [ImageNet-21k](https://www.image-net.org/download.php) | Non-commercial |
+| **Swin-T, Swin-L**          | [Microsoft Swin](https://github.com/microsoft/Swin-Transformer)         | [MIT](https://github.com/microsoft/Swin-Transformer/blob/main/LICENSE)                | [ImageNet-22k](https://www.image-net.org/download.php) | Non-commercial |
+| **ConvNeXt-L**              | [Facebook ConvNeXt](https://github.com/facebookresearch/ConvNeXt)       | [CC-BY-NC 4.0](https://github.com/facebookresearch/ConvNeXt/blob/main/LICENSE)        | [ImageNet-22k](https://www.image-net.org/download.php) | Non-commercial |
 
 ### ImageNet Licensing Summary
 
 **ImageNet Dataset Terms:**
+
 - **Official Website:** https://www.image-net.org/
 - **Download & Terms:** https://www.image-net.org/download.php
 - **Terms of Access:** https://image-net.org/download-images.php
@@ -61,6 +62,7 @@ Our fine-tuned models are built upon pretrained models from the following source
 - **Contact for commercial use:** feedback@image-net.org
 
 **Implications for This Project:**
+
 1. Even though the pretrained model **code** uses permissive licenses (Apache 2.0, BSD)
 2. The pretrained **weights** are restricted by ImageNet terms
 3. Our fine-tuned models are derived from these ImageNet weights
@@ -69,6 +71,7 @@ Our fine-tuned models are built upon pretrained models from the following source
 ### Combined Restrictions
 
 Our models face **triple restrictions** on commercial use:
+
 1. **HappyWhale Training Data:** CC-BY-NC-4.0 (non-commercial)
 2. **Ministry RF Training Data:** Government research-only terms
 3. **ImageNet Pretrained Weights:** Non-commercial research-only terms
@@ -95,17 +98,20 @@ All pretrained weights subject to ImageNet non-commercial terms (https://www.ima
 ## Permitted Uses
 
 ✅ **Research and Educational Use**
+
 - Academic research projects
 - Educational purposes in universities and research institutions
 - Non-profit conservation efforts
 - Scientific publications and presentations
 
 ✅ **Personal and Non-Commercial Use**
+
 - Wildlife observation and documentation
 - Personal hobby projects
 - Open-source collaboration for research purposes
 
 ✅ **Government and Conservation Organizations**
+
 - Marine mammal monitoring and conservation
 - Environmental protection initiatives
 - Scientific surveys and population studies
@@ -116,12 +122,12 @@ All pretrained weights subject to ImageNet non-commercial terms (https://www.ima
 
 The following trained models are subject to this license:
 
-| Model Name | Architecture | Version | File Location |
-|------------|--------------|---------|---------------|
-| `model-e15.pt` | Vision Transformer L/32 | v1.0 (epoch 15) | `models/model-e15.pt` |
-| `resnet101.pth` | ResNet-101 | v1.0 | `models/resnet101.pth` |
-| `efficientnet-b5.pth` | EfficientNet-B5 | v1.0 | `models/efficientnet-b5.pth` |
-| Other models | Various | - | `models/*.pt`, `models/*.pth` |
+| Model Name            | Architecture            | Version         | File Location                 |
+| --------------------- | ----------------------- | --------------- | ----------------------------- |
+| `model-e15.pt`        | Vision Transformer L/32 | v1.0 (epoch 15) | `models/model-e15.pt`         |
+| `resnet101.pth`       | ResNet-101              | v1.0            | `models/resnet101.pth`        |
+| `efficientnet-b5.pth` | EfficientNet-B5         | v1.0            | `models/efficientnet-b5.pth`  |
+| Other models          | Various                 | -               | `models/*.pt`, `models/*.pth` |
 
 **Note:** ONNX-optimized models (`.onnx` files) are also subject to the same license terms.
 
@@ -130,6 +136,7 @@ The following trained models are subject to this license:
 ## Model Storage and Distribution
 
 The models are distributed through:
+
 - **HuggingFace Hub:** [baltsat/Whales-Identification](https://huggingface.co/baltsat/Whales-Identification)
 - **Yandex Disk:** [Public folder](https://disk.yandex.ru/d/GshqU9o6nNz7ZA)
 - **GitHub Releases:** (for stable versions only)
@@ -154,6 +161,7 @@ When using these models, you must provide proper attribution:
 ```
 
 Additionally, you must acknowledge the original data sources:
+
 - **HappyWhale:** "This work uses data from HappyWhale (happywhale.com), licensed under CC-BY-NC-4.0"
 - **Ministry of Natural Resources RF:** "This work uses data provided by the Ministry of Natural Resources and Ecology of the Russian Federation"
 
@@ -162,6 +170,7 @@ Additionally, you must acknowledge the original data sources:
 ## Model Limitations and Responsible Use
 
 ### Technical Limitations
+
 - Models are optimized for aerial photography of marine mammals
 - Performance degrades significantly (up to 20%) on noisy, blurry, or low-quality images
 - Best results with clear dorsal fin or body pattern visibility
@@ -169,12 +178,14 @@ Additionally, you must acknowledge the original data sources:
 - Occlusions >50% significantly reduce accuracy
 
 ### Ethical Considerations
+
 - **Privacy:** No human subjects are present in training data
 - **Bias:** Models were primarily tested on orcas and humpback whales; performance on other species may vary
 - **Environmental Impact:** Model training carbon footprint is estimated at ~XX kg CO2 (calculation in progress)
 - **Conservation Impact:** Models are intended to aid marine mammal conservation efforts
 
 ### Prohibited Uses
+
 The following uses are explicitly prohibited:
 
 ❌ Commercial exploitation without data provider consent
@@ -212,12 +223,14 @@ For inquiries regarding commercial use, custom licensing, or partnerships:
 ## License Compatibility
 
 ### Compatible with:
+
 - Apache 2.0 licensed code
 - MIT licensed code
 - BSD licensed code
 - Other permissive licenses (for non-commercial use)
 
 ### NOT Compatible with:
+
 - GPL licensed code (due to Apache 2.0 provisions)
 - Commercial software (due to training data restrictions)
 - Any license that requires commercial use rights
@@ -235,6 +248,7 @@ The models' predictions should not be the sole basis for critical conservation d
 ## Updates to This License
 
 This license may be updated to reflect changes in:
+
 - Training data licensing terms
 - Legal requirements
 - Model capabilities and limitations

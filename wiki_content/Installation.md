@@ -21,14 +21,14 @@ This guide provides step-by-step instructions for installing and running the Wha
 
 ### Required Software
 
-| Software | Version | Purpose |
-|----------|---------|---------|
-| **Python** | 3.11.6 | Backend runtime |
-| **Node.js** | ≥20.19 | Frontend build |
-| **Docker** | ≥20.10 | Containerization |
-| **Docker Compose** | ≥2.0 | Multi-container orchestration |
-| **Git** | Any | Version control |
-| **Poetry** | ≥1.5 | Python package manager |
+| Software           | Version | Purpose                       |
+| ------------------ | ------- | ----------------------------- |
+| **Python**         | 3.11.6  | Backend runtime               |
+| **Node.js**        | ≥20.19  | Frontend build                |
+| **Docker**         | ≥20.10  | Containerization              |
+| **Docker Compose** | ≥2.0    | Multi-container orchestration |
+| **Git**            | Any     | Version control               |
+| **Poetry**         | ≥1.5    | Python package manager        |
 
 ### System Requirements
 
@@ -44,6 +44,7 @@ To use GPU acceleration with Docker containers, you need to install the NVIDIA C
 2. **Install NVIDIA Container Toolkit** - Follow the official guide: [NVIDIA Container Toolkit Installation Guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
 
 **Quick install (Ubuntu/Debian):**
+
 ```bash
 # Configure the repository
 curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
@@ -97,12 +98,14 @@ chmod +x scripts/download_models.sh
 ```
 
 **Expected output:**
+
 ```
 Downloading resnet101.pth...
 ✓ Downloaded to models/resnet101.pth
 ```
 
 **Alternative (manual download):**
+
 - [Hugging Face](https://huggingface.co/baltsat/Whales-Identification/tree/main)
 - [Yandex Disk](https://disk.yandex.ru/d/GshqU9o6nNz7ZA)
 
@@ -118,8 +121,8 @@ docker compose up --build
 
 **Environment Variables (Docker Compose):**
 
-| Variable | Default in Docker | Description |
-|----------|-------------------|-------------|
+| Variable       | Default in Docker     | Description                               |
+| -------------- | --------------------- | ----------------------------------------- |
 | `VITE_BACKEND` | `http://backend:8000` | Backend API URL (internal Docker network) |
 
 The `VITE_BACKEND` variable is pre-configured in `docker-compose.yml` for inter-container communication. For network access from external machines, you can override it:
@@ -132,11 +135,13 @@ VITE_BACKEND=http://your-server-ip:8000 docker compose up --build
 #### Step 5: Verify Services
 
 Open in browser:
+
 - **Backend API:** http://localhost:8000/docs (Swagger UI)
 - **Frontend UI:** http://localhost:8080
 - **Health Check:** http://localhost:8000/docs
 
 **Expected:**
+
 - Swagger UI shows 2 endpoints: `/predict-single`, `/predict-batch`
 - Frontend displays file upload interface
 
@@ -180,6 +185,7 @@ poetry run python -m uvicorn whales_be_service.main:app \
 ```
 
 **Backend will be available at:**
+
 - API: http://localhost:8000
 - Docs: http://localhost:8000/docs
 
@@ -197,12 +203,13 @@ npm run dev
 ```
 
 **Frontend will be available at:**
+
 - Dev Server: http://localhost:5173
 
 **Environment Variables:**
 
-| Variable | Default | Description |
-|----------|---------|-------------|
+| Variable       | Default                 | Description     |
+| -------------- | ----------------------- | --------------- |
 | `VITE_BACKEND` | `http://localhost:8000` | Backend API URL |
 
 **Network Access Configuration:**
@@ -219,12 +226,14 @@ npm run dev
 ```
 
 **Production build:**
+
 ```bash
 npm run build      # Build to frontend/dist
 npm run preview    # Preview production build
 ```
 
 **Production build with custom backend URL:**
+
 ```bash
 VITE_BACKEND=http://your-server-ip:8000 npm run build
 ```
@@ -279,9 +288,11 @@ poetry run streamlit run streamlit_app.py --server.port=8501 --server.address=0.
 ```
 
 **App will be available at:**
+
 - http://localhost:8501
 
 **Alternative demo (with masking):**
+
 ```bash
 cd ../demo-ui-mask
 poetry install
@@ -300,11 +311,13 @@ poetry run streamlit run streamlit_app.py --server.port=8502
 ```
 
 **What it does:**
+
 1. Creates `models/` directory
 2. Uses `huggingface-cli` to download `resnet101.pth`
 3. Verifies download integrity
 
 **Requirements:**
+
 - `huggingface_hub` installed: `pip install huggingface_hub==0.20.3`
 
 ### Option 2: Manual Download
@@ -322,6 +335,7 @@ poetry run streamlit run streamlit_app.py --server.port=8502
 3. Place in `models/` directory
 
 **Directory structure:**
+
 ```
 whales-identification/
 ├── models/
@@ -364,6 +378,7 @@ with open("whale_image.jpg", "rb") as f:
 ```
 
 **Expected response:**
+
 ```json
 {
   "image_ind": "whale_image.jpg",
@@ -400,6 +415,7 @@ xdg-open htmlcov/index.html  # Linux
 ```
 
 **Expected output:**
+
 ```
 tests/api/test_post_endpoints.py::test_predict_single_success PASSED
 tests/api/test_post_endpoints.py::test_predict_batch_success PASSED
@@ -416,6 +432,7 @@ Coverage: 85%
 **Cause:** Missing OpenCV system dependencies
 
 **Solution (Ubuntu/Debian):**
+
 ```bash
 sudo apt-get update
 sudo apt-get install -y libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev libgomp1
@@ -423,6 +440,7 @@ sudo apt-get install -y libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-
 
 **Solution (macOS):**
 Usually not required on macOS - the `opencv-python` package already includes all required system libraries. Only install if the above packages don't resolve the issue:
+
 ```bash
 brew install opencv
 ```
@@ -434,11 +452,13 @@ brew install opencv
 **Cause:** Hugging Face CLI not installed
 
 **Solution:**
+
 ```bash
 pip install huggingface_hub==0.20.3
 ```
 
 **Verify:**
+
 ```bash
 huggingface-cli --version
 ```
@@ -450,6 +470,7 @@ huggingface-cli --version
 **Cause:** Running command from wrong directory
 
 **Solution:**
+
 ```bash
 # Backend commands must run from whales_be_service/
 cd whales_be_service
@@ -467,6 +488,7 @@ npm install
 **Cause:** Docker images not built
 
 **Solution:**
+
 ```bash
 # Build images
 docker compose build
@@ -482,6 +504,7 @@ docker compose build --no-cache
 **Cause:** Models not downloaded to `models/` directory
 
 **Solution:**
+
 ```bash
 # Check models directory
 ls -lh models/
@@ -500,6 +523,7 @@ ls -lh models/resnet101.pth
 **Cause:** Another service using port 8000 or 8080
 
 **Solution (macOS/Linux):**
+
 ```bash
 # Find process using port
 lsof -i :8000
@@ -509,6 +533,7 @@ kill -9 <PID>
 ```
 
 **Solution (Windows):**
+
 ```powershell
 netstat -ano | findstr :8000
 taskkill /PID <PID> /F
@@ -521,6 +546,7 @@ taskkill /PID <PID> /F
 **Cause:** User not in docker group
 
 **Solution:**
+
 ```bash
 sudo usermod -aG docker $USER
 newgrp docker
@@ -536,6 +562,7 @@ docker ps
 **Cause:** Code doesn't meet quality standards
 
 **Solution:**
+
 ```bash
 # Auto-fix formatting
 poetry run black .

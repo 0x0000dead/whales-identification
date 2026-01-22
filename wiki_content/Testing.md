@@ -35,12 +35,12 @@ Comprehensive testing strategies, tools, and procedures for the Whales Identific
 
 ### Coverage Requirements
 
-| Component | Target Coverage | Current Coverage |
-|-----------|----------------|------------------|
-| **Backend API** | ≥80% | 85% |
-| **ML Core** | ≥70% | 73% |
-| **Frontend** | ≥75% | 68% (planned) |
-| **Overall** | ≥80% | 82% |
+| Component       | Target Coverage | Current Coverage |
+| --------------- | --------------- | ---------------- |
+| **Backend API** | ≥80%            | 85%              |
+| **ML Core**     | ≥70%            | 73%              |
+| **Frontend**    | ≥75%            | 68% (planned)    |
+| **Overall**     | ≥80%            | 82%              |
 
 ---
 
@@ -136,6 +136,7 @@ open htmlcov/index.html
 ```
 
 **Coverage breakdown:**
+
 ```
 Name                                 Stmts   Miss  Cover
 --------------------------------------------------------
@@ -475,52 +476,52 @@ def test_predict_batch_empty_zip():
 ```typescript
 // e2e/predict-workflow.spec.ts
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test('complete prediction workflow', async ({ page }) => {
+test("complete prediction workflow", async ({ page }) => {
   // 1. Navigate to app
-  await page.goto('http://localhost:8080');
+  await page.goto("http://localhost:8080");
 
   // 2. Upload image
   const fileInput = page.locator('input[type="file"]');
-  await fileInput.setInputFiles('tests/fixtures/whale_001.jpg');
+  await fileInput.setInputFiles("tests/fixtures/whale_001.jpg");
 
   // 3. Submit
   await page.click('button:has-text("Identify")');
 
   // 4. Wait for result
-  await page.waitForSelector('.result-container', { timeout: 10000 });
+  await page.waitForSelector(".result-container", { timeout: 10000 });
 
   // 5. Verify result
-  const species = await page.locator('.species-name').textContent();
+  const species = await page.locator(".species-name").textContent();
   expect(species).toBeTruthy();
 
-  const confidence = await page.locator('.confidence-score').textContent();
+  const confidence = await page.locator(".confidence-score").textContent();
   expect(parseFloat(confidence)).toBeGreaterThan(0);
 
   // 6. Check mask is displayed
-  const maskImage = page.locator('.mask-image');
+  const maskImage = page.locator(".mask-image");
   await expect(maskImage).toBeVisible();
 });
 
-test('batch upload workflow', async ({ page }) => {
-  await page.goto('http://localhost:8080');
+test("batch upload workflow", async ({ page }) => {
+  await page.goto("http://localhost:8080");
 
   // Switch to batch mode
   await page.click('button:has-text("Batch Mode")');
 
   // Upload ZIP
   const fileInput = page.locator('input[type="file"]');
-  await fileInput.setInputFiles('tests/fixtures/batch.zip');
+  await fileInput.setInputFiles("tests/fixtures/batch.zip");
 
   // Submit
   await page.click('button:has-text("Process Batch")');
 
   // Wait for results table
-  await page.waitForSelector('.results-table', { timeout: 30000 });
+  await page.waitForSelector(".results-table", { timeout: 30000 });
 
   // Verify results
-  const rows = await page.locator('.results-table tbody tr').count();
+  const rows = await page.locator(".results-table tbody tr").count();
   expect(rows).toBeGreaterThan(0);
 });
 ```
@@ -597,6 +598,7 @@ class WhaleIdentificationUser(HttpUser):
 ```
 
 **Run load test:**
+
 ```bash
 locust -f tests/performance/locustfile.py --host=http://localhost:8000
 ```
@@ -706,12 +708,14 @@ def sample_image():
 ### Writing Good Tests
 
 1. **Test naming:** `test_<what>_<condition>`
+
    ```python
    def test_predict_single_success():  # Good
    def test_api():                     # Bad
    ```
 
 2. **Arrange-Act-Assert pattern:**
+
    ```python
    def test_inference():
        # Arrange
@@ -725,6 +729,7 @@ def sample_image():
    ```
 
 3. **Use fixtures for setup:**
+
    ```python
    @pytest.fixture
    def model():
@@ -736,6 +741,7 @@ def sample_image():
    ```
 
 4. **Test one thing per test:**
+
    ```python
    def test_image_preprocessing():  # Good - tests one thing
        ...
