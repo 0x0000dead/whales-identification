@@ -205,22 +205,34 @@ cd research/demo-ui
 
 #### Step 2: Install Dependencies
 
+The demo uses Poetry for dependency management with its own `pyproject.toml`.
+
 ```bash
 # Install Poetry (if not installed)
 pip install poetry
 
-# Install dependencies
+# Install dependencies from pyproject.toml
 poetry install
 ```
 
+**Note:** This installs Streamlit, PyTorch, OpenCV, Albumentations, and other required packages.
+
 #### Step 3: Download Models
+
+The demo requires the Vision Transformer model (`model-e15.pt`):
 
 ```bash
 # From project root
 cd ../..
 ./scripts/download_models.sh
+
+# Copy model to demo directory (if not already present)
+cp models/model-e15.pt research/demo-ui/models/
+
 cd research/demo-ui
 ```
+
+**Manual download:** Download from [Yandex Disk](https://disk.yandex.com/d/lH17kkrYgv2-1w) and place in `research/demo-ui/models/`.
 
 #### Step 4: Run Streamlit App
 
