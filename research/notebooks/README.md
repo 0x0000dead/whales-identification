@@ -1,3 +1,28 @@
+# Research Notebooks
+
+> ⚠️ **Important**: This directory contains **research and experimentation code**, not production-ready implementations. These notebooks are used for model evaluation, architecture comparison, and experimental analysis.
+
+## Purpose
+
+This `research/notebooks/` directory serves as a sandbox for:
+- **Model architecture evaluation** - Comparing different neural network architectures (CNNs, Vision Transformers, etc.)
+- **Hyperparameter experimentation** - Testing various training configurations
+- **Performance benchmarking** - Measuring accuracy, speed, and resource usage
+- **Exploratory data analysis** - Understanding the whale identification dataset
+
+## Relationship to Main Library
+
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| **Research notebooks** | `research/notebooks/` | Experimentation and evaluation (this directory) |
+| **Production ML library** | `whales_identify/` | Core training and model code for production |
+| **Production API** | `whales_be_service/` | FastAPI backend service |
+| **Demo applications** | `research/demo-ui/` | Streamlit demos for visualization |
+
+**Note**: Code validated in these research notebooks may be promoted to the main `whales_identify/` library after thorough testing and review. However, notebooks themselves should **not be used in production** environments.
+
+## Model Comparison Results
+
 В результате проведенного анализа были получены следующие результаты.
 
 | Критерий                         | CNN (ResNet-54)             | CNN (ResNet-101)             | Metric Learning (EfficientNet-B0)   | Metric Learning (EfficientNet-B5)   | ViT-B/16                     | ViT-L/32                        | Swin-T                          |
