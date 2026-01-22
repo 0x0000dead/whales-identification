@@ -287,7 +287,7 @@ poetry run flake8 .
 **Configuration:**
 - Python version: 3.11
 - `ignore_missing_imports`: True (for third-party libraries without stubs)
-- Checks: `whales_identify/` and `whales_be_service/src/`
+- Checks: `whales_identify/` and `whales_be_service/`
 - Excludes: `tests/`, `research/`
 
 **Why it matters:**
@@ -310,7 +310,7 @@ def add_numbers(a: int, b: int) -> int:
 
 **Manual run:**
 ```bash
-poetry run mypy whales_be_service/src/
+poetry run mypy whales_be_service/
 ```
 
 **Suppressing false positives:**
@@ -327,7 +327,7 @@ result = some_complex_function()  # type: ignore
 
 **Configuration:**
 - Excludes: `tests/`, `research/`
-- Skipped checks: `B101` (assert statements), `B601` (paramiko usage)
+- Skipped checks: `B101` (assert statements in tests)
 
 **Why it matters:**
 - Detects hardcoded passwords, SQL injection risks, insecure functions
@@ -350,7 +350,7 @@ import md5  # MEDIUM
 
 **Manual run:**
 ```bash
-poetry run bandit -r whales_be_service/src/
+poetry run bandit -r whales_be_service/
 ```
 
 **Suppressing false positives:**
