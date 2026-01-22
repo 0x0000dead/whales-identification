@@ -80,6 +80,7 @@ echo "Visit: https://github.com/${REPO}/wiki"
 ```
 
 **Run:**
+
 ```bash
 chmod +x upload_wiki.sh
 ./upload_wiki.sh
@@ -89,21 +90,22 @@ chmod +x upload_wiki.sh
 
 When creating pages on GitHub Wiki, use these exact names (without .md extension):
 
-| File | GitHub Wiki Page Name |
-|------|----------------------|
-| Home.md | Home |
-| Installation.md | Installation |
-| API-Reference.md | API-Reference |
-| Usage.md | Usage |
-| Architecture.md | Architecture |
-| Model-Cards.md | Model-Cards |
-| Testing.md | Testing |
-| Contributing.md | Contributing |
-| FAQ.md | FAQ |
+| File             | GitHub Wiki Page Name |
+| ---------------- | --------------------- |
+| Home.md          | Home                  |
+| Installation.md  | Installation          |
+| API-Reference.md | API-Reference         |
+| Usage.md         | Usage                 |
+| Architecture.md  | Architecture          |
+| Model-Cards.md   | Model-Cards           |
+| Testing.md       | Testing               |
+| Contributing.md  | Contributing          |
+| FAQ.md           | FAQ                   |
 
 ## Verification
 
 After upload, verify all pages are accessible:
+
 - https://github.com/0x0000dead/whales-identification/wiki
 - https://github.com/0x0000dead/whales-identification/wiki/Installation
 - https://github.com/0x0000dead/whales-identification/wiki/API-Reference
@@ -112,6 +114,7 @@ After upload, verify all pages are accessible:
 ## Internal Links
 
 All wiki pages contain cross-links. Ensure links work after upload:
+
 - `[Installation](Installation)` → https://github.com/0x0000dead/whales-identification/wiki/Installation
 - `[API Reference](API-Reference)` → https://github.com/0x0000dead/whales-identification/wiki/API-Reference
 
@@ -123,21 +126,25 @@ Create a `_Sidebar.md` file for navigation:
 ## 🐋 Whales Identification
 
 **Quick Start**
+
 - [Home](Home)
 - [Installation](Installation)
 - [Usage](Usage)
 
 **Documentation**
+
 - [API Reference](API-Reference)
 - [Architecture](Architecture)
 - [Model Cards](Model-Cards)
 
 **Development**
+
 - [Testing](Testing)
 - [Contributing](Contributing)
 - [FAQ](FAQ)
 
 **Resources**
+
 - [GitHub Repo](https://github.com/0x0000dead/whales-identification)
 - [Hugging Face](https://huggingface.co/baltsat/Whales-Identification)
 ```
@@ -148,6 +155,7 @@ Create a `_Footer.md` file:
 
 ```markdown
 ---
+
 © 2024 Whales Identification Team | [GitHub](https://github.com/0x0000dead/whales-identification) | [Issues](https://github.com/0x0000dead/whales-identification/issues) | [Discussions](https://github.com/0x0000dead/whales-identification/discussions)
 ```
 

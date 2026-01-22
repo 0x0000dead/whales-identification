@@ -1,0 +1,40 @@
+[tool.poetry]
+name = "whales-demo-ui"
+version = "0.1.0"
+description = "Streamlit demo for whale identification using Vision Transformers"
+authors = [
+    "Baltsat Konstantin",
+    "Tarasov Artem",
+    "Vandanov Sergey",
+    "Serov Alexandr"
+]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.13"
+streamlit = "^1.39.0"
+torch = "^2.4.1"
+pandas = "^2.2.3"
+numpy = "^1.26.0"
+pillow = "^10.4.0"
+opencv-python = "^4.10.0"
+albumentations = "^1.4.18"
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.0.0"
+isort = "^5.13.0"
+flake8 = "^7.0.0"
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

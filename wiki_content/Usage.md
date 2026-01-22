@@ -20,11 +20,13 @@ Learn how to use Whales Identification in different scenarios.
 ### Quick Start
 
 1. **Start services:**
+
 ```bash
 docker compose up --build
 ```
 
 2. **Open browser:**
+
 - Frontend: http://localhost:8080
 - API Docs: http://localhost:8000/docs
 
@@ -35,6 +37,7 @@ docker compose up --build
 Click "Choose File" or drag-and-drop image onto upload zone.
 
 **Supported formats:**
+
 - JPG, JPEG, PNG
 - Recommended: 1920×1080 or higher
 - Max size: 10 MB
@@ -52,6 +55,7 @@ Click "Identify" button.
 #### Step 4: View Results
 
 Results display:
+
 - **Species name** (e.g., "Humpback Whale")
 - **Individual ID** (hex string)
 - **Confidence score** (0-100%)
@@ -73,6 +77,7 @@ zip whale_batch.zip whale_*.jpg
 ```
 
 **Requirements:**
+
 - Max 100 images per batch
 - Max ZIP size: 50 MB
 - Only JPG, PNG, JPEG inside
@@ -86,6 +91,7 @@ zip whale_batch.zip whale_*.jpg
 #### Step 3: View Results
 
 Results table shows:
+
 - Image filename
 - Species
 - Individual ID
@@ -93,6 +99,7 @@ Results table shows:
 - Thumbnails
 
 **Export options:**
+
 - Download results as CSV
 - Download individual masks
 - Download summary report
@@ -154,6 +161,7 @@ poetry run streamlit run streamlit_app.py --server.port=8501
 ```
 
 **Features:**
+
 - Single image upload
 - Real-time inference
 - Visualization of predictions
@@ -168,6 +176,7 @@ poetry run streamlit run streamlit_app.py --server.port=8502
 ```
 
 **Features:**
+
 - Manual mask drawing
 - Background removal preview
 - Improved accuracy with masks
@@ -193,6 +202,7 @@ jupyter notebook
 ```
 
 **Contents:**
+
 - Data preparation
 - Model architecture setup
 - Training loop with metric learning
@@ -203,6 +213,7 @@ jupyter notebook
 **Notebook:** `02_ViT_inference_efficientnet.ipynb`
 
 **Contents:**
+
 - Model loading
 - Inference on test set
 - Metrics calculation
@@ -213,6 +224,7 @@ jupyter notebook
 **Notebook:** `03_efficientnet_experiments.ipynb`
 
 **Contents:**
+
 - Comparison of EfficientNet-B0, B3, B5
 - Metric learning approach
 - Speed vs accuracy trade-offs
@@ -222,6 +234,7 @@ jupyter notebook
 **Notebook:** `04_resnet_classification_experiments.ipynb`
 
 **Contents:**
+
 - ResNet-54 and ResNet-101
 - Traditional classification approach
 - Comparison with metric learning
@@ -231,6 +244,7 @@ jupyter notebook
 **Notebook:** `05_swinT_experiments.ipynb`
 
 **Contents:**
+
 - Swin Transformer architecture
 - Performance evaluation
 - Comparison with ViT
@@ -240,6 +254,7 @@ jupyter notebook
 **Notebook:** `06_benchmark_binary.ipynb`
 
 **Contents:**
+
 - Binary classification (whale present/absent)
 - All models comparison
 - ROC curves, precision-recall
@@ -249,6 +264,7 @@ jupyter notebook
 **Notebook:** `06_benchmark_multiclass.ipynb`
 
 **Contents:**
+
 - Multiclass species identification
 - Confusion matrices
 - Per-species performance
@@ -258,6 +274,7 @@ jupyter notebook
 **Notebook:** `07_onnx_inference_compare.ipynb`
 
 **Contents:**
+
 - ONNX conversion
 - Speed comparison
 - Deployment optimization
@@ -352,6 +369,7 @@ results = inferencer.predict_batch([
 ### Image Quality
 
 **Recommended:**
+
 - Resolution: ≥1920×1080
 - Format: JPG (smaller size) or PNG (lossless)
 - Lighting: Good natural lighting
@@ -359,6 +377,7 @@ results = inferencer.predict_batch([
 - Distance: Whale fills 20-80% of frame
 
 **Avoid:**
+
 - Blurry images
 - Heavy shadows
 - Extreme angles
@@ -368,23 +387,25 @@ results = inferencer.predict_batch([
 ### Batch Processing
 
 **Optimal batch sizes:**
+
 - Small batches (1-10 images): <1 minute
 - Medium batches (10-50 images): 1-5 minutes
 - Large batches (50-100 images): 5-15 minutes
 
 **Tips:**
+
 - Use ZIP compression for faster uploads
 - Process overnight for large datasets
 - Monitor memory usage (8GB RAM minimum)
 
 ### Model Selection
 
-| Use Case | Recommended Model | Speed | Accuracy |
-|----------|------------------|-------|----------|
-| **Production API** | Vision Transformer B/16 | 2.0s | 91% |
-| **Research** | Vision Transformer L/32 | 3.5s | 93% |
-| **Real-time** | EfficientNet-B0 | 1.0s | 88% |
-| **Balanced** | EfficientNet-B5 | 1.8s | 91% |
+| Use Case           | Recommended Model       | Speed | Accuracy |
+| ------------------ | ----------------------- | ----- | -------- |
+| **Production API** | Vision Transformer B/16 | 2.0s  | 91%      |
+| **Research**       | Vision Transformer L/32 | 3.5s  | 93%      |
+| **Real-time**      | EfficientNet-B0         | 1.0s  | 88%      |
+| **Balanced**       | EfficientNet-B5         | 1.8s  | 91%      |
 
 **See [Model Cards](Model-Cards) for detailed comparison.**
 

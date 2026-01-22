@@ -281,6 +281,7 @@ class HappyWhaleModel(nn.Module):
 ```
 
 **GeM Pooling:**
+
 ```python
 class GeM(nn.Module):
     """Generalized Mean Pooling - better than average for metric learning"""
@@ -297,6 +298,7 @@ class GeM(nn.Module):
 ```
 
 **ArcFace Margin:**
+
 ```python
 class ArcMarginProduct(nn.Module):
     """Additive Angular Margin for metric learning"""
@@ -569,6 +571,7 @@ networks:
 ### Scaling Strategy
 
 **Horizontal Scaling:**
+
 ```
 ┌──────────────┐
 │ Load Balancer│ (Nginx/HAProxy)
@@ -582,6 +585,7 @@ networks:
 ```
 
 **Considerations:**
+
 - Stateless API (no session storage)
 - Shared model storage (NFS or S3)
 - Redis for caching predictions
@@ -592,39 +596,40 @@ networks:
 
 ### Backend
 
-| Component | Technology | Version | Purpose |
-|-----------|-----------|---------|---------|
-| **Framework** | FastAPI | 0.115+ | REST API framework |
-| **Server** | Uvicorn | 0.34+ | ASGI server |
-| **ML** | PyTorch | 2.4.1 | Deep learning |
-| **Models** | TIMM | 1.0.9 | Pretrained models |
-| **Vision** | OpenCV | 4.10+ | Image processing |
-| **Validation** | Pydantic | 2.9+ | Data validation |
-| **Background Removal** | rembg | 2.0+ | U²-Net segmentation |
+| Component              | Technology | Version | Purpose             |
+| ---------------------- | ---------- | ------- | ------------------- |
+| **Framework**          | FastAPI    | 0.115+  | REST API framework  |
+| **Server**             | Uvicorn    | 0.34+   | ASGI server         |
+| **ML**                 | PyTorch    | 2.4.1   | Deep learning       |
+| **Models**             | TIMM       | 1.0.9   | Pretrained models   |
+| **Vision**             | OpenCV     | 4.10+   | Image processing    |
+| **Validation**         | Pydantic   | 2.9+    | Data validation     |
+| **Background Removal** | rembg      | 2.0+    | U²-Net segmentation |
 
 ### Frontend
 
-| Component | Technology | Version | Purpose |
-|-----------|-----------|---------|---------|
-| **Framework** | React | 18.x | UI library |
-| **Language** | TypeScript | 5.x | Type-safe JS |
-| **Build Tool** | Vite | 5.x | Fast dev server |
-| **Charts** | Recharts | 2.x | Data visualization |
-| **HTTP Client** | Axios | 1.x | API requests |
+| Component       | Technology | Version | Purpose            |
+| --------------- | ---------- | ------- | ------------------ |
+| **Framework**   | React      | 18.x    | UI library         |
+| **Language**    | TypeScript | 5.x     | Type-safe JS       |
+| **Build Tool**  | Vite       | 5.x     | Fast dev server    |
+| **Charts**      | Recharts   | 2.x     | Data visualization |
+| **HTTP Client** | Axios      | 1.x     | API requests       |
 
 ### DevOps
 
-| Component | Technology | Version | Purpose |
-|-----------|-----------|---------|---------|
-| **Containerization** | Docker | 20.10+ | Containerization |
-| **Orchestration** | Docker Compose | 2.0+ | Multi-container |
-| **CI/CD** | GitHub Actions | N/A | Automation |
-| **Package Manager** | Poetry | 1.5+ | Python deps |
-| **Pre-commit** | pre-commit | 3.x | Git hooks |
+| Component            | Technology     | Version | Purpose          |
+| -------------------- | -------------- | ------- | ---------------- |
+| **Containerization** | Docker         | 20.10+  | Containerization |
+| **Orchestration**    | Docker Compose | 2.0+    | Multi-container  |
+| **CI/CD**            | GitHub Actions | N/A     | Automation       |
+| **Package Manager**  | Poetry         | 1.5+    | Python deps      |
+| **Pre-commit**       | pre-commit     | 3.x     | Git hooks        |
 
 ---
 
 **Next Steps:**
+
 - [Model Cards](Model-Cards) - Detailed model specifications
 - [Testing](Testing) - Testing architecture
 - [API Reference](API-Reference) - Complete API docs

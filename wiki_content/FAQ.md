@@ -23,12 +23,14 @@ Common questions and solutions for the Whales Identification project.
 **Problem:** Missing OpenCV system dependencies
 
 **Solution (Ubuntu/Debian):**
+
 ```bash
 sudo apt-get update
 sudo apt-get install -y libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev libgomp1
 ```
 
 **Solution (macOS):**
+
 ```bash
 brew install opencv  # Usually not required on macOS
 ```
@@ -42,11 +44,13 @@ brew install opencv  # Usually not required on macOS
 **Problem:** Hugging Face CLI not installed
 
 **Solution:**
+
 ```bash
-pip install huggingface_hub
+pip install huggingface_hub==0.20.3
 ```
 
 **Verify:**
+
 ```bash
 huggingface-cli --version
 ```
@@ -60,6 +64,7 @@ huggingface-cli --version
 **Problem:** Running command from wrong directory
 
 **Solution:**
+
 ```bash
 # Backend commands must run from whales_be_service/
 cd whales_be_service
@@ -79,6 +84,7 @@ npm install
 **Problem:** Docker images not built
 
 **Solution:**
+
 ```bash
 # Build images
 docker compose build
@@ -101,9 +107,11 @@ docker compose up
 **Answer:** Models are available from two sources:
 
 1. **Hugging Face (Recommended):**
+
    ```bash
    ./scripts/download_models.sh
    ```
+
    - URL: https://huggingface.co/baltsat/Whales-Identification/tree/main
    - File: `model-e15.pt` (2.1 GB)
 
@@ -112,6 +120,7 @@ docker compose up
    - Download all models
 
 **Verify download:**
+
 ```bash
 ls -lh models/model-e15.pt
 # Should show ~2.1 GB file
@@ -124,6 +133,7 @@ ls -lh models/model-e15.pt
 **Problem:** Models not downloaded or wrong path
 
 **Solution:**
+
 ```bash
 # 1. Check models directory exists
 ls models/
@@ -147,6 +157,7 @@ ls -lh models/model-e15.pt
 **Problem:** Running on CPU instead of GPU
 
 **Solution:**
+
 ```bash
 # Check if GPU is available
 python -c "import torch; print(torch.cuda.is_available())"
@@ -156,6 +167,7 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
 ```
 
 **Expected times:**
+
 - GPU (V100): 2-4 seconds
 - CPU: 5-15 seconds
 - If >30 seconds: check for bottlenecks
@@ -167,6 +179,7 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
 **Problem:** Image too large or batch size too big
 
 **Solution:**
+
 ```python
 # Resize large images before inference
 from PIL import Image
@@ -181,6 +194,7 @@ def resize_if_needed(image_path, max_size=1920):
 ```
 
 **Or reduce batch size:**
+
 ```python
 # Instead of batch_size=32
 batch_size = 16  # Or even 8
@@ -195,6 +209,7 @@ batch_size = 16  # Or even 8
 **Problem:** File format not supported or MIME type mismatch
 
 **Solution:**
+
 ```bash
 # Supported formats: JPG, PNG, JPEG
 # Convert if needed
@@ -214,6 +229,7 @@ file --mime-type whale.jpg
 **Problem:** Multiple possible causes
 
 **Solution:**
+
 ```bash
 # 1. Check logs
 docker compose logs backend
@@ -235,6 +251,7 @@ curl -X POST "http://localhost:8000/predict-single" \
 **Problem:** CORS error or wrong backend URL
 
 **Solution:**
+
 ```bash
 # 1. Verify backend is running
 curl http://localhost:8000/docs
@@ -261,6 +278,7 @@ VITE_BACKEND_URL=http://localhost:8000
 **Problem:** Another service using port 8000 or 8080
 
 **Solution (macOS/Linux):**
+
 ```bash
 # Find process using port
 lsof -i :8000
@@ -270,17 +288,19 @@ kill -9 <PID>
 ```
 
 **Solution (Windows):**
+
 ```powershell
 netstat -ano | findstr :8000
 taskkill /PID <PID> /F
 ```
 
 **Alternative:** Change ports in `docker-compose.yml`:
+
 ```yaml
 services:
   backend:
     ports:
-      - "8001:8000"  # Change 8000 → 8001
+      - "8001:8000" # Change 8000 → 8001
 ```
 
 ---
@@ -290,6 +310,7 @@ services:
 **Problem:** User not in docker group
 
 **Solution:**
+
 ```bash
 # Add user to docker group
 sudo usermod -aG docker $USER
@@ -310,6 +331,7 @@ docker ps
 **Problem:** Docker out of disk space
 
 **Solution:**
+
 ```bash
 # Clean up old images
 docker system prune -a
@@ -330,6 +352,7 @@ docker volume prune
 **Problem:** Processing 100 images sequentially
 
 **Solution:**
+
 ```python
 # Use multiprocessing for batch inference
 from concurrent.futures import ThreadPoolExecutor
@@ -341,6 +364,7 @@ def process_batch_parallel(images, max_workers=4):
 ```
 
 **Or use GPU batch processing:**
+
 ```python
 # Process in batches of 16
 batch_size = 16
@@ -357,6 +381,7 @@ for i in range(0, len(images), batch_size):
 **Problem:** Model loaded multiple times or not released
 
 **Solution:**
+
 ```python
 # Ensure model is loaded once
 if not hasattr(app.state, 'model'):
@@ -384,11 +409,13 @@ torch.cuda.empty_cache()
 3. **ImageNet pretrained weights:** Non-commercial terms
 
 **For commercial use:**
+
 - Train models from scratch with your own data
 - Use commercial datasets
 - Contact data providers for commercial licenses
 
 **See:**
+
 - [LICENSE_MODELS.md](https://github.com/0x0000dead/whales-identification/blob/main/LICENSE_MODELS.md)
 - [LICENSE_DATA.md](https://github.com/0x0000dead/whales-identification/blob/main/LICENSE_DATA.md)
 
@@ -399,12 +426,14 @@ torch.cuda.empty_cache()
 **Answer:** ✅ **Yes!** The code is MIT licensed.
 
 **You can:**
+
 - Modify the code
 - Use in your own projects
 - Fork the repository
 - Contribute back via pull requests
 
 **You must:**
+
 - Include original copyright notice
 - Include MIT license text
 
@@ -417,11 +446,13 @@ torch.cuda.empty_cache()
 **Answer:** ✅ **Yes!** Models can be used for non-commercial research.
 
 **Requirements:**
+
 - Cite the original datasets (HappyWhale, Ministry RF)
 - Acknowledge the project in publications
 - Share results with the community
 
 **Citation:**
+
 ```bibtex
 @software{whales_identification_2024,
   author = {Baltsat, Konstantin and Tarasov, Artem and Vandanov, Sergey and Serov, Alexandr},
@@ -440,6 +471,7 @@ torch.cuda.empty_cache()
 **Answer:**
 
 **Recommended:**
+
 - Resolution: ≥1920×1080
 - Format: JPG or PNG
 - Lighting: Good natural lighting
@@ -447,11 +479,13 @@ torch.cuda.empty_cache()
 - Distance: Whale fills 20-80% of frame
 
 **Minimum:**
+
 - Resolution: ≥800×600
 - No extreme blur or occlusion
 - Whale clearly visible
 
 **Accuracy impact:**
+
 - High-quality: 90-93% precision
 - Low-quality (<800×600): 70-80% precision (15-20% drop)
 
@@ -462,17 +496,21 @@ torch.cuda.empty_cache()
 **Answer:**
 
 **Limits:**
+
 - Single image: Max 10 MB
 - Batch ZIP: Max 50 MB, max 100 images
 
 **Recommendations:**
+
 - Small batches (1-10): <1 minute
 - Medium batches (10-50): 1-5 minutes
 - Large batches (50-100): 5-15 minutes
 
 **For larger datasets:**
+
 - Split into multiple ZIP files
 - Use script to process in chunks:
+
 ```python
 import os
 import zipfile
@@ -495,18 +533,22 @@ def split_batch(image_dir, max_per_zip=50):
 **Answer:** Depends on your use case:
 
 **Best accuracy (93%):**
+
 - Vision Transformer L/32
 - Use for: Research, validation, high-value species
 
 **Production API (91%, 2s):**
+
 - Vision Transformer B/16
 - Use for: API deployments, GPU servers
 
 **Real-time (<1s, 88%):**
+
 - EfficientNet-B0
 - Use for: Real-time apps, edge devices
 
 **Edge devices (82%, 0.8s):**
+
 - ResNet-54
 - Use for: Jetson Nano, low-power devices
 
@@ -521,10 +563,12 @@ def split_batch(image_dir, max_per_zip=50):
 The model predicts **one whale per image**. For multiple whales:
 
 **Workaround:**
+
 1. Manually crop each whale
 2. Upload each crop separately
 
 **Planned feature (v0.2.0):**
+
 - Object detection with YOLO/Faster R-CNN
 - Automatic cropping of multiple whales
 - Batch prediction on all detections
@@ -558,6 +602,7 @@ The model predicts **one whale per image**. For multiple whales:
 **Answer:**
 
 **Overall metrics (Vision Transformer L/32):**
+
 - Precision@1: 93.2%
 - Precision@5: 97.8%
 - Recall (Sensitivity): 91.5%
@@ -568,11 +613,13 @@ The model predicts **one whale per image**. For multiple whales:
 **ТЗ Compliance:** ✅ All metrics exceed requirements (Precision ≥80%, Recall >85%, Specificity >90%, F1 >0.6, Time ≤8s)
 
 **Per-species (top performers):**
+
 - Humpback Whale: 95.3%
 - Blue Whale: 94.1%
 - Orca: 94.8%
 
 **Limitations:**
+
 - 15-20% accuracy drop on:
   - Low-resolution (<800×600)
   - Heavy occlusion (>50%)
@@ -609,6 +656,7 @@ The model predicts **one whale per image**. For multiple whales:
 ### When Opening an Issue
 
 **Provide:**
+
 - ✅ Clear description of problem
 - ✅ Steps to reproduce
 - ✅ Error messages (full stack trace)
@@ -616,18 +664,23 @@ The model predicts **one whale per image**. For multiple whales:
 - ✅ Expected vs actual behavior
 
 **Example:**
+
 ```markdown
 ## Problem
+
 API returns 500 error when uploading image
 
 ## Steps to Reproduce
+
 1. Start Docker: `docker compose up`
 2. Upload whale_001.jpg via frontend
 3. Error appears
 
 ## Error Message
 ```
+
 Internal Server Error: Model not found
+
 ```
 
 ## Environment
