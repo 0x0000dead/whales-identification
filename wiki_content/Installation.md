@@ -36,6 +36,35 @@ This guide provides step-by-step instructions for installing and running the Wha
 - **Storage:** ~5GB for models + dependencies
 - **GPU:** Optional (CUDA-compatible for faster inference)
 
+### GPU Acceleration (Optional)
+
+To use GPU acceleration with Docker containers, you need to install the NVIDIA Container Toolkit:
+
+1. **Install NVIDIA drivers** for your GPU
+2. **Install NVIDIA Container Toolkit** - Follow the official guide: [NVIDIA Container Toolkit Installation Guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
+
+**Quick install (Ubuntu/Debian):**
+```bash
+# Configure the repository
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+  sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+  sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+
+# Install the toolkit
+sudo apt-get update
+sudo apt-get install -y nvidia-container-toolkit
+
+# Configure Docker to use NVIDIA runtime
+sudo nvidia-ctk runtime configure --runtime=docker
+sudo systemctl restart docker
+
+# Verify installation
+docker run --rm --gpus all nvidia/cuda:12.0-base nvidia-smi
+```
+
+**Note:** GPU support is optional. The project works on CPU-only systems with slower inference times.
+
 ---
 
 ## Installation Methods
