@@ -1,0 +1,42 @@
+Apache License 2.0 with Usage Restrictions
+
+Copyright (c) 2024 Baltsat Konstantin, Tarasov Artem, Vandanov Sergey, Serov Alexandr
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use these models except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+---
+
+IMPORTANT USAGE RESTRICTIONS
+
+The trained models in this repository were developed using datasets that
+include data licensed under CC-BY-NC-4.0 (Creative Commons Attribution-
+NonCommercial 4.0 International) and ImageNet (non-commercial research only).
+
+As a result:
+
+1. The trained models may NOT be used for commercial purposes without
+   explicit permission from the original data providers (HappyWhale and
+   Ministry of Natural Resources of the Russian Federation).
+
+2. This restriction applies specifically to the trained model weights
+   (.pt, .pth, .onnx files) and any derivatives thereof.
+
+3. Pretrained models (ResNet, EfficientNet, ViT, Swin) were trained on
+   ImageNet, which has non-commercial research-only terms.
+
+For full license details, see:
+https://github.com/0x0000dead/whales-identification/blob/main/LICENSE_MODELS.md
+
+For commercial licensing inquiries:
+- GitHub Issues: https://github.com/0x0000dead/whales-identification/issues
+- HappyWhale: support@happywhale.com
