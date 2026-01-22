@@ -76,7 +76,7 @@
 
 1. **Установите huggingface-cli** (требуется для загрузки моделей):
 ```bash
-pip install huggingface_hub
+pip install huggingface_hub==0.20.3
 ```
 
 2. **Загрузите модели** (обязательный шаг):
@@ -130,7 +130,7 @@ brew install opencv
 #### Проблема: `huggingface-cli: command not found`
 **Решение:** Установите huggingface CLI:
 ```bash
-pip install huggingface_hub
+pip install huggingface_hub==0.20.3
 ```
 
 #### Проблема: `Poetry could not find a pyproject.toml file`

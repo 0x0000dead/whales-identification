@@ -54,7 +54,7 @@ cd whales-identification
 #### Step 2: Install Hugging Face CLI
 
 ```bash
-pip install huggingface_hub
+pip install huggingface_hub==0.20.3
 ```
 
 #### Step 3: Download Models
@@ -226,7 +226,7 @@ poetry run streamlit run streamlit_app.py --server.port=8502
 3. Verifies download integrity
 
 **Requirements:**
-- `huggingface_hub` installed: `pip install huggingface_hub`
+- `huggingface_hub` installed: `pip install huggingface_hub==0.20.3`
 
 ### Option 2: Manual Download
 
@@ -355,7 +355,7 @@ brew install opencv  # Usually not required
 
 **Solution:**
 ```bash
-pip install huggingface_hub
+pip install huggingface_hub==0.20.3
 ```
 
 **Verify:**

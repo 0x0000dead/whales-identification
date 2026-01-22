@@ -43,7 +43,7 @@ brew install opencv  # Usually not required on macOS
 
 **Solution:**
 ```bash
-pip install huggingface_hub
+pip install huggingface_hub==0.20.3
 ```
 
 **Verify:**
