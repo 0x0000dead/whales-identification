@@ -33,11 +33,13 @@
 Проект использует трёхуровневую модель лицензирования:
 
 ### 1. Исходный код
+
 - **Лицензия:** MIT License
 - **Файл:** [LICENSE](https://github.com/0x0000dead/whales-identification/blob/main/LICENSE)
 - **Права:** Свободное использование, модификация, коммерческое применение
 
 ### 2. Обученные модели
+
 - **Лицензия:** Apache 2.0 с ограничениями
 - **Файл:** [LICENSE_MODELS.md](https://github.com/0x0000dead/whales-identification/blob/main/LICENSE_MODELS.md)
 - **⚠️ Ограничения:**
@@ -46,11 +48,13 @@
   - ❌ Pretrained модели ImageNet (non-commercial terms)
 
 ### 3. Датасеты
+
 - **Лицензия:** CC-BY-NC-4.0 (HappyWhale) + Government Research-Only (Минприроды РФ)
 - **Файл:** [LICENSE_DATA.md](https://github.com/0x0000dead/whales-identification/blob/main/LICENSE_DATA.md)
 - **Ограничения:** Только некоммерческое исследовательское использование
 
 ### 4. Анализ зависимостей
+
 - **Файл:** [LICENSES_ANALYSIS.md](https://github.com/0x0000dead/whales-identification/blob/main/LICENSES_ANALYSIS.md)
 - **Совместимость:** 99.4% (158/159 зависимостей MIT-совместимы)
 
@@ -74,16 +78,17 @@
 
 Проект использует 20 pre-commit hooks для обеспечения качества кода:
 
-| Категория | Хуки | Автофикс |
-|-----------|------|----------|
-| **Форматирование** | black, isort, prettier | ✅ Да |
-| **Линтинг** | flake8 | ❌ Нет |
-| **Типизация** | mypy | ❌ Нет |
-| **Безопасность** | bandit | ❌ Нет |
-| **Jupyter** | nbstripout, nbqa-black, nbqa-isort, nbqa-flake8 | ✅ Частично |
+| Категория            | Хуки                                            | Автофикс       |
+| -------------------- | ----------------------------------------------- | -------------- |
+| **Форматирование**   | black, isort, prettier                          | ✅ Да          |
+| **Линтинг**          | flake8                                          | ❌ Нет         |
+| **Типизация**        | mypy                                            | ❌ Нет         |
+| **Безопасность**     | bandit                                          | ❌ Нет         |
+| **Jupyter**          | nbstripout, nbqa-black, nbqa-isort, nbqa-flake8 | ✅ Частично    |
 | **Базовые проверки** | 8 hooks (trailing-whitespace, check-yaml, etc.) | ✅ Большинство |
 
 **Установка:**
+
 ```bash
 cd whales_be_service
 poetry install
@@ -122,6 +127,7 @@ docker compose up --build
 ```
 
 **Сервисы:**
+
 - Backend API: http://localhost:8000
 - Frontend UI: http://localhost:8080
 - API Docs: http://localhost:8000/docs
@@ -132,13 +138,13 @@ docker compose up --build
 
 ## 📊 Характеристики моделей
 
-| Модель | Precision | Время (с) | Статус |
-|--------|-----------|-----------|--------|
-| **Vision Transformer L/32** | 93% | ~3.5s | ⭐ Best |
-| Vision Transformer B/16 | 91% | ~2.0s | ✅ Production |
-| EfficientNet-B5 | 91% | ~1.8s | ✅ Production |
-| EfficientNet-B0 | 88% | ~1.0s | ⚡ Fast |
-| ResNet-101 | 85% | ~1.2s | ✅ Baseline |
+| Модель                      | Precision | Время (с) | Статус        |
+| --------------------------- | --------- | --------- | ------------- |
+| **Vision Transformer L/32** | 93%       | ~3.5s     | ⭐ Best       |
+| Vision Transformer B/16     | 91%       | ~2.0s     | ✅ Production |
+| EfficientNet-B5             | 91%       | ~1.8s     | ✅ Production |
+| EfficientNet-B0             | 88%       | ~1.0s     | ⚡ Fast       |
+| ResNet-101                  | 85%       | ~1.2s     | ✅ Baseline   |
 
 **Подробные характеристики:** [Model Cards](https://github.com/0x0000dead/whales-identification/wiki/Model-Cards)
 
@@ -147,17 +153,20 @@ docker compose up --build
 ## 🛠️ Технологический стек
 
 ### Backend
+
 - **Framework:** FastAPI (Python 3.11.6)
 - **ML:** PyTorch 2.4.1, TIMM models
 - **Inference:** Vision Transformers, metric learning (ArcFace)
 - **Package Manager:** Poetry
 
 ### Frontend
+
 - **Framework:** React 18 + TypeScript
 - **Build Tool:** Vite
 - **Charts:** Recharts
 
 ### DevOps
+
 - **Containerization:** Docker + Docker Compose
 - **CI/CD:** GitHub Actions
 - **Code Quality:** 20 pre-commit hooks

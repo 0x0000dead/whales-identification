@@ -21,20 +21,50 @@ This guide provides step-by-step instructions for installing and running the Wha
 
 ### Required Software
 
-| Software | Version | Purpose |
-|----------|---------|---------|
-| **Python** | 3.11.6 | Backend runtime |
-| **Node.js** | ≥16.0 | Frontend build |
-| **Docker** | ≥20.10 | Containerization |
-| **Docker Compose** | ≥2.0 | Multi-container orchestration |
-| **Git** | Any | Version control |
-| **Poetry** | ≥1.5 | Python package manager |
+| Software           | Version | Purpose                       |
+| ------------------ | ------- | ----------------------------- |
+| **Python**         | 3.11.6  | Backend runtime               |
+| **Node.js**        | ≥20.19  | Frontend build                |
+| **Docker**         | ≥20.10  | Containerization              |
+| **Docker Compose** | ≥2.0    | Multi-container orchestration |
+| **Git**            | Any     | Version control               |
+| **Poetry**         | ≥1.5    | Python package manager        |
 
 ### System Requirements
 
 - **RAM:** Minimum 8GB (16GB recommended for training)
 - **Storage:** ~5GB for models + dependencies
 - **GPU:** Optional (CUDA-compatible for faster inference)
+
+### GPU Acceleration (Optional)
+
+To use GPU acceleration with Docker containers, you need to install the NVIDIA Container Toolkit:
+
+1. **Install NVIDIA drivers** for your GPU
+2. **Install NVIDIA Container Toolkit** - Follow the official guide: [NVIDIA Container Toolkit Installation Guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
+
+**Quick install (Ubuntu/Debian):**
+
+```bash
+# Configure the repository
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+  sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+  sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+
+# Install the toolkit
+sudo apt-get update
+sudo apt-get install -y nvidia-container-toolkit
+
+# Configure Docker to use NVIDIA runtime
+sudo nvidia-ctk runtime configure --runtime=docker
+sudo systemctl restart docker
+
+# Verify installation
+docker run --rm --gpus all nvidia/cuda:12.0-base nvidia-smi
+```
+
+**Note:** GPU support is optional. The project works on CPU-only systems with slower inference times.
 
 ---
 
@@ -54,7 +84,7 @@ cd whales-identification
 #### Step 2: Install Hugging Face CLI
 
 ```bash
-pip install huggingface_hub
+pip install huggingface_hub==0.20.3
 ```
 
 #### Step 3: Download Models
@@ -68,12 +98,14 @@ chmod +x scripts/download_models.sh
 ```
 
 **Expected output:**
+
 ```
-Downloading model-e15.pt...
-✓ Downloaded to models/model-e15.pt (2.1 GB)
+Downloading resnet101.pth...
+✓ Downloaded to models/resnet101.pth
 ```
 
 **Alternative (manual download):**
+
 - [Hugging Face](https://huggingface.co/baltsat/Whales-Identification/tree/main)
 - [Yandex Disk](https://disk.yandex.ru/d/GshqU9o6nNz7ZA)
 
@@ -87,14 +119,29 @@ docker compose up --build
 
 **First build may take 10-15 minutes** (downloads dependencies, builds images).
 
+**Environment Variables (Docker Compose):**
+
+| Variable       | Default in Docker     | Description                               |
+| -------------- | --------------------- | ----------------------------------------- |
+| `VITE_BACKEND` | `http://backend:8000` | Backend API URL (internal Docker network) |
+
+The `VITE_BACKEND` variable is pre-configured in `docker-compose.yml` for inter-container communication. For network access from external machines, you can override it:
+
+```bash
+# Override for external access (e.g., from mobile or another machine)
+VITE_BACKEND=http://your-server-ip:8000 docker compose up --build
+```
+
 #### Step 5: Verify Services
 
 Open in browser:
+
 - **Backend API:** http://localhost:8000/docs (Swagger UI)
 - **Frontend UI:** http://localhost:8080
 - **Health Check:** http://localhost:8000/docs
 
 **Expected:**
+
 - Swagger UI shows 2 endpoints: `/predict-single`, `/predict-batch`
 - Frontend displays file upload interface
 
@@ -123,8 +170,9 @@ poetry run pre-commit install
 sudo apt-get update
 sudo apt-get install -y libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev libgomp1
 
-# macOS
-brew install opencv  # Usually not required on macOS
+# macOS (only if you encounter import errors - usually not required):
+brew install opencv
+# Note: opencv-python package already includes system libraries on macOS
 
 # Download models (from project root)
 cd ..
@@ -137,6 +185,7 @@ poetry run python -m uvicorn whales_be_service.main:app \
 ```
 
 **Backend will be available at:**
+
 - API: http://localhost:8000
 - Docs: http://localhost:8000/docs
 
@@ -154,12 +203,39 @@ npm run dev
 ```
 
 **Frontend will be available at:**
+
 - Dev Server: http://localhost:5173
 
+**Environment Variables:**
+
+| Variable       | Default                 | Description     |
+| -------------- | ----------------------- | --------------- |
+| `VITE_BACKEND` | `http://localhost:8000` | Backend API URL |
+
+**Network Access Configuration:**
+
+By default, the frontend connects to `http://localhost:8000`. To access the backend from a different machine or IP address, set the `VITE_BACKEND` environment variable:
+
+```bash
+# Access backend on a specific IP (for network access)
+VITE_BACKEND=http://192.168.1.100:8000 npm run dev
+
+# Or export for the session
+export VITE_BACKEND=http://your-server-ip:8000
+npm run dev
+```
+
 **Production build:**
+
 ```bash
 npm run build      # Build to frontend/dist
 npm run preview    # Preview production build
+```
+
+**Production build with custom backend URL:**
+
+```bash
+VITE_BACKEND=http://your-server-ip:8000 npm run build
 ```
 
 ---
@@ -176,22 +252,34 @@ cd research/demo-ui
 
 #### Step 2: Install Dependencies
 
+The demo uses Poetry for dependency management with its own `pyproject.toml`.
+
 ```bash
 # Install Poetry (if not installed)
 pip install poetry
 
-# Install dependencies
+# Install dependencies from pyproject.toml
 poetry install
 ```
 
+**Note:** This installs Streamlit, PyTorch, OpenCV, Albumentations, and other required packages.
+
 #### Step 3: Download Models
+
+The demo requires the Vision Transformer model (`model-e15.pt`):
 
 ```bash
 # From project root
 cd ../..
 ./scripts/download_models.sh
+
+# Copy model to demo directory (if not already present)
+cp models/model-e15.pt research/demo-ui/models/
+
 cd research/demo-ui
 ```
+
+**Manual download:** Download from [Yandex Disk](https://disk.yandex.com/d/lH17kkrYgv2-1w) and place in `research/demo-ui/models/`.
 
 #### Step 4: Run Streamlit App
 
@@ -200,9 +288,11 @@ poetry run streamlit run streamlit_app.py --server.port=8501 --server.address=0.
 ```
 
 **App will be available at:**
+
 - http://localhost:8501
 
 **Alternative demo (with masking):**
+
 ```bash
 cd ../demo-ui-mask
 poetry install
@@ -221,19 +311,21 @@ poetry run streamlit run streamlit_app.py --server.port=8502
 ```
 
 **What it does:**
+
 1. Creates `models/` directory
-2. Uses `huggingface-cli` to download `model-e15.pt` (~2.1 GB)
+2. Uses `huggingface-cli` to download `resnet101.pth`
 3. Verifies download integrity
 
 **Requirements:**
-- `huggingface_hub` installed: `pip install huggingface_hub`
+
+- `huggingface_hub` installed: `pip install huggingface_hub==0.20.3`
 
 ### Option 2: Manual Download
 
 #### From Hugging Face
 
 1. Visit [baltsat/Whales-Identification](https://huggingface.co/baltsat/Whales-Identification/tree/main)
-2. Download `model-e15.pt` (2.1 GB)
+2. Download `resnet101.pth`
 3. Place in `models/` directory
 
 #### From Yandex Disk
@@ -243,10 +335,11 @@ poetry run streamlit run streamlit_app.py --server.port=8502
 3. Place in `models/` directory
 
 **Directory structure:**
+
 ```
 whales-identification/
 ├── models/
-│   └── model-e15.pt  (2.1 GB)
+│   └── resnet101.pth
 ├── whales_be_service/
 ├── frontend/
 └── research/
@@ -285,6 +378,7 @@ with open("whale_image.jpg", "rb") as f:
 ```
 
 **Expected response:**
+
 ```json
 {
   "image_ind": "whale_image.jpg",
@@ -321,6 +415,7 @@ xdg-open htmlcov/index.html  # Linux
 ```
 
 **Expected output:**
+
 ```
 tests/api/test_post_endpoints.py::test_predict_single_success PASSED
 tests/api/test_post_endpoints.py::test_predict_batch_success PASSED
@@ -337,14 +432,17 @@ Coverage: 85%
 **Cause:** Missing OpenCV system dependencies
 
 **Solution (Ubuntu/Debian):**
+
 ```bash
 sudo apt-get update
 sudo apt-get install -y libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev libgomp1
 ```
 
 **Solution (macOS):**
+Usually not required on macOS - the `opencv-python` package already includes all required system libraries. Only install if the above packages don't resolve the issue:
+
 ```bash
-brew install opencv  # Usually not required
+brew install opencv
 ```
 
 ---
@@ -354,11 +452,13 @@ brew install opencv  # Usually not required
 **Cause:** Hugging Face CLI not installed
 
 **Solution:**
+
 ```bash
-pip install huggingface_hub
+pip install huggingface_hub==0.20.3
 ```
 
 **Verify:**
+
 ```bash
 huggingface-cli --version
 ```
@@ -370,6 +470,7 @@ huggingface-cli --version
 **Cause:** Running command from wrong directory
 
 **Solution:**
+
 ```bash
 # Backend commands must run from whales_be_service/
 cd whales_be_service
@@ -387,6 +488,7 @@ npm install
 **Cause:** Docker images not built
 
 **Solution:**
+
 ```bash
 # Build images
 docker compose build
@@ -402,6 +504,7 @@ docker compose build --no-cache
 **Cause:** Models not downloaded to `models/` directory
 
 **Solution:**
+
 ```bash
 # Check models directory
 ls -lh models/
@@ -410,7 +513,7 @@ ls -lh models/
 ./scripts/download_models.sh
 
 # Verify model exists
-ls -lh models/model-e15.pt
+ls -lh models/resnet101.pth
 ```
 
 ---
@@ -420,6 +523,7 @@ ls -lh models/model-e15.pt
 **Cause:** Another service using port 8000 or 8080
 
 **Solution (macOS/Linux):**
+
 ```bash
 # Find process using port
 lsof -i :8000
@@ -429,6 +533,7 @@ kill -9 <PID>
 ```
 
 **Solution (Windows):**
+
 ```powershell
 netstat -ano | findstr :8000
 taskkill /PID <PID> /F
@@ -441,6 +546,7 @@ taskkill /PID <PID> /F
 **Cause:** User not in docker group
 
 **Solution:**
+
 ```bash
 sudo usermod -aG docker $USER
 newgrp docker
@@ -456,6 +562,7 @@ docker ps
 **Cause:** Code doesn't meet quality standards
 
 **Solution:**
+
 ```bash
 # Auto-fix formatting
 poetry run black .

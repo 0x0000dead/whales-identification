@@ -23,15 +23,15 @@ Detailed specifications, performance metrics, and usage guidelines for all model
 
 ### Performance Summary
 
-| Model | Precision@1 | GPU Time | CPU Time | Parameters | Model Size | Status |
-|-------|-------------|----------|----------|------------|------------|--------|
-| **Vision Transformer L/32** | **93%** | ~3.5s | ~7.5s | 307M | 1.2 GB | ⭐ Best Accuracy |
-| Vision Transformer B/16 | 91% | ~2.0s | ~5.0s | 86M | 340 MB | ✅ Production |
-| EfficientNet-B5 | 91% | ~1.8s | ~4.5s | 30M | 120 MB | ✅ Production |
-| **EfficientNet-B0** | 88% | ~1.0s | **~2.5s** | 5.3M | 21 MB | ⚡ Fastest |
-| ResNet-101 | 85% | ~1.2s | ~3.0s | 44M | 170 MB | ✅ Baseline |
-| ResNet-54 | 82% | ~0.8s | ~2.0s | 25M | 100 MB | ⚡ Fastest CNN |
-| Swin Transformer | 90% | ~2.2s | ~5.5s | 88M | 350 MB | 🔬 Research |
+| Model                       | Precision@1 | GPU Time | CPU Time  | Parameters | Model Size | Status           |
+| --------------------------- | ----------- | -------- | --------- | ---------- | ---------- | ---------------- |
+| **Vision Transformer L/32** | **93%**     | ~3.5s    | ~7.5s     | 307M       | 1.2 GB     | ⭐ Best Accuracy |
+| Vision Transformer B/16     | 91%         | ~2.0s    | ~5.0s     | 86M        | 340 MB     | ✅ Production    |
+| EfficientNet-B5             | 91%         | ~1.8s    | ~4.5s     | 30M        | 120 MB     | ✅ Production    |
+| **EfficientNet-B0**         | 88%         | ~1.0s    | **~2.5s** | 5.3M       | 21 MB      | ⚡ Fastest       |
+| ResNet-101                  | 85%         | ~1.2s    | ~3.0s     | 44M        | 170 MB     | ✅ Baseline      |
+| ResNet-54                   | 82%         | ~0.8s    | ~2.0s     | 25M        | 100 MB     | ⚡ Fastest CNN   |
+| Swin Transformer            | 90%         | ~2.2s    | ~5.5s     | 88M        | 350 MB     | 🔬 Research      |
 
 **Hardware:** GPU measurements on single NVIDIA Tesla V100, CPU on Intel Xeon Gold 6154, batch size 1
 
@@ -67,58 +67,60 @@ Precision│      EfficientNet-B5 ●
 
 ### Specifications
 
-| Attribute | Value |
-|-----------|-------|
-| **Input Size** | 448×448×3 |
-| **Patch Size** | 32×32 |
-| **Embedding Dim** | 1024 |
-| **Depth** | 24 layers |
-| **Attention Heads** | 16 |
-| **Parameters** | 307M |
-| **Model File** | model-e15.pt (2.1 GB with optimizer state) |
+| Attribute            | Value                                                   |
+| -------------------- | ------------------------------------------------------- |
+| **Input Size**       | 448×448×3                                               |
+| **Patch Size**       | 32×32                                                   |
+| **Embedding Dim**    | 1024                                                    |
+| **Depth**            | 24 layers                                               |
+| **Attention Heads**  | 16                                                      |
+| **Parameters**       | 307M                                                    |
+| **Model File**       | model-e15.pt (2.1 GB with optimizer state)              |
 | **Training Dataset** | HappyWhale + Ministry RF (~60,000 train + ~20,000 test) |
-| **Classes** | 1,000 individual whales and dolphins |
+| **Classes**          | 1,000 individual whales and dolphins                    |
 
 ### Performance Metrics
 
 #### Overall Performance
 
-| Metric | Value |
-|--------|-------|
-| **Precision@1** | 93.2% |
-| **Precision@5** | 97.8% |
-| **Recall (Sensitivity)** | 91.5% |
-| **Specificity** | 92.3% |
-| **F1-Score** | 0.923 |
-| **mAP** | 0.915 |
-| **Inference Time** | 3.5s (V100 GPU), 7.5s (CPU) |
+| Metric                   | Value                       |
+| ------------------------ | --------------------------- |
+| **Precision@1**          | 93.2%                       |
+| **Precision@5**          | 97.8%                       |
+| **Recall (Sensitivity)** | 91.5%                       |
+| **Specificity**          | 92.3%                       |
+| **F1-Score**             | 0.923                       |
+| **mAP**                  | 0.915                       |
+| **Inference Time**       | 3.5s (V100 GPU), 7.5s (CPU) |
 
 **ТЗ Requirements:** ✅ Precision ≥80%, ✅ Recall >85%, ✅ Specificity >90%, ✅ F1 >0.6, ✅ Time ≤8s
 
 #### Per-Species Performance (Top 10)
 
-| Species | Precision | Recall | F1 | Sample Count |
-|---------|-----------|--------|----|----|
-| Humpback Whale | 95.3% | 93.8% | 0.945 | 12,543 |
-| Blue Whale | 94.1% | 92.5% | 0.933 | 8,721 |
-| Fin Whale | 92.8% | 91.2% | 0.920 | 6,432 |
-| Gray Whale | 93.5% | 90.8% | 0.921 | 5,124 |
-| Beluga Whale | 91.2% | 89.5% | 0.903 | 3,856 |
-| Right Whale | 90.7% | 88.3% | 0.895 | 2,945 |
-| Sperm Whale | 89.5% | 87.1% | 0.883 | 2,134 |
-| Orca | 94.8% | 93.2% | 0.940 | 1,832 |
-| Bottlenose Dolphin | 88.3% | 86.7% | 0.875 | 1,523 |
-| Spinner Dolphin | 87.1% | 84.9% | 0.860 | 1,234 |
+| Species            | Precision | Recall | F1    | Sample Count |
+| ------------------ | --------- | ------ | ----- | ------------ |
+| Humpback Whale     | 95.3%     | 93.8%  | 0.945 | 12,543       |
+| Blue Whale         | 94.1%     | 92.5%  | 0.933 | 8,721        |
+| Fin Whale          | 92.8%     | 91.2%  | 0.920 | 6,432        |
+| Gray Whale         | 93.5%     | 90.8%  | 0.921 | 5,124        |
+| Beluga Whale       | 91.2%     | 89.5%  | 0.903 | 3,856        |
+| Right Whale        | 90.7%     | 88.3%  | 0.895 | 2,945        |
+| Sperm Whale        | 89.5%     | 87.1%  | 0.883 | 2,134        |
+| Orca               | 94.8%     | 93.2%  | 0.940 | 1,832        |
+| Bottlenose Dolphin | 88.3%     | 86.7%  | 0.875 | 1,523        |
+| Spinner Dolphin    | 87.1%     | 84.9%  | 0.860 | 1,234        |
 
 ### Intended Use
 
 **Recommended for:**
+
 - ✅ Research applications requiring highest accuracy
 - ✅ Offline batch processing
 - ✅ High-value species identification
 - ✅ Dataset validation and annotation
 
 **Not recommended for:**
+
 - ❌ Real-time applications (<1s latency)
 - ❌ Edge devices (large model size)
 - ❌ Mobile deployment
@@ -164,30 +166,31 @@ Checkpoint: models/model-e15.pt
 
 ### Specifications
 
-| Attribute | Value |
-|-----------|-------|
-| **Input Size** | 448×448×3 |
-| **Patch Size** | 16×16 |
-| **Embedding Dim** | 768 |
-| **Depth** | 12 layers |
-| **Attention Heads** | 12 |
-| **Parameters** | 86M |
-| **Model Size** | 340 MB |
+| Attribute           | Value     |
+| ------------------- | --------- |
+| **Input Size**      | 448×448×3 |
+| **Patch Size**      | 16×16     |
+| **Embedding Dim**   | 768       |
+| **Depth**           | 12 layers |
+| **Attention Heads** | 12        |
+| **Parameters**      | 86M       |
+| **Model Size**      | 340 MB    |
 
 ### Performance Metrics
 
-| Metric | Value |
-|--------|-------|
-| **Precision@1** | 91.3% |
-| **Precision@5** | 96.1% |
-| **Recall (Sensitivity)** | 89.8% |
-| **Specificity** | 91.2% |
-| **F1-Score** | 0.905 |
-| **Inference Time** | 2.0s (V100 GPU), 5.0s (CPU) |
+| Metric                   | Value                       |
+| ------------------------ | --------------------------- |
+| **Precision@1**          | 91.3%                       |
+| **Precision@5**          | 96.1%                       |
+| **Recall (Sensitivity)** | 89.8%                       |
+| **Specificity**          | 91.2%                       |
+| **F1-Score**             | 0.905                       |
+| **Inference Time**       | 2.0s (V100 GPU), 5.0s (CPU) |
 
 ### Intended Use
 
 **Recommended for:**
+
 - ✅ Production API deployments
 - ✅ Batch processing (10-100 images)
 - ✅ High-throughput applications
@@ -207,33 +210,35 @@ Checkpoint: models/model-e15.pt
 
 ### Specifications
 
-| Attribute | Value |
-|-----------|-------|
-| **Input Size** | 456×456×3 |
-| **Depth** | Deep (multiple blocks) |
-| **Width Multiplier** | 1.6 |
-| **Parameters** | 30M |
-| **Model Size** | 120 MB |
+| Attribute            | Value                  |
+| -------------------- | ---------------------- |
+| **Input Size**       | 456×456×3              |
+| **Depth**            | Deep (multiple blocks) |
+| **Width Multiplier** | 1.6                    |
+| **Parameters**       | 30M                    |
+| **Model Size**       | 120 MB                 |
 
 ### Performance Metrics
 
-| Metric | Value |
-|--------|-------|
-| **Precision@1** | 91.0% |
-| **Precision@5** | 95.8% |
-| **Recall (Sensitivity)** | 89.2% |
-| **Specificity** | 90.8% |
-| **F1-Score** | 0.901 |
-| **Inference Time** | 1.8s (V100 GPU), 4.5s (CPU) |
+| Metric                   | Value                       |
+| ------------------------ | --------------------------- |
+| **Precision@1**          | 91.0%                       |
+| **Precision@5**          | 95.8%                       |
+| **Recall (Sensitivity)** | 89.2%                       |
+| **Specificity**          | 90.8%                       |
+| **F1-Score**             | 0.901                       |
+| **Inference Time**       | 1.8s (V100 GPU), 4.5s (CPU) |
 
 ### Intended Use
 
 **Recommended for:**
+
 - ✅ Environments with limited GPU memory
 - ✅ Mobile GPU deployment (Snapdragon, Mali)
 - ✅ Faster inference than ViT with similar accuracy
 
 **Advantages over ViT:**
+
 - Smaller model size (120 MB vs 340 MB)
 - More efficient on CPU
 
@@ -249,26 +254,27 @@ Checkpoint: models/model-e15.pt
 
 ### Specifications
 
-| Attribute | Value |
-|-----------|-------|
+| Attribute      | Value     |
+| -------------- | --------- |
 | **Input Size** | 224×224×3 |
-| **Parameters** | 5.3M |
-| **Model Size** | 21 MB |
+| **Parameters** | 5.3M      |
+| **Model Size** | 21 MB     |
 
 ### Performance Metrics
 
-| Metric | Value |
-|--------|-------|
-| **Precision@1** | 88.1% |
-| **Precision@5** | 94.3% |
-| **Recall (Sensitivity)** | 86.5% |
-| **Specificity** | 89.7% |
-| **F1-Score** | 0.873 |
-| **Inference Time** | 1.0s (V100 GPU), 2.5s (CPU) |
+| Metric                   | Value                       |
+| ------------------------ | --------------------------- |
+| **Precision@1**          | 88.1%                       |
+| **Precision@5**          | 94.3%                       |
+| **Recall (Sensitivity)** | 86.5%                       |
+| **Specificity**          | 89.7%                       |
+| **F1-Score**             | 0.873                       |
+| **Inference Time**       | 1.0s (V100 GPU), 2.5s (CPU) |
 
 ### Intended Use
 
 **Recommended for:**
+
 - ✅ **Real-time applications** (target: <2s latency)
 - ✅ **Edge devices** (Jetson Nano, Coral)
 - ✅ **Mobile apps** (iOS, Android)
@@ -309,27 +315,28 @@ torch.onnx.export(model_quantized, dummy_input, "efficientnet_b0.onnx")
 
 ### Specifications
 
-| Attribute | Value |
-|-----------|-------|
-| **Input Size** | 224×224×3 |
-| **Depth** | 101 layers |
-| **Parameters** | 44M |
-| **Model Size** | 170 MB |
+| Attribute      | Value      |
+| -------------- | ---------- |
+| **Input Size** | 224×224×3  |
+| **Depth**      | 101 layers |
+| **Parameters** | 44M        |
+| **Model Size** | 170 MB     |
 
 ### Performance Metrics
 
-| Metric | Value |
-|--------|-------|
-| **Precision@1** | 85.3% |
-| **Precision@5** | 92.7% |
-| **Recall (Sensitivity)** | 83.8% |
-| **Specificity** | 88.1% |
-| **F1-Score** | 0.845 |
-| **Inference Time** | 1.2s (V100 GPU), 3.0s (CPU) |
+| Metric                   | Value                       |
+| ------------------------ | --------------------------- |
+| **Precision@1**          | 85.3%                       |
+| **Precision@5**          | 92.7%                       |
+| **Recall (Sensitivity)** | 83.8%                       |
+| **Specificity**          | 88.1%                       |
+| **F1-Score**             | 0.845                       |
+| **Inference Time**       | 1.2s (V100 GPU), 3.0s (CPU) |
 
 ### Intended Use
 
 **Recommended for:**
+
 - ✅ Baseline comparisons
 - ✅ Legacy system integrations
 - ✅ Transfer learning experiments
@@ -348,27 +355,28 @@ torch.onnx.export(model_quantized, dummy_input, "efficientnet_b0.onnx")
 
 ### Specifications
 
-| Attribute | Value |
-|-----------|-------|
+| Attribute      | Value     |
+| -------------- | --------- |
 | **Input Size** | 224×224×3 |
-| **Depth** | 54 layers |
-| **Parameters** | 25M |
-| **Model Size** | 100 MB |
+| **Depth**      | 54 layers |
+| **Parameters** | 25M       |
+| **Model Size** | 100 MB    |
 
 ### Performance Metrics
 
-| Metric | Value |
-|--------|-------|
-| **Precision@1** | 82.4% |
-| **Precision@5** | 90.8% |
-| **Recall (Sensitivity)** | 80.9% |
-| **Specificity** | 87.3% |
-| **F1-Score** | 0.816 |
-| **Inference Time** | 0.8s (V100 GPU), 2.0s (CPU) |
+| Metric                   | Value                       |
+| ------------------------ | --------------------------- |
+| **Precision@1**          | 82.4%                       |
+| **Precision@5**          | 90.8%                       |
+| **Recall (Sensitivity)** | 80.9%                       |
+| **Specificity**          | 87.3%                       |
+| **F1-Score**             | 0.816                       |
+| **Inference Time**       | 0.8s (V100 GPU), 2.0s (CPU) |
 
 ### Intended Use
 
 **Recommended for:**
+
 - ✅ Ultra-fast screening (pre-filtering)
 - ✅ Resource-constrained environments
 - ✅ Edge devices with limited compute
@@ -387,28 +395,29 @@ torch.onnx.export(model_quantized, dummy_input, "efficientnet_b0.onnx")
 
 ### Specifications
 
-| Attribute | Value |
-|-----------|-------|
-| **Input Size** | 224×224×3 |
-| **Window Size** | 7×7 |
-| **Patch Size** | 4×4 |
-| **Parameters** | 88M |
-| **Model Size** | 350 MB |
+| Attribute       | Value     |
+| --------------- | --------- |
+| **Input Size**  | 224×224×3 |
+| **Window Size** | 7×7       |
+| **Patch Size**  | 4×4       |
+| **Parameters**  | 88M       |
+| **Model Size**  | 350 MB    |
 
 ### Performance Metrics
 
-| Metric | Value |
-|--------|-------|
-| **Precision@1** | 90.2% |
-| **Precision@5** | 95.5% |
-| **Recall (Sensitivity)** | 88.7% |
-| **Specificity** | 90.5% |
-| **F1-Score** | 0.894 |
-| **Inference Time** | 2.2s (V100 GPU), 5.5s (CPU) |
+| Metric                   | Value                       |
+| ------------------------ | --------------------------- |
+| **Precision@1**          | 90.2%                       |
+| **Precision@5**          | 95.5%                       |
+| **Recall (Sensitivity)** | 88.7%                       |
+| **Specificity**          | 90.5%                       |
+| **F1-Score**             | 0.894                       |
+| **Inference Time**       | 2.2s (V100 GPU), 5.5s (CPU) |
 
 ### Intended Use
 
 **Recommended for:**
+
 - 🔬 Research experiments
 - 🔬 Hierarchical feature extraction
 - 🔬 Multi-scale analysis
@@ -422,6 +431,7 @@ torch.onnx.export(model_quantized, dummy_input, "efficientnet_b0.onnx")
 ### Common Training Configuration
 
 **Dataset:**
+
 - Source: HappyWhale (CC-BY-NC-4.0) + Ministry of Natural Resources and Ecology RF (research-only)
 - Total images: ~80,000 (~60,000 train, ~20,000 test)
 - Classes: 1,000 individual whales and dolphins
@@ -478,26 +488,31 @@ loss = ArcFaceLoss(
 ### Metrics Definitions
 
 **Precision@1:**
+
 ```
 Precision@1 = (Correct top-1 predictions) / (Total predictions)
 ```
 
 **Precision@5:**
+
 ```
 Precision@5 = (Predictions where true label in top-5) / (Total predictions)
 ```
 
 **Recall (Sensitivity):**
+
 ```
 Recall = (True Positives) / (True Positives + False Negatives)
 ```
 
 **Specificity:**
+
 ```
 Specificity = (True Negatives) / (True Negatives + False Positives)
 ```
 
 **F1-Score:**
+
 ```
 F1 = 2 * (Precision * Recall) / (Precision + Recall)
 ```
@@ -511,11 +526,13 @@ F1 = 2 * (Precision * Recall) / (Precision + Recall)
 ### Inference Benchmarking
 
 **Hardware:**
+
 - GPU: NVIDIA Tesla V100 (16GB)
 - CPU: Intel Xeon Gold 6154 (18 cores)
 - RAM: 64GB
 
 **Protocol:**
+
 1. Warm-up: 10 inference runs
 2. Measurement: 100 runs, report mean ± std
 3. Batch size: 1 (single image latency)
@@ -553,6 +570,7 @@ Start: What's your priority?
 ## Future Improvements
 
 **Planned Enhancements:**
+
 - ✅ ConvNeXt models (similar to Swin but faster)
 - ✅ Model distillation (ViT-L/32 → EfficientNet-B0)
 - ✅ Ensemble methods (ViT + EfficientNet)
@@ -562,6 +580,7 @@ Start: What's your priority?
 ---
 
 **Related Pages:**
+
 - [Architecture](Architecture) - Technical implementation details
 - [Testing](Testing) - Model evaluation procedures
 - [Usage](Usage) - How to use each model

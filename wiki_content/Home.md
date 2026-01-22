@@ -22,11 +22,13 @@
 ## 📚 Навигация по Wiki
 
 ### Быстрый старт
+
 - **[Installation](Installation)** - Пошаговая установка и настройка
 - **[Usage](Usage)** - Примеры использования API, Streamlit, notebooks
 - **[FAQ](FAQ)** - Часто задаваемые вопросы и решения проблем
 
 ### Разработка
+
 - **[Architecture](Architecture)** - Архитектура проекта и компоненты
 - **[Model Cards](Model-Cards)** - Подробные характеристики моделей
 - **[API Reference](API-Reference)** - Полная документация API с примерами
@@ -34,8 +36,8 @@
 - **[Contributing](Contributing)** - Git workflow, code style, pre-commit hooks
 
 ### Внешние ресурсы
+
 - **[GitHub Repository](https://github.com/0x0000dead/whales-identification)** - Исходный код
-- **[GitHub Pages Docs](https://0x0000dead.github.io/whales-identification/)** - Документация с полным содержанием
 - **[Hugging Face](https://huggingface.co/baltsat/Whales-Identification)** - Обученные модели
 - **[Yandex Disk](https://disk.yandex.ru/d/GshqU9o6nNz7ZA)** - Альтернативное хранилище моделей
 
@@ -49,7 +51,7 @@ git clone https://github.com/0x0000dead/whales-identification.git
 cd whales-identification
 
 # 2. Установить Hugging Face CLI
-pip install huggingface_hub
+pip install huggingface_hub==0.20.3
 
 # 3. Загрузить модели
 ./scripts/download_models.sh
@@ -59,6 +61,7 @@ docker compose up --build
 ```
 
 **Сервисы:**
+
 - Backend API: http://localhost:8000
 - Frontend UI: http://localhost:8080
 - API Docs: http://localhost:8000/docs
@@ -67,13 +70,13 @@ docker compose up --build
 
 ## 📊 Характеристики моделей
 
-| Модель | Precision | Время GPU (с) | Время CPU (с) | Статус |
-|--------|-----------|---------------|---------------|--------|
-| **Vision Transformer L/32** | 93% | ~3.5s | ~7.5s | ⭐ Best |
-| Vision Transformer B/16 | 91% | ~2.0s | ~5.0s | ✅ Production |
-| EfficientNet-B5 | 91% | ~1.8s | ~4.5s | ✅ Production |
-| EfficientNet-B0 | 88% | ~1.0s | ~2.5s | ⚡ Fast |
-| ResNet-101 | 85% | ~1.2s | ~3.0s | ✅ Baseline |
+| Модель                      | Precision | Время GPU (с) | Время CPU (с) | Статус        |
+| --------------------------- | --------- | ------------- | ------------- | ------------- |
+| **Vision Transformer L/32** | 93%       | ~3.5s         | ~7.5s         | ⭐ Best       |
+| Vision Transformer B/16     | 91%       | ~2.0s         | ~5.0s         | ✅ Production |
+| EfficientNet-B5             | 91%       | ~1.8s         | ~4.5s         | ✅ Production |
+| EfficientNet-B0             | 88%       | ~1.0s         | ~2.5s         | ⚡ Fast       |
+| ResNet-101                  | 85%       | ~1.2s         | ~3.0s         | ✅ Baseline   |
 
 **Все модели укладываются в требование ТЗ: ≤8 секунд для изображения 1920x1080**
 
@@ -84,17 +87,20 @@ docker compose up --build
 ## 🛠️ Технологический стек
 
 ### Backend
+
 - **Framework:** FastAPI (Python 3.11.6)
 - **ML:** PyTorch 2.4.1, TIMM, Vision Transformers
 - **Inference:** ArcFace metric learning, GeM pooling
 - **Package Manager:** Poetry
 
 ### Frontend
+
 - **Framework:** React 18 + TypeScript
 - **Build Tool:** Vite
 - **Visualization:** Recharts
 
 ### DevOps
+
 - **CI/CD:** GitHub Actions (6-stage pipeline)
 - **Quality:** 20 pre-commit hooks
 - **Containerization:** Docker + Docker Compose
@@ -113,15 +119,19 @@ docker compose up --build
 3. **Датасеты:** CC-BY-NC-4.0 + Government Research-Only
 
 ❌ **Коммерческое использование запрещено** из-за:
+
 - HappyWhale data (CC-BY-NC-4.0)
 - Данные Минприроды РФ (research-only)
 - ImageNet pretrained weights (non-commercial)
 
 **Подробности:**
+
 - [LICENSE](https://github.com/0x0000dead/whales-identification/blob/main/LICENSE) - Исходный код
 - [LICENSE_MODELS.md](https://github.com/0x0000dead/whales-identification/blob/main/LICENSE_MODELS.md) - Модели
 - [LICENSE_DATA.md](https://github.com/0x0000dead/whales-identification/blob/main/LICENSE_DATA.md) - Датасеты
 - [LICENSES_ANALYSIS.md](https://github.com/0x0000dead/whales-identification/blob/main/LICENSES_ANALYSIS.md) - Анализ зависимостей
+
+> **⚠️ Disclaimer:** Информация о лицензиях предоставлена для ознакомительных целей и не является юридической консультацией. Для коммерческого использования рекомендуется консультация с квалифицированным юристом.
 
 ---
 
@@ -136,8 +146,7 @@ docker compose up --build
 
 ## 📞 Поддержка
 
-- **Issues:** [Report a bug](https://github.com/0x0000dead/whales-identification/issues)
-- **Discussions:** [Ask a question](https://github.com/0x0000dead/whales-identification/discussions)
+- **Issues:** [Report a bug or ask a question](https://github.com/0x0000dead/whales-identification/issues)
 
 ---
 
