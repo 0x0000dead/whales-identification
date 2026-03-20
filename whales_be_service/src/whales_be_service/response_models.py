@@ -1,14 +1,11 @@
 import base64
 import io
-import random
+from pathlib import Path
 
 import albumentations as A
 import cv2
-import numpy
 import numpy as np
-import pandas as pd
 import torch
-import yaml
 from albumentations.pytorch import ToTensorV2
 from PIL import Image
 from pydantic import BaseModel
@@ -45,25 +42,20 @@ def generate_base64_mask_with_removed_background(img_bytes: bytes) -> str:
 # BEST TRAINED MODEL for probability
 
 
-def get_precitions(img_bytes):
-    CSV_PATH = (
-        "/Users/savandanov/Documents/Github/whales-identification/"
-        "research/demo-ui/resources/database.csv"
-    )
+def get_predictions(img_bytes):
+    """Run ViT model inference on image bytes. Returns (class_id, name, prob, bbox)."""
+    ROOT = Path(__file__).resolve().parent
+    CSV_PATH = ROOT / "resources" / "database.csv"
+    MODEL_PATH = ROOT / "models" / "model-e15.pt"
+
+    import pandas as pd
+
     df = pd.read_csv(CSV_PATH)
-    uniq_df = df.drop_duplicates("individual_id")  # ← только 15 587 строк
-    CLASS_ID_LIST = uniq_df["individual_id"].astype(str).tolist()
+    uniq_df = df.drop_duplicates("individual_id")
+    class_id_list = uniq_df["individual_id"].astype(str).tolist()
+    id_to_name = dict(zip(uniq_df["individual_id"].astype(str), uniq_df["species"]))
 
-    # ② Словарь id → species
-    ID_TO_NAME = dict(zip(uniq_df["individual_id"].astype(str), uniq_df["species"]))
-
-    # ③ Быстрая sanity-проверка
-    # nosec B101 - startup validation
-    assert (
-        len(CLASS_ID_LIST) == 15_587
-    ), f"Ожидалось 15 587, а получили {len(CLASS_ID_LIST)}"
-    # — сама сеть
-    _model = (
+    model = (
         VisionTransformer(
             embed_dim=784,
             hidden_dim=1568,
@@ -72,23 +64,19 @@ def get_precitions(img_bytes):
             patch_size=32,
             num_channels=3,
             num_patches=196,
-            num_classes=len(CLASS_ID_LIST),
+            num_classes=len(class_id_list),
             dropout=0.2,
         )
         .to(CONFIG["device"])
         .eval()
     )
 
-    model_path = (
-        "/Users/savandanov/Documents/Github/whales-identification/"
-        "research/demo-ui/models/model-e15.pt"
-    )
     ckpt = torch.load(  # nosec B614 - trusted model checkpoint
-        model_path,
+        MODEL_PATH,
         map_location=CONFIG["device"],
         weights_only=False,
     )
-    _model.load_state_dict(ckpt["model_state_dict"], strict=False)
+    model.load_state_dict(ckpt["model_state_dict"], strict=False)
 
     np_img = cv2.imdecode(np.frombuffer(img_bytes, np.uint8), cv2.IMREAD_COLOR)
     loader = DataLoader(
@@ -99,16 +87,16 @@ def get_precitions(img_bytes):
 
     with torch.no_grad():
         batch = next(iter(loader))["image"].to(CONFIG["device"])
-        logits = _model(batch)
+        logits = model(batch)
         probs = torch.softmax(logits, 1)
         top_prob, top_idx = probs[0].max(0)
 
     class_idx = int(top_idx.item())
-    class_id = CLASS_ID_LIST[class_idx]  # hex-id из соревки
-    name = ID_TO_NAME.get(class_id, class_id)  # читаемое имя / fallback
-
-    # --- простая заглушка bbox (если ещё не детектируешь) ---
+    class_id = class_id_list[class_idx]
+    name = id_to_name.get(class_id, class_id)
     bbox = [0, 0, np_img.shape[1], np_img.shape[0]]
+
+    return class_id, name, float(top_prob), bbox
 
 
 CONFIG = {
