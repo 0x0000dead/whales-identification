@@ -13,7 +13,11 @@ from starlette.middleware.cors import CORSMiddleware
 
 from .response_models import Detection, generate_base64_mask_with_removed_background
 
-app = FastAPI(title="Whales Identification API")
+app = FastAPI(
+    title="Whales Identification API",
+    version="1.0.0",
+    description="API для идентификации морских млекопитающих по аэрофотоснимкам",
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -22,6 +26,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.get("/health", summary="Health check endpoint")
+async def health():
+    return {"status": "ok"}
 
 # --- загружаем маппинг id → человекочитаемое имя ---
 BASE_DIR = Path(__file__).parent

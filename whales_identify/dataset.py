@@ -1,8 +1,12 @@
 import os
 
+import albumentations as A
 import numpy as np
+from albumentations.pytorch import ToTensorV2
 from PIL import Image
 from torch.utils.data import Dataset
+
+from whales_identify.config import CONFIG
 
 
 class WhaleDataset(Dataset):
@@ -59,7 +63,7 @@ class WhaleDataset(Dataset):
         if self.transform:
             image = self.transform(image=np.array(image))['image']
 
-        return image, label  # Возвращаем изображение и метку
+        return {"image": image, "label": label}
 
 
 def augmentation_data_transforms() -> dict:
@@ -88,16 +92,4 @@ def augmentation_data_transforms() -> dict:
 
 
 if __name__ == "__main__":
-    from albumentations.pytorch import ToTensorV2
-    import albumentations as A
-    from whales_identify.config import CONFIG
-
-    # Пример аугментаций
     data_transforms = augmentation_data_transforms()
-    # Пример создания тренировочного и валидационного датасетов
-    # train_labels и valid_labels - это словари, где ключи - имена файлов, а значения - метки
-    # train_dataset = WhaleDataset(img_dir='path/to/train_images', labels=train_labels,
-    #                              transform=data_transforms['train'])
-    #
-    # valid_dataset = WhaleDataset(img_dir='path/to/valid_images', labels=valid_labels,
-    #                              transform=data_transforms['valid'])

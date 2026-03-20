@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e # Exit immediately if a command exits with a non-zero status.
+set -euo pipefail
 
 HF_REPO="baltsat/Whales-Identification"
 MODEL_FILE="resnet101.pth"

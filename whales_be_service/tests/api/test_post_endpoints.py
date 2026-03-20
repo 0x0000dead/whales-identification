@@ -2,7 +2,6 @@ import base64
 import io
 import zipfile
 
-import pytest
 from fastapi.testclient import TestClient
 from PIL import Image
 
@@ -17,6 +16,13 @@ def create_test_image_bytes(format="PNG", size=(10, 10), color=(255, 0, 0)):
     img.save(buf, format=format)
     buf.seek(0)
     return buf.read()
+
+
+def test_health_check():
+    resp = client.get("/health")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "ok"
 
 
 def test_predict_single_success():
