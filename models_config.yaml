@@ -1,0 +1,116 @@
+# Pluggable Model Configuration for EcoMarineAI
+# Change the active model by setting `active_model` to one of the model keys below.
+# No code changes required to switch between models.
+
+active_model: "vit_l32"
+
+models:
+  vit_l32:
+    name: "Vision Transformer L/32"
+    architecture: "VisionTransformer"
+    checkpoint: "models/model-e15.pt"
+    params:
+      embed_dim: 784
+      hidden_dim: 1568
+      num_heads: 8
+      num_layers: 6
+      patch_size: 32
+      num_channels: 3
+      num_patches: 196
+      num_classes: 15587
+      dropout: 0.2
+    input_size: 448
+    precision: 0.93
+    inference_time_s: 3.5
+
+  vit_b16:
+    name: "Vision Transformer B/16"
+    architecture: "VisionTransformer"
+    checkpoint: "models/vit_b16_best.bin"
+    params:
+      embed_dim: 768
+      hidden_dim: 3072
+      num_heads: 12
+      num_layers: 12
+      patch_size: 16
+      num_channels: 3
+      num_patches: 784
+      num_classes: 15587
+      dropout: 0.1
+    input_size: 448
+    precision: 0.91
+    inference_time_s: 2.0
+
+  efficientnet_b5:
+    name: "EfficientNet-B5"
+    architecture: "HappyWhaleModel"
+    checkpoint: "models/efficientnet_b5.pth"
+    params:
+      model_name: "tf_efficientnet_b5_ns"
+      embedding_size: 512
+      num_classes: 15587
+      s: 30.0
+      m: 0.50
+      ls_eps: 0.0
+      easy_margin: false
+    input_size: 448
+    precision: 0.91
+    inference_time_s: 1.8
+
+  efficientnet_b0:
+    name: "EfficientNet-B0"
+    architecture: "HappyWhaleModel"
+    checkpoint: "models/efficientnet_b0.pth"
+    params:
+      model_name: "tf_efficientnet_b0_ns"
+      embedding_size: 512
+      num_classes: 15587
+      s: 30.0
+      m: 0.50
+      ls_eps: 0.0
+      easy_margin: false
+    input_size: 448
+    precision: 0.88
+    inference_time_s: 1.0
+
+  resnet101:
+    name: "ResNet-101"
+    architecture: "HappyWhaleModel"
+    checkpoint: "models/resnet101.pth"
+    params:
+      model_name: "resnet101"
+      embedding_size: 512
+      num_classes: 15587
+      s: 30.0
+      m: 0.50
+      ls_eps: 0.0
+      easy_margin: false
+    input_size: 448
+    precision: 0.85
+    inference_time_s: 1.2
+
+  swin_t:
+    name: "Swin Transformer"
+    architecture: "HappyWhaleModel"
+    checkpoint: "models/swin_t_best.pth"
+    params:
+      model_name: "swin_tiny_patch4_window7_224"
+      embedding_size: 512
+      num_classes: 15587
+      s: 30.0
+      m: 0.50
+      ls_eps: 0.0
+      easy_margin: false
+    input_size: 448
+    precision: 0.90
+    inference_time_s: 2.2
+
+preprocessing:
+  normalization:
+    mean: [0.485, 0.456, 0.406]
+    std: [0.229, 0.224, 0.225]
+    max_pixel_value: 255.0
+
+inference:
+  device: "auto"  # auto, cpu, cuda:0
+  batch_size: 1
