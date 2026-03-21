@@ -6,11 +6,24 @@ from whales_identify.config import CONFIG
 class TestConfig:
     def test_required_keys_exist(self):
         required = [
-            "seed", "epochs", "img_size", "model_name",
-            "num_classes", "embedding_size", "train_batch_size",
-            "valid_batch_size", "learning_rate", "scheduler",
-            "min_lr", "T_max", "weight_decay", "device",
-            "s", "m", "ls_eps", "easy_margin",
+            "seed",
+            "epochs",
+            "img_size",
+            "model_name",
+            "num_classes",
+            "embedding_size",
+            "train_batch_size",
+            "valid_batch_size",
+            "learning_rate",
+            "scheduler",
+            "min_lr",
+            "T_max",
+            "weight_decay",
+            "device",
+            "s",
+            "m",
+            "ls_eps",
+            "easy_margin",
         ]
         for key in required:
             assert key in CONFIG, f"Missing config key: {key}"

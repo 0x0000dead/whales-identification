@@ -41,9 +41,7 @@ class TestWhaleDataset:
     def test_missing_label_returns_negative(self, tmp_path):
         img_dir = tmp_path / "imgs"
         img_dir.mkdir()
-        img = Image.fromarray(
-            np.random.randint(0, 255, (50, 50, 3), dtype=np.uint8)
-        )
+        img = Image.fromarray(np.random.randint(0, 255, (50, 50, 3), dtype=np.uint8))
         img.save(img_dir / "unknown.jpg")
 
         ds = WhaleDataset(str(img_dir), labels={})
@@ -53,9 +51,7 @@ class TestWhaleDataset:
     def test_with_transforms(self, tmp_path):
         img_dir = tmp_path / "imgs"
         img_dir.mkdir()
-        img = Image.fromarray(
-            np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)
-        )
+        img = Image.fromarray(np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8))
         img.save(img_dir / "test.jpg")
 
         transforms = augmentation_data_transforms()

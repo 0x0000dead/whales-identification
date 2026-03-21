@@ -110,9 +110,7 @@ class DriftDetector:
         # Contrast drift
         contrast_diff = abs(current.contrast - self.baseline.contrast)
         diffs["contrast_drift"] = float(
-            contrast_diff / self.baseline.contrast
-            if self.baseline.contrast > 0
-            else 0
+            contrast_diff / self.baseline.contrast if self.baseline.contrast > 0 else 0
         )
 
         # Overall drift score (max of individual drifts)

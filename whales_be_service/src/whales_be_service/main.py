@@ -102,18 +102,18 @@ async def metrics():
         else 0
     )
     lines = [
-        f'# HELP requests_total Total HTTP requests',
-        f'# TYPE requests_total counter',
+        "# HELP requests_total Total HTTP requests",
+        "# TYPE requests_total counter",
         f'requests_total {_metrics["requests_total"]}',
-        f'# HELP errors_total Total HTTP errors (4xx/5xx)',
-        f'# TYPE errors_total counter',
+        "# HELP errors_total Total HTTP errors (4xx/5xx)",
+        "# TYPE errors_total counter",
         f'errors_total {_metrics["errors_total"]}',
-        f'# HELP predictions_total Total predictions made',
-        f'# TYPE predictions_total counter',
+        "# HELP predictions_total Total predictions made",
+        "# TYPE predictions_total counter",
         f'predictions_total {_metrics["predictions_total"]}',
-        f'# HELP latency_avg_ms Average request latency in ms',
-        f'# TYPE latency_avg_ms gauge',
-        f'latency_avg_ms {avg_latency:.2f}',
+        "# HELP latency_avg_ms Average request latency in ms",
+        "# TYPE latency_avg_ms gauge",
+        f"latency_avg_ms {avg_latency:.2f}",
     ]
     return PlainTextResponse("\n".join(lines) + "\n", media_type="text/plain")
 
@@ -171,9 +171,7 @@ v1 = APIRouter(prefix="/v1", tags=["v1"])
         415: {
             "description": "Unsupported media type",
             "content": {
-                "application/json": {
-                    "example": {"detail": "Только изображения."}
-                }
+                "application/json": {"example": {"detail": "Только изображения."}}
             },
         },
     },
@@ -190,11 +188,7 @@ async def predict_single_v1(file: UploadFile = File(...)):
     "/predict-batch",
     summary="ZIP → JSON[]",
     responses={
-        200: {
-            "content": {
-                "application/json": {"example": [DETECTION_EXAMPLE]}
-            }
-        },
+        200: {"content": {"application/json": {"example": [DETECTION_EXAMPLE]}}},
         400: {
             "description": "Invalid ZIP archive",
             "content": {
@@ -206,9 +200,7 @@ async def predict_single_v1(file: UploadFile = File(...)):
         415: {
             "description": "Unsupported media type",
             "content": {
-                "application/json": {
-                    "example": {"detail": "Ожидается ZIP-архив."}
-                }
+                "application/json": {"example": {"detail": "Ожидается ZIP-архив."}}
             },
         },
     },

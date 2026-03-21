@@ -1,6 +1,7 @@
-'''
+"""
 Training Configuration
-'''
+"""
+
 import torch
 
 CONFIG = {
@@ -13,7 +14,7 @@ CONFIG = {
     "train_batch_size": 32,
     "valid_batch_size": 64,
     "learning_rate": 1e-4,
-    "scheduler": 'CosineAnnealingLR',
+    "scheduler": "CosineAnnealingLR",
     "min_lr": 1e-6,
     "T_max": 500,
     "weight_decay": 1e-6,
@@ -23,5 +24,5 @@ CONFIG = {
     "s": 30.0,
     "m": 0.50,
     "ls_eps": 0.0,
-    "easy_margin": False
+    "easy_margin": False,
 }
