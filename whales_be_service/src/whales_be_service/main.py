@@ -180,6 +180,8 @@ async def predict_single_v1(file: UploadFile = File(...)):
     if not file.content_type.startswith("image/"):
         raise HTTPException(415, "Только изображения.")
     data = await file.read()
+    if not data:
+        raise HTTPException(400, "Пустой файл.")
     det = detection_id(file.filename, data)
     return JSONResponse(content=det)
 
