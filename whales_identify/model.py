@@ -35,7 +35,9 @@ class GeM(nn.Module):
         Returns:
             torch.Tensor: Пуленый (усреднённый) тензор.
         """
-        return F.avg_pool2d(x.clamp(min=self.eps).pow(self.p), (x.size(-2), x.size(-1))).pow(1. / self.p)
+        return F.avg_pool2d(
+            x.clamp(min=self.eps).pow(self.p), (x.size(-2), x.size(-1))
+        ).pow(1.0 / self.p)
 
 
 class ArcMarginProduct(nn.Module):
@@ -53,7 +55,9 @@ class ArcMarginProduct(nn.Module):
         weight (nn.Parameter): Обучаемые веса классификатора.
     """
 
-    def __init__(self, in_features, out_features, s=30.0, m=0.50, easy_margin=False, ls_eps=0.0):
+    def __init__(
+        self, in_features, out_features, s=30.0, m=0.50, easy_margin=False, ls_eps=0.0
+    ):
         """
         Инициализация модуля ArcMarginProduct.
 
@@ -72,8 +76,7 @@ class ArcMarginProduct(nn.Module):
         self.m = m
         self.easy_margin = easy_margin
         self.ls_eps = ls_eps
-        self.weight = nn.Parameter(
-            torch.FloatTensor(out_features, in_features))
+        self.weight = nn.Parameter(torch.FloatTensor(out_features, in_features))
         nn.init.xavier_uniform_(self.weight)
 
     def forward(self, input, label):
@@ -90,25 +93,34 @@ class ArcMarginProduct(nn.Module):
         cosine = F.linear(F.normalize(input), F.normalize(self.weight))
         sine = torch.sqrt(1.0 - torch.pow(cosine, 2))
         phi = cosine * torch.cos(self.m) - sine * torch.sin(self.m)
-        output = (torch.where(cosine > torch.cos(torch.pi - self.m), phi,
-                              cosine - torch.sin(torch.pi - self.m) * self.m) * self.s)
+        output = (
+            torch.where(
+                cosine > torch.cos(torch.pi - self.m),
+                phi,
+                cosine - torch.sin(torch.pi - self.m) * self.m,
+            )
+            * self.s
+        )
         one_hot = torch.zeros(cosine.size(), device=label.device).scatter_(
-            1, label.view(-1, 1).long(), 1)
+            1, label.view(-1, 1).long(), 1
+        )
         return (one_hot * output + (1.0 - one_hot) * cosine) * self.s
 
 
 class HappyWhaleModel(nn.Module):
     """
-   Класс модели для задачи классификации китов с использованием ArcFace и Generalized Mean Pooling.
+    Класс модели для задачи классификации китов с использованием ArcFace и Generalized Mean Pooling.
 
-   Attributes:
-       model (nn.Module): Предобученная модель из библиотеки timm, используемая как основа.
-       pooling (GeM): Слой GeM для пуллинга признаков.
-       embedding (nn.Linear): Линейный слой для уменьшения размерности признаков до embedding_size.
-       fc (ArcMarginProduct): Слой для применения ArcMarginProduct с метками.
-   """
+    Attributes:
+        model (nn.Module): Предобученная модель из библиотеки timm, используемая как основа.
+        pooling (GeM): Слой GeM для пуллинга признаков.
+        embedding (nn.Linear): Линейный слой для уменьшения размерности признаков до embedding_size.
+        fc (ArcMarginProduct): Слой для применения ArcMarginProduct с метками.
+    """
 
-    def __init__(self, model_name, embedding_size, num_classes, s, m, ls_eps, easy_margin):
+    def __init__(
+        self, model_name, embedding_size, num_classes, s, m, ls_eps, easy_margin
+    ):
         """
         Инициализация модели HappyWhale.
 
@@ -129,7 +141,13 @@ class HappyWhaleModel(nn.Module):
         self.pooling = GeM()
         self.embedding = nn.Linear(in_features, embedding_size)
         self.fc = ArcMarginProduct(
-            embedding_size, num_classes, s=s, m=m, ls_eps=ls_eps, easy_margin=easy_margin)
+            embedding_size,
+            num_classes,
+            s=s,
+            m=m,
+            ls_eps=ls_eps,
+            easy_margin=easy_margin,
+        )
 
     def forward(self, images, labels):
         """
