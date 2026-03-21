@@ -111,3 +111,61 @@ def test_predict_batch_bad_zip():
     resp = client.post("/predict-batch", files=files)
     assert resp.status_code == 400
     assert "Не удаётся распаковать архив" in resp.json()["detail"]
+
+
+# --- API v1 versioned endpoints ---
+
+
+def test_v1_predict_single():
+    img_bytes = create_test_image_bytes()
+    files = {"file": ("v1_test.png", img_bytes, "image/png")}
+    resp = client.post("/v1/predict-single", files=files)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["image_ind"] == "v1_test.png"
+    assert "probability" in data
+
+
+def test_v1_predict_batch():
+    img = create_test_image_bytes()
+    zip_buf = io.BytesIO()
+    with zipfile.ZipFile(zip_buf, mode="w") as zf:
+        zf.writestr("a.png", img)
+    zip_buf.seek(0)
+    files = {"archive": ("v1.zip", zip_buf.read(), "application/zip")}
+    resp = client.post("/v1/predict-batch", files=files)
+    assert resp.status_code == 200
+    assert isinstance(resp.json(), list)
+
+
+# --- Metrics endpoint ---
+
+
+def test_metrics_endpoint():
+    resp = client.get("/metrics")
+    assert resp.status_code == 200
+    body = resp.text
+    assert "requests_total" in body
+    assert "errors_total" in body
+    assert "predictions_total" in body
+    assert "latency_avg_ms" in body
+
+
+# --- Additional negative tests ---
+
+
+def test_predict_single_empty_file():
+    files = {"file": ("empty.png", b"", "image/png")}
+    resp = client.post("/predict-single", files=files)
+    assert resp.status_code in (400, 422, 500)
+
+
+def test_predict_batch_empty_zip():
+    zip_buf = io.BytesIO()
+    with zipfile.ZipFile(zip_buf, mode="w") as zf:
+        pass  # empty zip
+    zip_buf.seek(0)
+    files = {"archive": ("empty.zip", zip_buf.read(), "application/zip")}
+    resp = client.post("/predict-batch", files=files)
+    assert resp.status_code == 200
+    assert resp.json() == []
