@@ -157,7 +157,8 @@ def test_metrics_endpoint():
 def test_predict_single_empty_file():
     files = {"file": ("empty.png", b"", "image/png")}
     resp = client.post("/predict-single", files=files)
-    assert resp.status_code in (400, 422, 500)
+    assert resp.status_code == 400
+    assert "Пустой файл" in resp.json()["detail"]
 
 
 def test_predict_batch_empty_zip():
