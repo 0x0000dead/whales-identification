@@ -13,7 +13,7 @@
 # Usage:
 #   ./scripts/update_huggingface.sh
 
-set -e
+set -euo pipefail
 
 HF_REPO="baltsat/Whales-Identification"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -1,0 +1,141 @@
+# Model Contract: EcoMarineAI Whale Identification API
+# Version: 1.0.0
+# Description: Formal input/output specification for the whale identification model
+
+model:
+  name: "EcoMarineAI Vision Transformer"
+  version: "1.0.0"
+  architecture: "Vision Transformer L/32"
+  framework: "PyTorch 2.4.1"
+  num_classes: 15587
+
+inference:
+  input:
+    type: "image"
+    formats: ["image/jpeg", "image/png", "image/webp", "image/bmp"]
+    resolution:
+      min: "64x64"
+      max: "8192x8192"
+      internal: "448x448"
+    channels: 3  # RGB
+    normalization:
+      mean: [0.485, 0.456, 0.406]
+      std: [0.229, 0.224, 0.225]
+      max_pixel_value: 255.0
+
+  output:
+    type: "object"
+    schema:
+      image_ind:
+        type: "string"
+        description: "Original filename of the input image"
+      bbox:
+        type: "array"
+        items: "integer"
+        length: 4
+        description: "Bounding box [x, y, width, height]"
+      class_animal:
+        type: "string"
+        description: "Individual whale/dolphin ID (hex-like identifier)"
+      id_animal:
+        type: "string"
+        description: "Species name mapped from individual ID"
+      probability:
+        type: "float"
+        range: [0.0, 1.0]
+        description: "Softmax confidence score for top-1 prediction"
+      mask:
+        type: "string"
+        nullable: true
+        description: "Base64-encoded PNG image with background removed"
+
+api:
+  endpoints:
+    predict_single:
+      method: "POST"
+      path: "/predict-single"
+      content_type: "multipart/form-data"
+      request:
+        field: "file"
+        type: "UploadFile"
+        description: "Single image file"
+      response:
+        type: "Detection"
+        status_codes:
+          200: "Successful prediction"
+          415: "Unsupported media type (not an image)"
+
+    predict_batch:
+      method: "POST"
+      path: "/predict-batch"
+      content_type: "multipart/form-data"
+      request:
+        field: "archive"
+        type: "UploadFile"
+        description: "ZIP archive containing images"
+      response:
+        type: "array[Detection]"
+        status_codes:
+          200: "Successful batch prediction"
+          400: "Invalid ZIP archive"
+          415: "Unsupported media type (not a ZIP)"
+
+    health:
+      method: "GET"
+      path: "/health"
+      response:
+        type: "object"
+        schema:
+          status:
+            type: "string"
+            enum: ["ok"]
+
+examples:
+  predict_single:
+    request:
+      curl: |
+        curl -X POST "http://localhost:8000/predict-single" \
+          -F "file=@whale_photo.jpg"
+    response:
+      status: 200
+      body:
+        image_ind: "whale_photo.jpg"
+        bbox: [10, 20, 300, 200]
+        class_animal: "cadddb1636b9"
+        id_animal: "humpback_whale"
+        probability: 0.934
+        mask: "iVBORw0KGgo..."
+
+  predict_batch:
+    request:
+      curl: |
+        curl -X POST "http://localhost:8000/predict-batch" \
+          -F "archive=@photos.zip"
+    response:
+      status: 200
+      body:
+        - image_ind: "img1.jpg"
+          bbox: [10, 20, 300, 200]
+          class_animal: "cadddb1636b9"
+          id_animal: "humpback_whale"
+          probability: 0.934
+          mask: "iVBORw0KGgo..."
+        - image_ind: "img2.jpg"
+          bbox: [5, 15, 250, 180]
+          class_animal: "a1b2c3d4e5f6"
+          id_animal: "blue_whale"
+          probability: 0.876
+          mask: "iVBORw0KGgo..."
+
+performance:
+  latency:
+    target_p50: "< 3.5s"
+    target_p95: "< 5.0s"
+    target_p99: "< 8.0s"
+  throughput:
+    single_image: "~1 img/3.5s (CPU)"
+  accuracy:
+    precision: ">= 80%"
+    recall: "> 85%"
+    specificity: "> 90%"
+    f1_score: "> 0.6"

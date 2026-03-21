@@ -51,7 +51,7 @@ ID_LIST = _df["individual_id"].astype(str).tolist()  # 15 587
 ID2NAME = dict(zip(_df["individual_id"].astype(str), _df["species"]))
 
 # ---------- модель (из твоего кода, без изменений) ----------
-from vision_transformer import VisionTransformer  # импортируй реализацию
+from whales_be_service.response_models import VisionTransformer
 
 _MODEL = (
     VisionTransformer(

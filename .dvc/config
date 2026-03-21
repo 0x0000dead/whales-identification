@@ -1,0 +1,9 @@
+[core]
+    remote = yandex
+    autostage = true
+
+['remote "yandex"']
+    url = https://disk.yandex.ru/d/GshqU9o6nNz7ZA
+
+['remote "huggingface"']
+    url = https://huggingface.co/baltsat/Whales-Identification

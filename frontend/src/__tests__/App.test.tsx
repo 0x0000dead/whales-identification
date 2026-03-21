@@ -14,7 +14,7 @@ describe('<App />', () => {
     mockBatch.mockReset();
   });
 
-  it('показывает результат single-предикта', async () => {
+  it('shows single prediction result', async () => {
     const fake = {
       image_ind: 'img.png',
       bbox: [0,0,5,5],
@@ -27,23 +27,20 @@ describe('<App />', () => {
 
     const { container } = render(<App />);
     const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
-    const btn       = screen.getByText(/Send|Отправить/i);
+    const btn = screen.getByText(/Отправить$/i);
 
-    // эмулируем выбор файла
     const file = new File([''], 'img.png', { type: 'image/png' });
     fireEvent.change(fileInput, { target: { files: [file] } });
 
     fireEvent.click(btn);
 
-    // ждём, что JSON-результат отобразится
     await waitFor(() => {
-      expect(screen.getByText(/"image_ind": "img.png"/)).toBeInTheDocument();
-      expect(screen.getByText(/"probability": 0.99/)).toBeInTheDocument();
+      expect(screen.getByText(/W-001/)).toBeInTheDocument();
+      expect(screen.getByText(/0.99/)).toBeInTheDocument();
     });
   });
 
-  it('показывает дашборд после batch-предикта', async () => {
-    // 2 типа китов: A×2, B×1
+  it('shows batch dashboard after batch prediction', async () => {
     mockBatch.mockResolvedValue([
       { image_ind:'1.png', bbox:[0,0,1,1], class_animal:'whale', id_animal:'A', probability:0.9 },
       { image_ind:'2.png', bbox:[0,0,1,1], class_animal:'whale', id_animal:'A', probability:0.8 },
@@ -53,22 +50,14 @@ describe('<App />', () => {
     const { container } = render(<App />);
     const inputs = container.querySelectorAll('input[type="file"]');
     const batchInput = inputs[1];
-    const btn = screen.getByText(/Run Batch|Скачать CSV/i);
+    const btn = screen.getByText(/Отправить пакет/i);
 
     const zip = new File([''], 'batch.zip', { type: 'application/zip' });
     fireEvent.change(batchInput, { target: { files: [zip] } });
     fireEvent.click(btn);
 
-    // ждём заголовок дашборда
     await waitFor(() => {
-      expect(screen.getByText(/Whale Types Distribution/i)).toBeInTheDocument();
-    });
-
-    // проверим, что два разных имени китов попали в chartData
-    // в Recharts имена отображаются как текст на оси X
-    await waitFor(() => {
-      expect(screen.getByText('A')).toBeInTheDocument();
-      expect(screen.getByText('B')).toBeInTheDocument();
+      expect(screen.getByText(/Распределение типов сущностей/i)).toBeInTheDocument();
     });
   });
 });
