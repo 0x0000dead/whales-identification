@@ -1,8 +1,12 @@
 import os
 
+import albumentations as A
 import numpy as np
+from albumentations.pytorch import ToTensorV2
 from PIL import Image
 from torch.utils.data import Dataset
+
+from whales_identify.config import CONFIG
 
 
 class WhaleDataset(Dataset):
@@ -57,9 +61,9 @@ class WhaleDataset(Dataset):
 
         # Применяем аугментации через Albumentations
         if self.transform:
-            image = self.transform(image=np.array(image))['image']
+            image = self.transform(image=np.array(image))["image"]
 
-        return image, label  # Возвращаем изображение и метку
+        return {"image": image, "label": label}
 
 
 def augmentation_data_transforms() -> dict:
@@ -69,35 +73,45 @@ def augmentation_data_transforms() -> dict:
     Возвращает:
         dict: Словарь с аугментациями для тренировочных и валидационных данных.
     """
-    data_transforms = {"train": A.Compose([A.Resize(CONFIG['img_size'], CONFIG['img_size']),
-                                           A.ShiftScaleRotate(shift_limit=0.1, scale_limit=0.15, rotate_limit=60,
-                                                              p=0.5),
-                                           A.HueSaturationValue(hue_shift_limit=0.2, sat_shift_limit=0.2,
-                                                                val_shift_limit=0.2, p=0.5),
-                                           A.RandomBrightnessContrast(brightness_limit=(-0.1, 0.1),
-                                                                      contrast_limit=(-0.1, 0.1), p=0.5),
-                                           A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225],
-                                                       max_pixel_value=255.0, p=1.0), ToTensorV2()],
-                                          p=1.),
-
-                       "valid": A.Compose([A.Resize(CONFIG['img_size'], CONFIG['img_size']),
-                                           A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225],
-                                                       max_pixel_value=255.0, p=1.0),
-                                           ToTensorV2()], p=1.)}
+    data_transforms = {
+        "train": A.Compose(
+            [
+                A.Resize(CONFIG["img_size"], CONFIG["img_size"]),
+                A.ShiftScaleRotate(
+                    shift_limit=0.1, scale_limit=0.15, rotate_limit=60, p=0.5
+                ),
+                A.HueSaturationValue(
+                    hue_shift_limit=0.2, sat_shift_limit=0.2, val_shift_limit=0.2, p=0.5
+                ),
+                A.RandomBrightnessContrast(
+                    brightness_limit=(-0.1, 0.1), contrast_limit=(-0.1, 0.1), p=0.5
+                ),
+                A.Normalize(
+                    mean=[0.485, 0.456, 0.406],
+                    std=[0.229, 0.224, 0.225],
+                    max_pixel_value=255.0,
+                    p=1.0,
+                ),
+                ToTensorV2(),
+            ],
+            p=1.0,
+        ),
+        "valid": A.Compose(
+            [
+                A.Resize(CONFIG["img_size"], CONFIG["img_size"]),
+                A.Normalize(
+                    mean=[0.485, 0.456, 0.406],
+                    std=[0.229, 0.224, 0.225],
+                    max_pixel_value=255.0,
+                    p=1.0,
+                ),
+                ToTensorV2(),
+            ],
+            p=1.0,
+        ),
+    }
     return data_transforms
 
 
 if __name__ == "__main__":
-    from albumentations.pytorch import ToTensorV2
-    import albumentations as A
-    from whales_identify.config import CONFIG
-
-    # Пример аугментаций
     data_transforms = augmentation_data_transforms()
-    # Пример создания тренировочного и валидационного датасетов
-    # train_labels и valid_labels - это словари, где ключи - имена файлов, а значения - метки
-    # train_dataset = WhaleDataset(img_dir='path/to/train_images', labels=train_labels,
-    #                              transform=data_transforms['train'])
-    #
-    # valid_dataset = WhaleDataset(img_dir='path/to/valid_images', labels=valid_labels,
-    #                              transform=data_transforms['valid'])
