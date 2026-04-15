@@ -1,3 +1,5 @@
+import math
+
 import timm
 import torch
 import torch.nn as nn
@@ -90,21 +92,24 @@ class ArcMarginProduct(nn.Module):
         Returns:
             torch.Tensor: Выходные логиты с учетом margin.
         """
+        cos_m = math.cos(self.m)
+        sin_m = math.sin(self.m)
+        th = math.cos(math.pi - self.m)
+        mm = math.sin(math.pi - self.m) * self.m
+
         cosine = F.linear(F.normalize(input), F.normalize(self.weight))
-        sine = torch.sqrt(1.0 - torch.pow(cosine, 2))
-        phi = cosine * torch.cos(self.m) - sine * torch.sin(self.m)
-        output = (
-            torch.where(
-                cosine > torch.cos(torch.pi - self.m),
-                phi,
-                cosine - torch.sin(torch.pi - self.m) * self.m,
-            )
-            * self.s
-        )
+        sine = torch.sqrt((1.0 - torch.pow(cosine, 2)).clamp(min=0.0))
+        phi = cosine * cos_m - sine * sin_m
+        if self.easy_margin:
+            phi = torch.where(cosine > 0, phi, cosine)
+        else:
+            phi = torch.where(cosine > th, phi, cosine - mm)
         one_hot = torch.zeros(cosine.size(), device=label.device).scatter_(
             1, label.view(-1, 1).long(), 1
         )
-        return (one_hot * output + (1.0 - one_hot) * cosine) * self.s
+        output = (one_hot * phi) + ((1.0 - one_hot) * cosine)
+        output *= self.s
+        return output
 
 
 class CetaceanIdentificationModel(nn.Module):

@@ -196,21 +196,26 @@ def run(
         af_scores.append(det.cetacean_score)
         af_labels.append(1 if is_positive else 0)
 
-        accepted = not det.rejected and det.is_cetacean
+        # Anti-fraud gate metrics: based purely on is_cetacean flag (CLIP gate
+        # decision), NOT on low_confidence rejections from the identification
+        # stage. This gives a clean measurement of the gate's Specificity / TPR.
+        gate_accepted = det.is_cetacean
         if is_positive:
             report.anti_fraud.n_positive += 1
-            if accepted:
+            if gate_accepted:
                 report.anti_fraud.tp += 1
             else:
                 report.anti_fraud.fn += 1
             id_total += 1
             unique_individuals.add(row.get("individual_id", "") or "")
             expected_id = row.get("individual_id", "")
-            if accepted and expected_id and det.class_animal == expected_id:
+            # Identification counted regardless of low_confidence — top1 is
+            # top1, even if we'd mark it "rejected" in the API response.
+            if gate_accepted and expected_id and det.class_animal == expected_id:
                 id_correct += 1
         else:
             report.anti_fraud.n_negative += 1
-            if not accepted:
+            if not gate_accepted:
                 report.anti_fraud.tn += 1
             else:
                 report.anti_fraud.fp += 1

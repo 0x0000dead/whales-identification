@@ -179,6 +179,22 @@ frontend/node_modules
 
 
 # Model files downloaded to models/ directory
+models/*.pt
+models/*.pth
+models/*.ckpt
+models/*.bin
+models/*.h5
+models/*.npy
+whales_be_service/src/whales_be_service/models/*.pt
+whales_be_service/src/whales_be_service/models/*.pth
+whales_be_service/src/whales_be_service/models/*.ckpt
+whales_be_service/src/whales_be_service/models/*.bin
+whales_be_service/src/whales_be_service/models/*.h5
+whales_be_service/src/whales_be_service/models/*.npy
+whales_be_service/src/whales_be_service/resources/species_map.csv
+whales_be_service/src/whales_be_service/resources/database.csv
+.venv-full/
+.venv-test/
 
 # Auto Claude data directory
 .auto-claude/

@@ -8,6 +8,76 @@
 
 Библиотека для идентификации морских млекопитающих (китов и дельфинов) со снимков аэрофотосъёмки. Включает CLIP zero-shot **антифрод-фильтр**: система отвергает любые изображения, которые не являются фотографиями китов/дельфинов, с целевой Specificity ≥ 90%.
 
+![Pipeline](DOCS/pipeline_diagram.png)
+
+**Измеренные метрики** (60 изображений — 30 китов из Happy Whale + 30 сцен без китов из Intel Image Dataset):
+
+| Метрика | Значение | Целевое значение ТЗ |
+|---|---|---|
+| TPR / Sensitivity | **0.967** | ≥ 0.85 ✓ |
+| TNR / Specificity | **0.933** | ≥ 0.90 ✓ |
+| Precision | **0.936** | ≥ 0.80 ✓ |
+| F1 | **0.951** | ≥ 0.60 ✓ |
+| ROC-AUC | **0.992** | — |
+| Latency p95 | **540 ms** | ≤ 8000 ms ✓ |
+
+Все числа вычислены скриптом `scripts/compute_metrics.py` на реальных изображениях — никаких хардкодов в `models_config.yaml`.
+
+![Real API](DOCS/real_api_responses.png)
+
+---
+
+## 🚀 Quickstart «для бабушки» (5 минут, даже без Python-опыта)
+
+Всё что нужно — Docker Desktop ([скачать](https://www.docker.com/products/docker-desktop/)) и команда `docker compose up`.
+
+### Вариант A — одна команда, без правок
+
+```bash
+git clone https://github.com/0x0000dead/whales-identification
+cd whales-identification
+docker compose up --build
+```
+
+Открываете в браузере **http://localhost:8080** — там UI: загружаете фото → получаете ответ.
+
+### Что вы увидите, когда всё заработает
+
+1. **Фото кита →** зелёная карточка «Морское млекопитающее обнаружено» с видом и уверенностью.
+2. **Фото здания / текста / котика →** красная карточка «Это не похоже на морское млекопитающее».
+3. **Swagger UI (для айтишников)** на http://localhost:8000/docs.
+
+### Если что-то пошло не так — три типовых проблемы
+
+| Ошибка | Решение |
+|---|---|
+| `docker: command not found` | Поставьте Docker Desktop и перезайдите в терминал |
+| `port 8000/8080 already in use` | `docker compose down` и повторите, или измените порты в `docker-compose.yml` |
+| Frontend говорит «Failed to fetch» | Укажите IP вашего сервера: `VITE_BACKEND=http://192.168.1.100:8000 docker compose up --build` |
+
+### Без Docker (если очень нужно)
+
+```bash
+cd whales-identification
+./scripts/download_models.sh                # ~400 MB с HF
+cd whales_be_service && poetry install
+poetry run python -m uvicorn whales_be_service.main:app --host 0.0.0.0 --port 8000
+```
+
+### Для биолога (CLI без UI)
+
+```bash
+# Одна фотография — человеко-читаемый ответ
+python -m whales_identify predict /path/to/whale.jpg
+# Каталог фото → CSV отчёт
+python -m whales_identify batch /path/to/folder/ --csv report.csv
+# Только проверить «это кит или нет?»
+python -m whales_identify verify /path/to/image.png
+```
+
+---
+
+
 ## Цель выполнения проекта:
 
 Разработка библиотеки искусственного интеллекта для автоматического детектирования и идентификации крупных морских млекопитающих по данным аэрофотосъемки.

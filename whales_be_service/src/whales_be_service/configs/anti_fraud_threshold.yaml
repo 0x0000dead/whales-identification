@@ -1,0 +1,6 @@
+threshold: 0.3
+tpr: 0.9667
+tnr: 0.9333
+n_positive: 30
+n_negative: 30
+calibrated_at: '2026-04-15T10:58:26.068115+00:00'
