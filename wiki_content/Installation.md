@@ -125,12 +125,18 @@ docker compose up --build
 | -------------- | --------------------- | ----------------------------------------- |
 | `VITE_BACKEND` | `http://backend:8000` | Backend API URL (internal Docker network) |
 
-The `VITE_BACKEND` variable is pre-configured in `docker-compose.yml` for inter-container communication. For network access from external machines, you can override it:
+The `VITE_BACKEND` variable is pre-configured in `docker-compose.yml` for inter-container communication. For network access from external machines, you **must** set two variables and force a clean rebuild:
 
 ```bash
-# Override for external access (e.g., from mobile or another machine)
-VITE_BACKEND=http://your-server-ip:8000 docker compose up --build
+# Override for external access (e.g., from mobile or another machine on the LAN)
+# Replace 192.168.1.100 with the IP of the machine running Docker
+export HOST_IP=192.168.1.100
+VITE_BACKEND=http://${HOST_IP}:8000 \
+ALLOWED_ORIGINS=http://${HOST_IP}:8080 \
+  docker compose up --build --no-cache
 ```
+
+> **Important:** `--no-cache` is required — without it Docker may reuse a cached layer with the old `localhost:8000` baked into the frontend bundle. Both `VITE_BACKEND` (frontend URL for the backend API) and `ALLOWED_ORIGINS` (backend CORS allowlist) must match the server IP.
 
 #### Step 5: Verify Services
 
@@ -266,20 +272,17 @@ poetry install
 
 #### Step 3: Download Models
 
-The demo requires the Vision Transformer model (`model-e15.pt`):
+The Streamlit demo uses the **legacy Vision Transformer model** (`model-e15.pt`), which is separate from the production EfficientNet-B4 model.
 
 ```bash
-# From project root
-cd ../..
-./scripts/download_models.sh
-
-# Copy model to demo directory (if not already present)
-cp models/model-e15.pt research/demo-ui/models/
-
-cd research/demo-ui
+# The production download script downloads efficientnet_b4_512_fold0.ckpt
+# For the Streamlit demo, download model-e15.pt manually:
+mkdir -p research/demo-ui/models/
 ```
 
-**Manual download:** Download from [Yandex Disk](https://disk.yandex.com/d/lH17kkrYgv2-1w) and place in `research/demo-ui/models/`.
+**Manual download (required for Streamlit demo):** Download `model-e15.pt` from [Yandex Disk](https://disk.yandex.com/d/lH17kkrYgv2-1w) and place in `research/demo-ui/models/`.
+
+> **Note:** The production FastAPI backend uses `efficientnet_b4_512_fold0.ckpt` (EfficientNet-B4 ArcFace), downloaded via `./scripts/download_models.sh`. The Streamlit demo is a legacy prototype demonstrating the earlier ViT architecture.
 
 #### Step 4: Run Streamlit App
 

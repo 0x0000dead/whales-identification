@@ -9,7 +9,11 @@ random mock data directly in the route handler; that path has been removed.
 from __future__ import annotations
 
 import logging
+import random
 from typing import TYPE_CHECKING
+
+import numpy as np
+import torch
 
 from .anti_fraud import AntiFraudGate
 from .identification import IdentificationModel
@@ -32,6 +36,16 @@ class InferencePipeline:
         identification: IdentificationModel,
         min_confidence: float = 0.05,
     ) -> None:
+        # Fix random seeds for reproducibility (required for ФСИ НТО validation)
+        _SEED = 2022
+        random.seed(_SEED)
+        np.random.seed(_SEED)
+        torch.manual_seed(_SEED)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed(_SEED)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+
         self.anti_fraud = anti_fraud
         self.identification = identification
         self.min_confidence = min_confidence

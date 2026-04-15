@@ -40,10 +40,10 @@
 
 ### 2. Обученные модели
 
-- **Лицензия:** Apache 2.0 с ограничениями
+- **Лицензия:** CC-BY-NC-4.0 (наследуется от тренировочных данных Happy Whale)
 - **Файл:** [LICENSE_MODELS.md](https://github.com/0x0000dead/whales-identification/blob/main/LICENSE_MODELS.md)
 - **⚠️ Ограничения:**
-  - ❌ Коммерческое использование запрещено (из-за CC-BY-NC-4.0 ограничений сообщества)
+  - ❌ Коммерческое использование запрещено (CC-BY-NC-4.0 upstream)
   - ❌ Только исследовательские цели (данные Минприроды РФ)
   - ❌ Pretrained модели ImageNet (non-commercial terms)
 
@@ -117,7 +117,7 @@ git clone https://github.com/0x0000dead/whales-identification.git
 cd whales-identification
 
 # 2. Установить Hugging Face CLI
-pip install huggingface-hub[cli]
+pip install huggingface_hub==0.20.3
 
 # 3. Загрузить модели
 ./scripts/download_models.sh
