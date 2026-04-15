@@ -47,7 +47,7 @@ def _load_baseline_cetacean_score_mean() -> float | None:
         data = json.loads(baseline_path.read_text(encoding="utf-8"))
         positives = data.get("anti_fraud", {}).get("tpr")
         # Use TPR as a proxy if present; fall back to roc_auc or 0.9
-        if isinstance(positives, (int, float)) and 0 < positives <= 1:
+        if isinstance(positives, int | float) and 0 < positives <= 1:
             return float(positives)
     except (OSError, json.JSONDecodeError) as e:
         logger.warning("Could not parse metrics_baseline.json: %s", e)
