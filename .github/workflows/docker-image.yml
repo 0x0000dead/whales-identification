@@ -2,27 +2,65 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_BACKEND: ghcr.io/${{ github.repository_owner }}/ecomarine-backend
+  IMAGE_FRONTEND: ghcr.io/${{ github.repository_owner }}/ecomarine-frontend
 
 jobs:
-
   build:
-
+    name: Build Docker images with docker-compose
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+      packages: write
+
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Free up disk space
-      run: |
-        docker system prune -af --volumes
-        sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost
-        df -h
+      - name: Free up disk space
+        run: |
+          docker system prune -af --volumes
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost
+          df -h
 
-    - name: Build Docker images with docker-compose
-      run: docker compose build
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Verify images were built
-      run: docker images
+      - name: Build Docker images with docker-compose
+        run: docker compose build
+
+      - name: Verify images were built
+        run: docker images
+
+      # Only push on merge to main (not on PRs)
+      - name: Tag and push backend image
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          docker tag ecomarine-backend:latest ${{ env.IMAGE_BACKEND }}:latest
+          docker tag ecomarine-backend:latest ${{ env.IMAGE_BACKEND }}:${{ github.sha }}
+          docker push ${{ env.IMAGE_BACKEND }}:latest
+          docker push ${{ env.IMAGE_BACKEND }}:${{ github.sha }}
+
+      - name: Tag and push frontend image
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          docker tag ecomarine-frontend:latest ${{ env.IMAGE_FRONTEND }}:latest
+          docker tag ecomarine-frontend:latest ${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
+          docker push ${{ env.IMAGE_FRONTEND }}:latest
+          docker push ${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
+
+      # Trigger Render deployment if webhook is configured
+      - name: Deploy backend to Render
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && secrets.RENDER_DEPLOY_HOOK_URL != ''
+        run: |
+          curl -s "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" | jq .
