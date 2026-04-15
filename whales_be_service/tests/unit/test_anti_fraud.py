@@ -67,6 +67,12 @@ class TestAntiFraudGateDegradedMode:
         assert len(results) == 3
         assert all(r.is_cetacean for r in results)
 
+    def test_score_many_empty_list_in_degraded(self, monkeypatch):
+        monkeypatch.setitem(sys.modules, "open_clip", None)
+        gate = AntiFraudGate()
+        results = gate.score_many([])
+        assert results == []
+
 
 class TestCalibratedThresholdLoader:
     def test_fallback_default_when_file_missing(self, tmp_path, monkeypatch):

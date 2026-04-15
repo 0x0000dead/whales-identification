@@ -23,7 +23,7 @@ from PIL import Image, UnidentifiedImageError
 from starlette.middleware.cors import CORSMiddleware
 
 from .inference import get_pipeline
-from .inference.pipeline import InferencePipeline
+from .inference.pipeline import InferencePipeline, set_deterministic_mode
 from .monitoring import get_drift_monitor
 from .response_models import Detection
 
@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    set_deterministic_mode()  # fix global PRNG once at startup (not per-instance)
     pipeline = get_pipeline()
     pipeline.warmup()
     app.state.pipeline = pipeline

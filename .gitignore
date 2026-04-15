@@ -1,4 +1,8 @@
 /TASK
+
+# FSI grant documents — stored locally only, not committed to git
+docs_fsie/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

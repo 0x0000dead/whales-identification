@@ -1,0 +1,42 @@
+{
+  "name": "EcoMarineAI Dev",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": { "version": "20" },
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+  "postCreateCommand": "make install && make pre-commit-install",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.pylance",
+        "charliermarsh.ruff",
+        "ms-azuretools.vscode-docker",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-toolsai.jupyter",
+        "eamodio.gitlens"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/workspaces/whales-identification/whales_be_service/.venv/bin/python",
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff",
+          "editor.codeActionsOnSave": { "source.fixAll.ruff": "always" }
+        },
+        "ruff.lint.enable": true,
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  },
+  "forwardPorts": [8000, 8080, 5173],
+  "portsAttributes": {
+    "8000": { "label": "Backend API" },
+    "8080": { "label": "Frontend" },
+    "5173": { "label": "Vite dev server" }
+  },
+  "remoteUser": "vscode"
+}

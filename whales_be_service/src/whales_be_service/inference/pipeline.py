@@ -26,6 +26,25 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+_REPRODUCIBILITY_SEED = 2022
+
+
+def set_deterministic_mode(seed: int = _REPRODUCIBILITY_SEED) -> None:
+    """Fix all random seeds for fully deterministic inference.
+
+    Call once at application startup (e.g. inside FastAPI lifespan), not inside
+    class constructors — repeated calls reset global PRNG state and break test
+    isolation between independent ``InferencePipeline`` instances.
+    """
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    logger.info("Deterministic mode enabled (seed=%d).", seed)
+
 
 class InferencePipeline:
     """Orchestrates the two-stage cetacean recognition flow."""
@@ -36,16 +55,6 @@ class InferencePipeline:
         identification: IdentificationModel,
         min_confidence: float = 0.05,
     ) -> None:
-        # Fix random seeds for reproducibility (required for ФСИ НТО validation)
-        _SEED = 2022
-        random.seed(_SEED)
-        np.random.seed(_SEED)
-        torch.manual_seed(_SEED)
-        if torch.cuda.is_available():
-            torch.cuda.manual_seed(_SEED)
-        torch.backends.cudnn.deterministic = True
-        torch.backends.cudnn.benchmark = False
-
         self.anti_fraud = anti_fraud
         self.identification = identification
         self.min_confidence = min_confidence
