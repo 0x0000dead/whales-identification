@@ -1,16 +1,28 @@
 // src/api.ts
-const BASE = import.meta.env.VITE_BACKEND ?? 'http://localhost:8000';
-
-if (typeof window !== 'undefined' && BASE === 'http://localhost:8000') {
-  const host = window.location.hostname;
-  if (host !== 'localhost' && host !== '127.0.0.1' && host !== '') {
-    // eslint-disable-next-line no-console
-    console.warn(
-      `[EcoMarineAI] VITE_BACKEND is hardcoded to http://localhost:8000 but the page is served from "${host}". ` +
-        'Set VITE_BACKEND at build time to your backend URL (e.g. http://192.168.1.42:8000).'
-    );
+//
+// Backend URL resolution order:
+//   1. Build-time override via `VITE_BACKEND=...` (recommended for production).
+//   2. Runtime derivation from `window.location.hostname`: if the page is
+//      served from any host, point the API at the same host on port 8000.
+//      This lets the same Docker image work when opened from 127.0.0.1,
+//      192.168.x.y, a LAN hostname, or behind a reverse proxy.
+//   3. Only if neither are available (SSR, tests) fall back to localhost.
+//
+// Why this matters: Экспертиза 2.0 §1.2.4 raised a repeated issue where a
+// hardcoded http://localhost:8000 default broke the UI for any viewer
+// browsing from a non-localhost address.
+function resolveBase(): string {
+  const override = import.meta.env.VITE_BACKEND;
+  if (override && override !== 'undefined') {
+    return override;
   }
+  if (typeof window !== 'undefined' && window.location?.hostname) {
+    return `${window.location.protocol}//${window.location.hostname}:8000`;
+  }
+  return 'http://localhost:8000';
 }
+
+const BASE = resolveBase();
 
 export type RejectionReason = 'not_a_marine_mammal' | 'low_confidence' | 'corrupted_image' | null;
 

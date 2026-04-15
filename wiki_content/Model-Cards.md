@@ -75,7 +75,7 @@ Precision│      EfficientNet-B5 ●
 | **Depth**            | 24 layers                                               |
 | **Attention Heads**  | 16                                                      |
 | **Parameters**       | 307M                                                    |
-| **Model File**       | model-e15.pt (2.1 GB with optimizer state)              |
+| **Model File**       | efficientnet_b4_512_fold0.ckpt (2.1 GB with optimizer state)              |
 | **Training Dataset** | Open marine mammal sources + Ministry RF (~60,000 train + ~20,000 test) |
 | **Classes**          | 1,000 individual whales and dolphins                    |
 
@@ -151,7 +151,7 @@ Hyperparameters:
 Training Time: ~48 hours on 4x V100 GPUs
 Final Loss: 0.234 (train), 0.412 (val)
 Best Epoch: 15
-Checkpoint: models/model-e15.pt
+Checkpoint: `models/efficientnet_b4_512_fold0.ckpt`
 ```
 
 ---

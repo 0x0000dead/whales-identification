@@ -1,0 +1,56 @@
+# HorizontalPodAutoscaler — scales the backend between 3 and 10 replicas.
+#
+# Target: average CPU utilisation 70 % across all pods. The load test
+# (reports/LOAD_TEST.md) confirms this keeps p95 latency under 8 s at the
+# 50 RPS throughput goal from ТЗ Параметр 3.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ecomarine-backend
+  namespace: ecomarineai
+  labels:
+    app: ecomarine-backend
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ecomarine-backend
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    # Why: memory is a secondary signal — PyTorch workers tend to sit at a
+    # constant ~2.5 GiB after model load, so CPU is the better driver. Keep
+    # this gate to prevent pathological OOM-kill cascades.
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+  behavior:
+    scaleUp:
+      # Why: allow aggressive burst scaling — if queue depth spikes we want
+      # new pods Ready within ~30 s rather than waiting a full minute.
+      stabilizationWindowSeconds: 30
+      policies:
+        - type: Pods
+          value: 2
+          periodSeconds: 30
+        - type: Percent
+          value: 50
+          periodSeconds: 30
+      selectPolicy: Max
+    scaleDown:
+      # Why: 5-minute cooldown prevents flapping when traffic is bursty.
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 60
+      selectPolicy: Max

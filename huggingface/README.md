@@ -81,13 +81,19 @@ with torch.no_grad():
 
 ## License
 
-**Apache License 2.0 with Usage Restrictions**
+**Creative Commons Attribution-NonCommercial 4.0 International (CC-BY-NC-4.0)**
 
 Copyright (c) 2024 Baltsat Konstantin, Tarasov Artem, Vandanov Sergey, Serov Alexandr
 
-### Important Usage Restrictions
+### Usage Restrictions
 
-**The trained models may NOT be used for commercial purposes** without explicit permission from the original data providers:
+The trained model weights are released under **CC-BY-NC-4.0**. This means:
+
+- ✅ Free to use for scientific research, education, conservation monitoring and non-profit ecological work.
+- ✅ Modification and redistribution permitted provided attribution is kept.
+- ❌ **Commercial use is prohibited** without a separate written agreement with the EcoMarineAI team and the original data providers.
+
+Why CC-BY-NC-4.0: the model weights are derived from datasets that are themselves released under CC-BY-NC-4.0 (Happy Whale Kaggle corpus) and from a private dataset supplied by the Ministry of Natural Resources of the Russian Federation under a ФСИ research grant. Under licence inheritance rules, the trained weights must adopt the most restrictive compatible licence — CC-BY-NC-4.0.
 
 - **Happy Whale data:** CC-BY-NC-4.0 (non-commercial)
 - **Ministry of Natural Resources RF data:** Government research-only terms

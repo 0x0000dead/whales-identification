@@ -61,9 +61,10 @@ class InferencePipeline:
 
     @property
     def model_version(self) -> str:
-        """Reported in every Detection — reflects the actual loaded backend,
-        not the constructor default (which is still `vit_l32-v1` for backward
-        compatibility). Updated lazily when ``_load()`` promotes a backend.
+        """Reported in every Detection — reflects the actual loaded backend.
+        Default for a fresh, un-warmed instance is ``effb4-arcface-v1``; the
+        value is updated lazily by ``IdentificationModel._load()`` when the
+        real backend is promoted.
         """
         return self.identification.model_version
 

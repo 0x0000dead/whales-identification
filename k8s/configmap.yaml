@@ -1,0 +1,25 @@
+# ConfigMap — non-secret runtime configuration for the backend Deployment.
+#
+# Secrets (HF tokens, database credentials, etc.) belong in a Kubernetes Secret,
+# not here. This manifest only holds values that are safe to commit.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ecomarine-backend-config
+  namespace: ecomarineai
+  labels:
+    app: ecomarine-backend
+    component: config
+data:
+  # CORS — update for the production frontend origin(s).
+  ALLOWED_ORIGINS: "https://ecomarineai.example.org"
+  # Hugging Face repo the docker-entrypoint.sh will pull weights from on first
+  # boot if they are not baked into the image.
+  HF_REPO: "0x0000dead/ecomarineai-cetacean-effb4"
+  # Log verbosity: DEBUG / INFO / WARNING / ERROR.
+  LOG_LEVEL: "INFO"
+  # Uvicorn worker count. Keep in sync with CPU requests in deployment.yaml.
+  UVICORN_WORKERS: "2"
+  # Python runtime hardening.
+  PYTHONUNBUFFERED: "1"
+  PYTHONDONTWRITEBYTECODE: "1"

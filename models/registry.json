@@ -1,30 +1,49 @@
 {
-  "schema_version": "1.0",
-  "active": "vit_l32",
+  "schema_version": "1.1",
+  "active": "effb4_arcface",
   "models": [
     {
-      "name": "vit_l32",
-      "display_name": "Vision Transformer L/32",
-      "version": "1.0.0",
-      "architecture": "VisionTransformer",
-      "weights_path": "models/model-e15.pt",
-      "weights_url": "https://huggingface.co/baltsat/Whales-Identification/resolve/main/vit_l32_best.pth",
-      "sha256": null,
-      "trained_at": null,
-      "metrics_snapshot": "reports/metrics_baseline.json",
-      "notes": "Lazy-loaded by inference/identification.py"
+      "name": "effb4_arcface",
+      "display_name": "EfficientNet-B4 ArcFace (production)",
+      "version": "effb4-arcface-v1",
+      "architecture": "EfficientNetArcFace",
+      "weights_path": "whales_be_service/src/whales_be_service/models/efficientnet_b4_512_fold0.ckpt",
+      "weights_url": "https://huggingface.co/0x0000dead/ecomarineai-cetacean-effb4/resolve/main/efficientnet_b4_512_fold0.ckpt",
+      "sha256": "920467b4b8b632ce1e3dcc4d65e85ad484c5b2ddb3a062e20889dcf70d17a45b",
+      "trained_at": "2025-12-15T00:00:00Z",
+      "metrics_snapshot": "reports/metrics_latest.json",
+      "num_classes_head": 15587,
+      "num_classes_active": 13837,
+      "input_size": 512,
+      "license": "CC-BY-NC-4.0",
+      "notes": "Production identification model; loaded by inference/identification.py. Head has 15 587 slots, 13 837 are active (Happy Whale individuals with ≥ 2 samples)."
     },
     {
       "name": "resnet101",
-      "display_name": "ResNet-101 (ArcFace + GeM)",
+      "display_name": "ResNet-101 (ArcFace + GeM, fallback)",
       "version": "1.0.0",
       "architecture": "CetaceanIdentificationModel",
-      "weights_path": "models/resnet101.pth",
+      "weights_path": "whales_be_service/src/whales_be_service/models/resnet101.pth",
       "weights_url": "https://huggingface.co/baltsat/Whales-Identification/resolve/main/resnet101.pth",
+      "sha256": "35e12eb9343d5ce791c20ebcc5172ea6ddd2900296128eb94c54c744307464c8",
+      "trained_at": null,
+      "metrics_snapshot": null,
+      "license": "CC-BY-NC-4.0",
+      "notes": "Backup backbone kept for waterfall loading; activated only when effb4 checkpoint is missing."
+    },
+    {
+      "name": "vit_l32",
+      "display_name": "Vision Transformer L/32 (legacy, deprecated)",
+      "version": "1.0.0",
+      "architecture": "VisionTransformer",
+      "weights_path": "models/model-e15.pt",
+      "weights_url": "https://disk.yandex.com/d/lH17kkrYgv2-1w",
       "sha256": null,
       "trained_at": null,
       "metrics_snapshot": null,
-      "notes": "Backup backbone, switch via models_config.yaml::active_model"
+      "deprecated": true,
+      "license": "CC-BY-NC-4.0",
+      "notes": "Legacy Stage-1 checkpoint retained for reproducibility of early experiments only. Not downloaded by scripts/download_models.sh. Production pipeline uses effb4_arcface."
     }
   ]
 }

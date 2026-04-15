@@ -1,0 +1,134 @@
+# Production Docker Compose for EcoMarineAI
+#
+# Usage:
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# Differences from the dev compose (docker-compose.yml):
+#   - `restart: always` instead of `unless-stopped` (survives host reboot)
+#   - CPU/memory resource limits and reservations (per Kubernetes HPA targets)
+#   - Named volumes for logs (survive container recreation, enable log shipping)
+#   - Read-only root filesystem for backend (container hardening)
+#   - Smoke-test profile (`docker compose --profile smoke run smoke`)
+#
+# References:
+#   - ТЗ Параметр 3  — линейная временная сложность
+#   - ТЗ Параметр 7  — availability ≥ 95 %
+#   - reports/SCALABILITY.md, reports/LOAD_TEST.md
+
+services:
+  backend:
+    image: ecomarine-backend:latest
+    build:
+      context: ./whales_be_service
+      dockerfile: Dockerfile
+      args:
+        MODEL_DOWNLOAD_URL: "${MODEL_DOWNLOAD_URL:-}"
+    container_name: ecomarine-be-prod
+    ports:
+      - "8000:8000"
+    # Why: production workloads must come back after an OOM kill or node reboot.
+    restart: always
+    environment:
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-https://ecomarineai.example.org}
+      - HF_REPO=${HF_REPO:-0x0000dead/ecomarineai-cetacean-effb4}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    # Why: persist /app/reports and /app/logs across container recreations so
+    # Prometheus scrape history and request logs are not lost on redeploy.
+    volumes:
+      - ecomarine-logs:/app/logs
+      - ecomarine-reports:/app/reports
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    # Why: limits mirror the k8s/deployment.yaml resources block so local prod
+    # rehearsals match the target cluster exactly (2 CPU / 4 GiB hard cap).
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 4G
+        reservations:
+          cpus: "1.0"
+          memory: 2G
+    networks:
+      - whale-net
+
+  frontend:
+    image: ecomarine-frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_BACKEND: "${VITE_BACKEND:-http://backend:8000}"
+    container_name: ecomarine-fe-prod
+    ports:
+      - "8080:80"
+    restart: always
+    volumes:
+      - ecomarine-nginx-logs:/var/log/nginx
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.1"
+          memory: 128M
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - whale-net
+
+  # Smoke-test service — enabled only with `--profile smoke`.
+  # Runs the existing scripts/smoke_test.sh against the live backend and exits
+  # with the script's return code, so CI can wire it up with a single command:
+  #     docker compose -f docker-compose.prod.yml --profile smoke run --rm smoke
+  smoke:
+    image: curlimages/curl:8.10.1
+    container_name: ecomarine-smoke
+    profiles:
+      - smoke
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - whale-net
+    # Why: we call /health, /metrics and /v1/drift-stats directly — no Python
+    # required in the smoke image, keeps the container tiny (<10 MB).
+    entrypoint:
+      - sh
+      - -c
+      - |
+        set -eu
+        echo "→ /health"
+        curl -fsS http://backend:8000/health
+        echo
+        echo "→ /metrics"
+        curl -fsS http://backend:8000/metrics | head -5
+        echo
+        echo "→ /v1/drift-stats"
+        curl -fsS http://backend:8000/v1/drift-stats
+        echo
+        echo "OK"
+
+volumes:
+  ecomarine-logs:
+    driver: local
+  ecomarine-reports:
+    driver: local
+  ecomarine-nginx-logs:
+    driver: local
+
+networks:
+  whale-net:
+    driver: bridge

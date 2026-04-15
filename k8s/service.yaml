@@ -1,0 +1,23 @@
+# ClusterIP Service — exposes the ecomarine-backend pods inside the cluster.
+# The Ingress (ingress.yaml) terminates TLS and forwards to this Service.
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecomarine-backend
+  namespace: ecomarineai
+  labels:
+    app: ecomarine-backend
+    component: api
+spec:
+  type: ClusterIP
+  selector:
+    app: ecomarine-backend
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+  # Why: sessionAffinity=None distributes requests round-robin so latency p95
+  # is independent of which client connects first. For sticky sessions (e.g.
+  # to reuse a warmed model cache) switch to ClientIP.
+  sessionAffinity: None

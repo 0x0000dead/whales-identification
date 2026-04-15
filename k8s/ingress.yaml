@@ -1,0 +1,50 @@
+# Ingress — public entry point for the EcoMarineAI API.
+#
+# Requires the ingress-nginx controller to be installed in the cluster.
+# Install once with:
+#     helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+#     helm install ingress-nginx ingress-nginx/ingress-nginx -n ingress-nginx --create-namespace
+#
+# TLS hint: to enable HTTPS, install cert-manager + a ClusterIssuer and
+# uncomment the `tls:` block below. Replace the placeholder host with the
+# real production DNS name.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ecomarine-backend
+  namespace: ecomarineai
+  labels:
+    app: ecomarine-backend
+  annotations:
+    # Rate limiting — satisfies ТЗ Параметр 5 (security) and the application-
+    # level limiter in whales_be_service/middleware. 60 req/min per client IP.
+    nginx.ingress.kubernetes.io/limit-rpm: "60"
+    # Why: 413 on oversized uploads at the ingress before they hit the app,
+    # matches the FastAPI max upload size (~32 MiB single image / ZIP).
+    nginx.ingress.kubernetes.io/proxy-body-size: "32m"
+    # Why: inference can legitimately take up to 8 s (ТЗ Параметр 3). Default
+    # nginx timeouts of 60 s are enough, but we set them explicitly so the
+    # limit is tracked in this file instead of ingress-nginx defaults.
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "120"
+    # TLS redirect once cert-manager issues a real certificate.
+    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  ingressClassName: nginx
+  # Uncomment when TLS is provisioned:
+  # tls:
+  #   - hosts:
+  #       - api.ecomarineai.example.org
+  #     secretName: ecomarine-tls
+  rules:
+    - host: api.ecomarineai.example.org
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ecomarine-backend
+                port:
+                  number: 80
