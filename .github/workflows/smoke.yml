@@ -34,6 +34,9 @@ jobs:
           docker compose logs
           exit 1
 
+      - name: Install Pillow for smoke test fixtures
+        run: pip install Pillow
+
       - name: Run smoke test
         run: ./scripts/smoke_test.sh
 
