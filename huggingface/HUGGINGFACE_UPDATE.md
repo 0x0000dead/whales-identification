@@ -11,7 +11,7 @@ This directory contains files that should be synchronized to the HuggingFace rep
 
 ## Why Update?
 
-The HuggingFace repository was initially created with MIT license, but the project uses **Apache 2.0 with Usage Restrictions** (due to training data constraints from HappyWhale and ImageNet). This inconsistency was identified in the expert review (NTO).
+The HuggingFace repository was initially created with MIT license, but the project uses **Apache 2.0 with Usage Restrictions** (due to training data constraints from Happy Whale and ImageNet). This inconsistency was identified in the expert review (NTO).
 
 ## How to Update
 

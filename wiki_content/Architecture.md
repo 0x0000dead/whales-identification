@@ -226,7 +226,7 @@ async def predict_batch(file: UploadFile = File(...)):
 
 ```
 whales_identify/
-├── model.py                     # HappyWhaleModel architecture
+├── model.py                     # CetaceanIdentificationModel architecture
 ├── dataset.py                   # WhaleDataset (PyTorch Dataset)
 ├── train.py                     # Training loop
 ├── config.py                    # Training hyperparameters
@@ -237,10 +237,10 @@ whales_identify/
 
 #### Model Architecture
 
-**`HappyWhaleModel` (model.py)**
+**`CetaceanIdentificationModel` (model.py)**
 
 ```python
-class HappyWhaleModel(nn.Module):
+class CetaceanIdentificationModel(nn.Module):
     def __init__(self, backbone: str, num_classes: int = 1000, embedding_size: int = 512):
         super().__init__()
 
@@ -413,7 +413,7 @@ class ArcMarginProduct(nn.Module):
 
 ```
 1. Data Preparation
-   ├─ Download HappyWhale dataset (Kaggle)
+   ├─ Download marine mammal dataset (Kaggle)
    ├─ Download Ministry RF dataset
    ├─ Merge and deduplicate
    └─ Train/val/test split (70/15/15)

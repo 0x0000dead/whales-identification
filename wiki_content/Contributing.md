@@ -207,7 +207,7 @@ git branch -d feature/my-new-feature
 # Good - follows black (line length 88)
 def predict_whale_species(
     image_path: str,
-    model: HappyWhaleModel,
+    model: CetaceanIdentificationModel,
     config: dict,
 ) -> Detection:
     """

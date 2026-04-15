@@ -149,7 +149,6 @@ wrapt = "1.16.0"
 zipp = "3.20.2"
 pytest = "^8.3.3"
 pylint = "^3.3.1"
-kaggle = "^1.6.17"
 fvcore = "^0.1.5.post20221221"
 llvmlite = "^0.44.0"
 numba = "^0.61.0"
@@ -159,6 +158,7 @@ matplotlib = "^3.10.0"
 uvicorn = "^0.34.3"
 fastapi = "^0.115.12"
 python-multipart = "^0.0.20"
+open-clip-torch = "^2.24.0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -225,12 +225,29 @@ exclude = [
 exclude_dirs = ["tests", ".venv"]
 skips = ["B101"]  # Skip assert_used check for tests
 
+[tool.interrogate]
+ignore-init-method = true
+ignore-init-module = true
+ignore-magic = true
+ignore-private = true
+ignore-property-decorators = true
+ignore-module = true
+fail-under = 60
+exclude = ["tests", "research", ".venv"]
+verbose = 1
+quiet = false
+color = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --tb=short"
+markers = [
+    "slow: marks tests that take >5s (deselect with -m 'not slow')",
+    "integration: integration tests requiring real model weights or external data",
+]
 
 [tool.coverage.run]
 source = ["src"]

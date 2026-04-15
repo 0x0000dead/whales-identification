@@ -4,6 +4,34 @@ All notable changes to the EcoMarineAI API are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.1.0] - 2026-04-15
+
+### Added
+
+- **CLIP zero-shot anti-fraud gate.** Every prediction is gated by an OpenCLIP ViT-B/32 model that compares the image against 10 positive (whale/dolphin) and 14 negative (text/people/landscape/etc.) prompts. Non-cetacean images return `200 OK` with `rejected: true` and `rejection_reason: "not_a_marine_mammal"` instead of a hallucinated whale ID.
+- **Real ML inference.** `detection_id()` (random mock) has been removed. The `/v1/predict-single` and `/v1/predict-batch` endpoints now route through `inference.InferencePipeline`, which loads the ViT-L/32 checkpoint lazily at FastAPI startup.
+- New `Detection` fields (default-valued, additive — no breaking changes for legacy clients):
+  - `is_cetacean: bool`
+  - `cetacean_score: float` (CLIP positive aggregate softmax)
+  - `rejected: bool`
+  - `rejection_reason: "not_a_marine_mammal" | "low_confidence" | "corrupted_image" | null`
+  - `model_version: string`
+- New endpoint `GET /v1/drift-stats` — rolling-window mean/std/p50 of `cetacean_score`.
+- `/metrics` Prometheus output now includes `rejections_total`, `rejections_by_reason`, `cetacean_score_avg`.
+- CORS origins now driven by `ALLOWED_ORIGINS` env var (default: localhost dev ports).
+- Lifespan startup warms up both gate and identification model.
+
+### Changed
+
+- `/predict-single` and `/predict-batch` now alias `/v1/*` endpoints (no behavioural change for existing callers).
+- Identification CSV / weights resolved via `inference.identification.IdentificationModel` (lazy load) instead of module-level `torch.load()`.
+
+### Removed
+
+- `detection_id()` mock function.
+- `whale_infer.py` and the unused `routers.py` empty stub.
+- Hardcoded precision values from `models_config.yaml`.
+
 ## [1.0.0] - 2024-12-01
 
 ### Added

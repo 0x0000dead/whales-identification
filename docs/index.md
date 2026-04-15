@@ -43,13 +43,13 @@
 - **Лицензия:** Apache 2.0 с ограничениями
 - **Файл:** [LICENSE_MODELS.md](https://github.com/0x0000dead/whales-identification/blob/main/LICENSE_MODELS.md)
 - **⚠️ Ограничения:**
-  - ❌ Коммерческое использование запрещено (из-за HappyWhale CC-BY-NC-4.0)
+  - ❌ Коммерческое использование запрещено (из-за CC-BY-NC-4.0 ограничений сообщества)
   - ❌ Только исследовательские цели (данные Минприроды РФ)
   - ❌ Pretrained модели ImageNet (non-commercial terms)
 
 ### 3. Датасеты
 
-- **Лицензия:** CC-BY-NC-4.0 (HappyWhale) + Government Research-Only (Минприроды РФ)
+- **Лицензия:** CC-BY-NC-4.0 (Happy Whale) + Government Research-Only (Минприроды РФ)
 - **Файл:** [LICENSE_DATA.md](https://github.com/0x0000dead/whales-identification/blob/main/LICENSE_DATA.md)
 - **Ограничения:** Только некоммерческое исследовательское использование
 

@@ -6,7 +6,7 @@ This project uses training and evaluation data from two primary sources, each wi
 
 ---
 
-## 1. HappyWhale Dataset
+## 1. Happy Whale Dataset
 
 ### License: CC-BY-NC-4.0
 
@@ -14,12 +14,12 @@ This project uses training and evaluation data from two primary sources, each wi
 
 ### Source
 
-- **Organization:** Happywhale.com
+- **Organization:** Happywhale.com — global community for marine mammal identification
 - **Website:** https://happywhale.com
 - **Terms of Service:** https://happywhale.com/terms
 - **Kaggle Competition:** https://www.kaggle.com/competitions/happy-whale-and-dolphin/data
-- **HappyWhale on GBIF:** https://www.gbif.org/dataset/search?q=happywhale
-- **HappyWhale on OBIS:** https://obis.org/?q=happywhale
+- **Happy Whale on GBIF:** https://www.gbif.org/dataset/search?q=happywhale
+- **Happy Whale on OBIS:** https://obis.org/?q=happywhale
 - **Data Type:** Aerial and marine photography of whales and dolphins
 - **Coverage:** Global marine mammal observations (200+ countries)
 - **Approximate Size:** ~60,000 training images, ~20,000 test images
@@ -43,7 +43,7 @@ This project uses training and evaluation data from two primary sources, each wi
 
 📝 **Required:**
 
-- **Attribution:** You must give appropriate credit to HappyWhale
+- **Attribution:** You must give appropriate credit to Happy Whale (happywhale.com)
 - **Indicate Changes:** If you modify the data, you must indicate what changes were made
 - **No Additional Restrictions:** You may not apply legal terms or technological measures that legally restrict others from doing anything the license permits
 
@@ -55,13 +55,13 @@ This project uses training and evaluation data from two primary sources, each wi
 
 ### Attribution Format
 
-When using HappyWhale data, include the following attribution:
+When using Happy Whale data, include the following attribution:
 
 ```
-HappyWhale Dataset
+Happy Whale Dataset
 Source: https://happywhale.com
 License: CC-BY-NC-4.0
-© HappyWhale contributors
+© Happy Whale contributors
 ```
 
 ---
@@ -133,7 +133,7 @@ For inquiries about data access, permissions, or reporting:
 
 The combined dataset used in this project consists of:
 
-- **~70%** HappyWhale community-contributed data
+- **~70%** Happy Whale community-contributed data
 - **~30%** Ministry of Natural Resources RF provided data
 - **Total:** ~80,000 images of 15,587 unique individual marine mammals
 - **Species:** Whales and dolphins (orcas, humpback whales, fin whales, etc.)
@@ -160,7 +160,7 @@ Data preprocessing includes:
 
 ### ⚠️ IMPORTANT: Combined License Effect
 
-Since this project combines data under **CC-BY-NC-4.0** (HappyWhale) and **Government Restrictions** (Ministry RF), users must comply with the **MOST RESTRICTIVE** terms:
+Since this project combines data under **CC-BY-NC-4.0** (Happy Whale) and **Government Restrictions** (Ministry RF), users must comply with the **MOST RESTRICTIVE** terms:
 
 | Use Case                | Permitted? | Notes                               |
 | ----------------------- | ---------- | ----------------------------------- |
@@ -209,8 +209,8 @@ When publishing research using this dataset, cite:
   author = {Baltsat, Konstantin and Tarasov, Artem and Vandanov, Sergey and Serov, Alexandr},
   title = {Combined Marine Mammal Dataset for EcoMarineAI},
   year = {2024},
-  note = {Dataset combining HappyWhale (CC-BY-NC-4.0) and Ministry RF data},
-  howpublished = {Data provided by HappyWhale Community and Ministry of Natural Resources RF},
+  note = {Dataset combining Happy Whale (CC-BY-NC-4.0) and Ministry RF data},
+  howpublished = {Data provided by Happy Whale community and Ministry of Natural Resources RF},
   url = {https://github.com/0x0000dead/whales-identification}
 }
 ```
@@ -221,7 +221,7 @@ Minimum attribution text:
 
 ```
 Data Sources:
-1. HappyWhale (https://happywhale.com) - CC-BY-NC-4.0
+1. Happy Whale (https://happywhale.com) — CC-BY-NC-4.0
 2. Ministry of Natural Resources and Ecology of the Russian Federation
 
 Project: EcoMarineAI Whale Identification
@@ -236,7 +236,7 @@ GitHub: https://github.com/0x0000dead/whales-identification
 
 If you wish to use this data for commercial purposes, you MUST:
 
-1. **Contact HappyWhale:**
+1. **Contact Happy Whale:**
    - Email: support@happywhale.com
    - Request commercial licensing for their dataset portion
    - Negotiate terms and fees (if applicable)
@@ -284,7 +284,7 @@ If you wish to use this data for commercial purposes, you MUST:
 
 ### Data Updates
 
-- HappyWhale data is continuously updated by the community
+- Happy Whale data is continuously updated by the community
 - Ministry data is updated periodically (annual/bi-annual surveys)
 - This project uses a **snapshot** as of January 2024
 - Future versions may incorporate updated data
@@ -299,7 +299,7 @@ If you wish to use this data for commercial purposes, you MUST:
 
 If you identify errors in the data (misidentifications, quality issues):
 
-- **HappyWhale data:** Report directly to happywhale.com
+- **Happy Whale data:** Report directly to happywhale.com
 - **Ministry data:** Contact project maintainers who will forward to appropriate channels
 - **Processing errors:** Open GitHub issue at repository
 

@@ -1,29 +1,61 @@
-import base64
+"""FastAPI entry point for the EcoMarineAI HTTP service.
+
+This module wires the routes; all ML logic is delegated to
+``inference.InferencePipeline``, which is built once at startup via the
+FastAPI lifespan context.
+"""
+
+from __future__ import annotations
+
 import io
-import random
+import logging
+import os
 import time
 from collections import defaultdict
-from pathlib import Path
+from contextlib import asynccontextmanager
+from typing import AsyncIterator
 from zipfile import BadZipFile, ZipFile
 
-import yaml
-from fastapi import FastAPI, File, HTTPException, Request, UploadFile
+from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.routing import APIRouter
 from PIL import Image, UnidentifiedImageError
 from starlette.middleware.cors import CORSMiddleware
 
-from .response_models import Detection, generate_base64_mask_with_removed_background
+from .inference import get_pipeline
+from .inference.pipeline import InferencePipeline
+from .monitoring import get_drift_monitor
+from .response_models import Detection
+
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    pipeline = get_pipeline()
+    pipeline.warmup()
+    app.state.pipeline = pipeline
+    logger.info("EcoMarineAI service ready.")
+    yield
+
 
 app = FastAPI(
-    title="Whales Identification API",
-    version="1.0.0",
-    description="API для идентификации морских млекопитающих по аэрофотоснимкам",
+    title="EcoMarineAI Identification API",
+    version="1.1.0",
+    description="Идентификация морских млекопитающих по аэрофотоснимкам с CLIP-антифрод гейтом.",
+    lifespan=lifespan,
 )
 
+
+_default_origins = "http://localhost:5173,http://localhost:8080,http://127.0.0.1:5173,http://127.0.0.1:8080"
+_allowed_origins = [
+    origin.strip()
+    for origin in os.environ.get("ALLOWED_ORIGINS", _default_origins).split(",")
+    if origin.strip()
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -42,7 +74,6 @@ async def rate_limit_middleware(request: Request, call_next):
     now = time.time()
     window_start = now - RATE_LIMIT_WINDOW
 
-    # Clean old entries
     _rate_limit_store[client_ip] = [
         t for t in _rate_limit_store[client_ip] if t > window_start
     ]
@@ -54,18 +85,21 @@ async def rate_limit_middleware(request: Request, call_next):
         )
 
     _rate_limit_store[client_ip].append(now)
-    response = await call_next(request)
-    return response
+    return await call_next(request)
 
 
 # --- Metrics collection ---
-_metrics = {
+_metrics: dict[str, object] = {
     "requests_total": 0,
     "requests_by_endpoint": defaultdict(int),
     "errors_total": 0,
     "latency_sum_ms": 0.0,
     "latency_count": 0,
     "predictions_total": 0,
+    "rejections_total": 0,
+    "rejections_by_reason": defaultdict(int),
+    "cetacean_score_sum": 0.0,
+    "cetacean_score_count": 0,
 }
 
 
@@ -86,19 +120,44 @@ async def metrics_middleware(request: Request, call_next):
     return response
 
 
+def _record_prediction(det: Detection) -> None:
+    if det.rejected:
+        _metrics["rejections_total"] += 1
+        if det.rejection_reason:
+            _metrics["rejections_by_reason"][det.rejection_reason] += 1
+    else:
+        _metrics["predictions_total"] += 1
+    _metrics["cetacean_score_sum"] += det.cetacean_score
+    _metrics["cetacean_score_count"] += 1
+    get_drift_monitor().record(det.cetacean_score, det.probability)
+
+
+def get_pipeline_dep(request: Request) -> InferencePipeline:
+    pipeline = getattr(request.app.state, "pipeline", None)
+    if pipeline is None:
+        pipeline = get_pipeline()
+        request.app.state.pipeline = pipeline
+    return pipeline
+
+
 # --- Health & Metrics endpoints (root level, no versioning) ---
 
 
 @app.get("/health", summary="Health check endpoint")
-async def health():
+async def health() -> dict:
     return {"status": "ok"}
 
 
 @app.get("/metrics", summary="Prometheus-compatible metrics")
-async def metrics():
+async def metrics() -> PlainTextResponse:
     avg_latency = (
         _metrics["latency_sum_ms"] / _metrics["latency_count"]
         if _metrics["latency_count"] > 0
+        else 0
+    )
+    avg_cetacean_score = (
+        _metrics["cetacean_score_sum"] / _metrics["cetacean_score_count"]
+        if _metrics["cetacean_score_count"] > 0
         else 0
     )
     lines = [
@@ -108,54 +167,51 @@ async def metrics():
         "# HELP errors_total Total HTTP errors (4xx/5xx)",
         "# TYPE errors_total counter",
         f'errors_total {_metrics["errors_total"]}',
-        "# HELP predictions_total Total predictions made",
+        "# HELP predictions_total Successful (not rejected) predictions",
         "# TYPE predictions_total counter",
         f'predictions_total {_metrics["predictions_total"]}',
+        "# HELP rejections_total Anti-fraud / low-confidence rejections",
+        "# TYPE rejections_total counter",
+        f'rejections_total {_metrics["rejections_total"]}',
         "# HELP latency_avg_ms Average request latency in ms",
         "# TYPE latency_avg_ms gauge",
         f"latency_avg_ms {avg_latency:.2f}",
+        "# HELP cetacean_score_avg Rolling mean CLIP cetacean score",
+        "# TYPE cetacean_score_avg gauge",
+        f"cetacean_score_avg {avg_cetacean_score:.4f}",
     ]
+    for reason, count in _metrics["rejections_by_reason"].items():
+        lines.append(f'rejections_by_reason{{reason="{reason}"}} {count}')
     return PlainTextResponse("\n".join(lines) + "\n", media_type="text/plain")
-
-
-# --- Load config ---
-BASE_DIR = Path(__file__).parent
-with open(BASE_DIR / "config.yaml", "r") as f:
-    cfg = yaml.safe_load(f)
-ID_TO_NAME = cfg.get("id_to_name", {})
 
 
 DETECTION_EXAMPLE = {
     "image_ind": "whale_photo.jpg",
-    "bbox": [10, 20, 300, 200],
-    "class_animal": "cadddb1636b9",
+    "bbox": [0, 0, 1920, 1080],
+    "class_animal": "1a71fbb72250",
     "id_animal": "humpback_whale",
     "probability": 0.934,
     "mask": "iVBORw0KGgo...",
+    "is_cetacean": True,
+    "cetacean_score": 0.87,
+    "rejected": False,
+    "rejection_reason": None,
+    "model_version": "vit_l32-v1",
 }
 
-
-def detection_id(filename: str, img_bytes: bytes) -> dict:
-    bbox = [random.randint(0, 50) for _ in range(4)]  # nosec B311
-    class_id = "cadddb1636b9"
-    prob = round(random.uniform(0.8, 1.0), 3)  # nosec B311 - mock data
-
-    img = Image.open(io.BytesIO(img_bytes)).convert("RGBA")
-    buf = io.BytesIO()
-    img.save(buf, format="PNG")
-
-    mask_b64 = generate_base64_mask_with_removed_background(img_bytes)
-
-    _metrics["predictions_total"] += 1
-
-    return {
-        "image_ind": filename,
-        "bbox": bbox,
-        "class_animal": class_id,
-        "id_animal": ID_TO_NAME.get(class_id, class_id),
-        "probability": prob,
-        "mask": mask_b64,
-    }
+REJECTION_EXAMPLE = {
+    "image_ind": "screenshot.png",
+    "bbox": [0, 0, 800, 600],
+    "class_animal": "",
+    "id_animal": "unknown",
+    "probability": 0.0,
+    "mask": None,
+    "is_cetacean": False,
+    "cetacean_score": 0.12,
+    "rejected": True,
+    "rejection_reason": "not_a_marine_mammal",
+    "model_version": "vit_l32-v1",
+}
 
 
 # --- API v1 Router ---
@@ -165,9 +221,18 @@ v1 = APIRouter(prefix="/v1", tags=["v1"])
 @v1.post(
     "/predict-single",
     response_model=Detection,
-    summary="Фото → JSON с bbox+mask",
+    summary="Фото → JSON с результатом идентификации (или rejection)",
     responses={
-        200: {"content": {"application/json": {"example": DETECTION_EXAMPLE}}},
+        200: {
+            "content": {
+                "application/json": {
+                    "examples": {
+                        "accepted": {"value": DETECTION_EXAMPLE},
+                        "rejected": {"value": REJECTION_EXAMPLE},
+                    }
+                }
+            }
+        },
         415: {
             "description": "Unsupported media type",
             "content": {
@@ -176,21 +241,38 @@ v1 = APIRouter(prefix="/v1", tags=["v1"])
         },
     },
 )
-async def predict_single_v1(file: UploadFile = File(...)):
-    if not file.content_type.startswith("image/"):
+async def predict_single_v1(
+    file: UploadFile = File(...),
+    pipeline: InferencePipeline = Depends(get_pipeline_dep),
+) -> Detection:
+    if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(415, "Только изображения.")
     data = await file.read()
     if not data:
         raise HTTPException(400, "Пустой файл.")
-    det = detection_id(file.filename, data)
-    return JSONResponse(content=det)
+
+    try:
+        pil_img = Image.open(io.BytesIO(data)).convert("RGB")
+    except UnidentifiedImageError:
+        raise HTTPException(415, "Не удалось распознать изображение.") from None
+
+    detection = pipeline.predict(
+        pil_img=pil_img,
+        filename=file.filename or "unknown",
+        img_bytes=data,
+        generate_mask=True,
+    )
+    _record_prediction(detection)
+    return detection
 
 
 @v1.post(
     "/predict-batch",
-    summary="ZIP → JSON[]",
+    summary="ZIP с изображениями → JSON-массив результатов",
     responses={
-        200: {"content": {"application/json": {"example": [DETECTION_EXAMPLE]}}},
+        200: {
+            "content": {"application/json": {"example": [DETECTION_EXAMPLE, REJECTION_EXAMPLE]}}
+        },
         400: {
             "description": "Invalid ZIP archive",
             "content": {
@@ -207,7 +289,10 @@ async def predict_single_v1(file: UploadFile = File(...)):
         },
     },
 )
-async def predict_batch_v1(archive: UploadFile = File(...)):
+async def predict_batch_v1(
+    archive: UploadFile = File(...),
+    pipeline: InferencePipeline = Depends(get_pipeline_dep),
+) -> JSONResponse:
     if archive.content_type not in (
         "application/zip",
         "application/x-zip-compressed",
@@ -217,8 +302,8 @@ async def predict_batch_v1(archive: UploadFile = File(...)):
     raw = await archive.read()
     try:
         zf = ZipFile(io.BytesIO(raw))
-    except BadZipFile:
-        raise HTTPException(400, "Не удаётся распаковать архив.")
+    except BadZipFile as e:
+        raise HTTPException(400, "Не удаётся распаковать архив.") from e
 
     results: list[dict] = []
     for name in zf.namelist():
@@ -226,17 +311,28 @@ async def predict_batch_v1(archive: UploadFile = File(...)):
             continue
         try:
             img_bytes = zf.read(name)
-            with Image.open(io.BytesIO(img_bytes)) as img:
-                img.verify()
-            det = detection_id(name, img_bytes)
-            results.append(det)
+            pil_img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
         except (KeyError, UnidentifiedImageError):
             continue
         except Exception:  # nosec B112 - skip corrupted files
             continue
 
+        detection = pipeline.predict(
+            pil_img=pil_img,
+            filename=name,
+            img_bytes=img_bytes,
+            generate_mask=False,  # skip slow rembg in batch mode
+        )
+        _record_prediction(detection)
+        results.append(detection.model_dump())
+
     zf.close()
     return JSONResponse(content=results)
+
+
+@v1.get("/drift-stats", summary="Rolling-window cetacean_score statistics")
+async def drift_stats() -> dict:
+    return get_drift_monitor().stats()
 
 
 app.include_router(v1)
@@ -248,18 +344,21 @@ app.include_router(v1)
 @app.post(
     "/predict-single",
     response_model=Detection,
-    summary="Фото → JSON с bbox+mask",
-    responses={
-        200: {"content": {"application/json": {"example": DETECTION_EXAMPLE}}},
-    },
+    summary="Legacy alias → /v1/predict-single",
 )
-async def predict_single(file: UploadFile = File(...)):
-    return await predict_single_v1(file)
+async def predict_single(
+    file: UploadFile = File(...),
+    pipeline: InferencePipeline = Depends(get_pipeline_dep),
+) -> Detection:
+    return await predict_single_v1(file=file, pipeline=pipeline)
 
 
 @app.post(
     "/predict-batch",
-    summary="ZIP → JSON[]",
+    summary="Legacy alias → /v1/predict-batch",
 )
-async def predict_batch(archive: UploadFile = File(...)):
-    return await predict_batch_v1(archive)
+async def predict_batch(
+    archive: UploadFile = File(...),
+    pipeline: InferencePipeline = Depends(get_pipeline_dep),
+) -> JSONResponse:
+    return await predict_batch_v1(archive=archive, pipeline=pipeline)

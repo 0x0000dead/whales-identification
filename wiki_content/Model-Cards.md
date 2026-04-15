@@ -76,7 +76,7 @@ Precision│      EfficientNet-B5 ●
 | **Attention Heads**  | 16                                                      |
 | **Parameters**       | 307M                                                    |
 | **Model File**       | model-e15.pt (2.1 GB with optimizer state)              |
-| **Training Dataset** | HappyWhale + Ministry RF (~60,000 train + ~20,000 test) |
+| **Training Dataset** | Open marine mammal sources + Ministry RF (~60,000 train + ~20,000 test) |
 | **Classes**          | 1,000 individual whales and dolphins                    |
 
 ### Performance Metrics
@@ -432,7 +432,7 @@ torch.onnx.export(model_quantized, dummy_input, "efficientnet_b0.onnx")
 
 **Dataset:**
 
-- Source: HappyWhale (CC-BY-NC-4.0) + Ministry of Natural Resources and Ecology RF (research-only)
+- Source: open Happy Whale (CC-BY-NC-4.0) + Ministry of Natural Resources and Ecology RF (research-only)
 - Total images: ~80,000 (~60,000 train, ~20,000 test)
 - Classes: 1,000 individual whales and dolphins
 - Split: 75% train, 25% test (validation during training)

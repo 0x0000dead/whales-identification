@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 from whales_identify.config import CONFIG
 from whales_identify.dataset import WhaleDataset, augmentation_data_transforms
-from whales_identify.model import HappyWhaleModel
+from whales_identify.model import CetaceanIdentificationModel
 from whales_identify.utils import set_seed
 
 
@@ -78,7 +78,7 @@ def run_training(df_train: pd.DataFrame, img_dir: str, checkpoint_dir: str):
     set_seed(CONFIG["seed"])
     device = CONFIG["device"]
 
-    model = HappyWhaleModel(
+    model = CetaceanIdentificationModel(
         CONFIG["model_name"],
         CONFIG["embedding_size"],
         CONFIG["num_classes"],
@@ -147,7 +147,7 @@ def main():
     """
     import argparse
 
-    parser = argparse.ArgumentParser(description="Train HappyWhaleModel")
+    parser = argparse.ArgumentParser(description="Train CetaceanIdentificationModel")
     parser.add_argument(
         "--train_csv",
         type=str,

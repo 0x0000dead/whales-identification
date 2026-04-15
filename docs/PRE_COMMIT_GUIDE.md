@@ -610,7 +610,7 @@ password = os.environ.get("DB_PASSWORD")  # noqa: B105
 
 ```python
 # Before (unsorted)
-from whales_identify.model import HappyWhaleModel
+from whales_identify.model import CetaceanIdentificationModel
 import torch
 from typing import List
 import numpy as np
@@ -623,7 +623,7 @@ from typing import List
 import numpy as np
 import torch
 
-from whales_identify.model import HappyWhaleModel
+from whales_identify.model import CetaceanIdentificationModel
 ```
 
 **Manual run:**

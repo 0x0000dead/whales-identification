@@ -1,5 +1,7 @@
 import {useState, useEffect} from 'react';
 import {predictSingle, predictBatch, Detection} from './api';
+import {RejectionCard} from './components/RejectionCard';
+import {ConfidenceGauge} from './components/ConfidenceGauge';
 import {
     BarChart,
     Bar,
@@ -124,12 +126,54 @@ export default function App() {
                         />
                     </div>
                 )}
-                {result && (
-                    <div className="mt-4 p-4 bg-gray-100 rounded-lg shadow">
-                        <h3 className="font-medium mb-2">Результат:</h3>
-                        <p className="text-sm overflow-hidden max-w-full">На картинке: {result.id_animal}</p>
-                        <p className="text-sm overflow-hidden max-w-full">Вид животного: {result.class_animal}</p>
-                        <p className="text-sm overflow-hidden max-w-full">Вероятность: {result.probability}</p>
+                {result && result.rejected && <RejectionCard result={result} />}
+                {result && !result.rejected && (
+                    <div className="mt-4 p-4 bg-emerald-50 border-l-4 border-emerald-500 rounded-lg shadow">
+                        <div className="flex items-start gap-3">
+                            <svg
+                                className="w-6 h-6 text-emerald-600 flex-shrink-0 mt-0.5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M5 13l4 4L19 7"
+                                />
+                            </svg>
+                            <div className="flex-1 min-w-0">
+                                <h3 className="font-semibold text-emerald-900 mb-2">
+                                    Морское млекопитающее обнаружено
+                                </h3>
+                                <p className="text-sm text-emerald-800">
+                                    <span className="font-medium">Вид:</span> {result.id_animal}
+                                </p>
+                                <p className="text-sm text-emerald-800 truncate">
+                                    <span className="font-medium">ID особи:</span> {result.class_animal || '—'}
+                                </p>
+                                <div className="mt-3 space-y-2">
+                                    <ConfidenceGauge
+                                        label="Уверенность идентификации"
+                                        value={result.probability}
+                                        variant="success"
+                                    />
+                                    {typeof result.cetacean_score === 'number' && (
+                                        <ConfidenceGauge
+                                            label="Антифрод-скор (это кит/дельфин)"
+                                            value={result.cetacean_score}
+                                            variant="success"
+                                        />
+                                    )}
+                                </div>
+                                {result.model_version && (
+                                    <p className="text-xs text-emerald-700 mt-2">
+                                        Версия модели: {result.model_version}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 )}
             </section>

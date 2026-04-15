@@ -1,4 +1,3 @@
-import base64
 import io
 import zipfile
 
@@ -10,7 +9,10 @@ from whales_be_service.main import app
 client = TestClient(app)
 
 
-def create_test_image_bytes(format="PNG", size=(10, 10), color=(255, 0, 0)):
+def create_test_image_bytes(format="PNG", size=(10, 10), color=(0, 200, 0)):
+    """Default colour is GREEN — the StubPipeline accepts everything that is
+    NOT red. Red images are routed to the rejection branch.
+    """
     buf = io.BytesIO()
     img = Image.new("RGB", size, color)
     img.save(buf, format=format)
@@ -18,112 +20,123 @@ def create_test_image_bytes(format="PNG", size=(10, 10), color=(255, 0, 0)):
     return buf.read()
 
 
+def _create_red_image_bytes():
+    return create_test_image_bytes(color=(255, 0, 0))
+
+
 def test_health_check():
     resp = client.get("/health")
     assert resp.status_code == 200
-    data = resp.json()
-    assert data["status"] == "ok"
+    assert resp.json() == {"status": "ok"}
 
 
-def test_predict_single_success():
-    img_bytes = create_test_image_bytes()
-    files = {"file": ("test.png", img_bytes, "image/png")}
+def test_predict_single_accepted():
+    files = {"file": ("whale.png", create_test_image_bytes(), "image/png")}
     resp = client.post("/predict-single", files=files)
     assert resp.status_code == 200
     data = resp.json()
-    # required keys
     for key in (
         "image_ind",
         "bbox",
         "class_animal",
         "id_animal",
         "probability",
-        "mask",
+        "is_cetacean",
+        "cetacean_score",
+        "rejected",
+        "rejection_reason",
+        "model_version",
     ):
         assert key in data
-    # types and basic validation
-    assert data["image_ind"] == "test.png"
+    assert data["image_ind"] == "whale.png"
+    assert data["is_cetacean"] is True
+    assert data["rejected"] is False
+    assert data["rejection_reason"] is None
+    assert data["probability"] > 0
     assert isinstance(data["bbox"], list) and len(data["bbox"]) == 4
-    assert all(isinstance(x, int) for x in data["bbox"])
-    assert isinstance(data["class_animal"], str)
-    assert isinstance(data["id_animal"], str)
-    prob = data["probability"]
-    assert isinstance(prob, float) and 0.8 <= prob <= 1.0
-    mask_b64 = data["mask"]
-    decoded = base64.b64decode(mask_b64)
-    assert decoded.startswith(b"\x89PNG\r\n\x1a\n")
+
+
+def test_predict_single_rejected_returns_200():
+    """Anti-fraud rejection is a successful classification, not an HTTP error."""
+    files = {"file": ("text_screenshot.png", _create_red_image_bytes(), "image/png")}
+    resp = client.post("/predict-single", files=files)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["is_cetacean"] is False
+    assert data["rejected"] is True
+    assert data["rejection_reason"] == "not_a_marine_mammal"
+    assert data["probability"] == 0.0
 
 
 def test_predict_single_unsupported_media():
-    txt_bytes = b"not an image"
-    files = {"file": ("test.txt", txt_bytes, "text/plain")}
+    files = {"file": ("test.txt", b"not an image", "text/plain")}
     resp = client.post("/predict-single", files=files)
     assert resp.status_code == 415
     assert "Только изображения" in resp.json()["detail"]
 
 
+def test_predict_single_empty_file():
+    files = {"file": ("empty.png", b"", "image/png")}
+    resp = client.post("/predict-single", files=files)
+    assert resp.status_code == 400
+    assert "Пустой файл" in resp.json()["detail"]
+
+
 def test_predict_batch_success():
-    # create in-memory ZIP with two images
-    img1 = create_test_image_bytes()
-    img2 = create_test_image_bytes(color=(0, 255, 0))
+    accepted = create_test_image_bytes()
+    rejected = _create_red_image_bytes()
     zip_buf = io.BytesIO()
     with zipfile.ZipFile(zip_buf, mode="w") as zf:
-        zf.writestr("img1.png", img1)
-        zf.writestr("subdir/img2.jpg", img2)
+        zf.writestr("whale1.png", accepted)
+        zf.writestr("subdir/whale2.png", accepted)
+        zf.writestr("noise.png", rejected)
     zip_buf.seek(0)
 
     files = {"archive": ("batch.zip", zip_buf.read(), "application/zip")}
     resp = client.post("/predict-batch", files=files)
     assert resp.status_code == 200
     results = resp.json()
-    assert isinstance(results, list) and len(results) == 2
+    assert len(results) == 3
 
-    for det in results:
-        for key in (
-            "image_ind",
-            "bbox",
-            "class_animal",
-            "id_animal",
-            "probability",
-            "mask",
-        ):
-            assert key in det
-        assert isinstance(det["image_ind"], str)
-        assert isinstance(det["bbox"], list) and len(det["bbox"]) == 4
-        assert all(isinstance(x, int) for x in det["bbox"])
-        prob = det["probability"]
-        assert isinstance(prob, float) and 0.8 <= prob <= 1.0
-        decoded = base64.b64decode(det["mask"])
-        assert decoded.startswith(b"\x89PNG\r\n\x1a\n")
+    accepted_names = [r["image_ind"] for r in results if not r["rejected"]]
+    rejected_names = [r["image_ind"] for r in results if r["rejected"]]
+    assert sorted(accepted_names) == ["subdir/whale2.png", "whale1.png"]
+    assert rejected_names == ["noise.png"]
+    for r in results:
+        if r["rejected"]:
+            assert r["rejection_reason"] == "not_a_marine_mammal"
 
 
 def test_predict_batch_wrong_content_type():
-    img_bytes = create_test_image_bytes()
-    files = {"archive": ("notazip.png", img_bytes, "image/png")}
+    files = {"archive": ("notazip.png", create_test_image_bytes(), "image/png")}
     resp = client.post("/predict-batch", files=files)
     assert resp.status_code == 415
-    assert "Ожидается ZIP-архив" in resp.json()["detail"]
 
 
 def test_predict_batch_bad_zip():
-    bad = b"this is not a zip"
-    files = {"archive": ("bad.zip", bad, "application/zip")}
+    files = {"archive": ("bad.zip", b"this is not a zip", "application/zip")}
     resp = client.post("/predict-batch", files=files)
     assert resp.status_code == 400
-    assert "Не удаётся распаковать архив" in resp.json()["detail"]
 
 
-# --- API v1 versioned endpoints ---
+def test_predict_batch_empty_zip():
+    zip_buf = io.BytesIO()
+    with zipfile.ZipFile(zip_buf, mode="w"):
+        pass
+    zip_buf.seek(0)
+    files = {"archive": ("empty.zip", zip_buf.read(), "application/zip")}
+    resp = client.post("/predict-batch", files=files)
+    assert resp.status_code == 200
+    assert resp.json() == []
 
 
 def test_v1_predict_single():
-    img_bytes = create_test_image_bytes()
-    files = {"file": ("v1_test.png", img_bytes, "image/png")}
+    files = {"file": ("v1_test.png", create_test_image_bytes(), "image/png")}
     resp = client.post("/v1/predict-single", files=files)
     assert resp.status_code == 200
     data = resp.json()
     assert data["image_ind"] == "v1_test.png"
-    assert "probability" in data
+    assert data["is_cetacean"] is True
 
 
 def test_v1_predict_batch():
@@ -138,9 +151,6 @@ def test_v1_predict_batch():
     assert isinstance(resp.json(), list)
 
 
-# --- Metrics endpoint ---
-
-
 def test_metrics_endpoint():
     resp = client.get("/metrics")
     assert resp.status_code == 200
@@ -148,25 +158,5 @@ def test_metrics_endpoint():
     assert "requests_total" in body
     assert "errors_total" in body
     assert "predictions_total" in body
-    assert "latency_avg_ms" in body
-
-
-# --- Additional negative tests ---
-
-
-def test_predict_single_empty_file():
-    files = {"file": ("empty.png", b"", "image/png")}
-    resp = client.post("/predict-single", files=files)
-    assert resp.status_code == 400
-    assert "Пустой файл" in resp.json()["detail"]
-
-
-def test_predict_batch_empty_zip():
-    zip_buf = io.BytesIO()
-    with zipfile.ZipFile(zip_buf, mode="w") as zf:
-        pass  # empty zip
-    zip_buf.seek(0)
-    files = {"archive": ("empty.zip", zip_buf.read(), "application/zip")}
-    resp = client.post("/predict-batch", files=files)
-    assert resp.status_code == 200
-    assert resp.json() == []
+    assert "rejections_total" in body
+    assert "cetacean_score_avg" in body

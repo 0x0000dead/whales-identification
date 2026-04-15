@@ -19,6 +19,7 @@ language:
   - ru
 datasets:
   - happywhale
+  - marine-mammals
 widget:
   - src: https://github.com/0x0000dead/whales-identification/raw/main/data/sample/whale_sample.jpg
     example_title: Whale Identification
@@ -89,7 +90,7 @@ Copyright (c) 2024 Baltsat Konstantin, Tarasov Artem, Vandanov Sergey, Serov Ale
 
 **The trained models may NOT be used for commercial purposes** without explicit permission from the original data providers:
 
-- **HappyWhale data:** CC-BY-NC-4.0 (non-commercial)
+- **Happy Whale data:** CC-BY-NC-4.0 (non-commercial)
 - **Ministry of Natural Resources RF data:** Government research-only terms
 - **ImageNet pretrained weights:** Non-commercial research-only terms
 
@@ -113,7 +114,7 @@ See [LICENSE_MODELS.md](https://github.com/0x0000dead/whales-identification/blob
 
 Models were trained on:
 
-- **HappyWhale dataset** (CC-BY-NC-4.0)
+- **Happy Whale dataset** (https://happywhale.com, CC-BY-NC-4.0)
 - **Ministry of Natural Resources of the Russian Federation** data
 - ~60,000 training images of whales and dolphins
 

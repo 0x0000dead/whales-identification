@@ -1,0 +1,11 @@
+relpath,label,individual_id,species,source,license,split
+positives/sample_001.jpg,cetacean,1a71fbb72250,humpback_whale,happywhale,CC-BY-NC-4.0,test
+positives/sample_002.jpg,cetacean,4b00fe572063,bottlenose_dolphin,happywhale,CC-BY-NC-4.0,test
+positives/sample_003.jpg,cetacean,180c0ab04dcd,fin_whale,happywhale,CC-BY-NC-4.0,test
+positives/sample_004.jpg,cetacean,4790ec346170,blue_whale,happywhale,CC-BY-NC-4.0,test
+positives/sample_005.jpg,cetacean,afb9b3978217,beluga,happywhale,CC-BY-NC-4.0,test
+negatives/text_001.png,non_cetacean,,,internal,CC0,test
+negatives/building_001.jpg,non_cetacean,,,internal,CC0,test
+negatives/person_001.jpg,non_cetacean,,,internal,CC0,test
+negatives/cat_001.jpg,non_cetacean,,,internal,CC0,test
+negatives/landscape_001.jpg,non_cetacean,,,internal,CC0,test

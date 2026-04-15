@@ -1,6 +1,7 @@
-# Pluggable Model Configuration for EcoMarineAI
-# Change the active model by setting `active_model` to one of the model keys below.
-# No code changes required to switch between models.
+# EcoMarineAI — Pluggable model configuration.
+# Switch the active model by setting `active_model` to one of the keys below.
+# Metrics are NOT listed here on purpose: they are computed by
+# scripts/compute_metrics.py and stored in reports/metrics_latest.json.
 
 active_model: "vit_l32"
 
@@ -20,8 +21,6 @@ models:
       num_classes: 15587
       dropout: 0.2
     input_size: 448
-    precision: 0.93
-    inference_time_s: 3.5
 
   vit_b16:
     name: "Vision Transformer B/16"
@@ -38,12 +37,10 @@ models:
       num_classes: 15587
       dropout: 0.1
     input_size: 448
-    precision: 0.91
-    inference_time_s: 2.0
 
   efficientnet_b5:
     name: "EfficientNet-B5"
-    architecture: "HappyWhaleModel"
+    architecture: "CetaceanIdentificationModel"
     checkpoint: "models/efficientnet_b5.pth"
     params:
       model_name: "tf_efficientnet_b5_ns"
@@ -54,12 +51,10 @@ models:
       ls_eps: 0.0
       easy_margin: false
     input_size: 448
-    precision: 0.91
-    inference_time_s: 1.8
 
   efficientnet_b0:
     name: "EfficientNet-B0"
-    architecture: "HappyWhaleModel"
+    architecture: "CetaceanIdentificationModel"
     checkpoint: "models/efficientnet_b0.pth"
     params:
       model_name: "tf_efficientnet_b0_ns"
@@ -70,12 +65,10 @@ models:
       ls_eps: 0.0
       easy_margin: false
     input_size: 448
-    precision: 0.88
-    inference_time_s: 1.0
 
   resnet101:
     name: "ResNet-101"
-    architecture: "HappyWhaleModel"
+    architecture: "CetaceanIdentificationModel"
     checkpoint: "models/resnet101.pth"
     params:
       model_name: "resnet101"
@@ -86,12 +79,10 @@ models:
       ls_eps: 0.0
       easy_margin: false
     input_size: 448
-    precision: 0.85
-    inference_time_s: 1.2
 
   swin_t:
     name: "Swin Transformer"
-    architecture: "HappyWhaleModel"
+    architecture: "CetaceanIdentificationModel"
     checkpoint: "models/swin_t_best.pth"
     params:
       model_name: "swin_tiny_patch4_window7_224"
@@ -102,8 +93,6 @@ models:
       ls_eps: 0.0
       easy_margin: false
     input_size: 448
-    precision: 0.90
-    inference_time_s: 2.2
 
 preprocessing:
   normalization:
@@ -114,3 +103,10 @@ preprocessing:
 inference:
   device: "auto"  # auto, cpu, cuda:0
   batch_size: 1
+
+# Anti-fraud gate runs upstream of identification.
+anti_fraud:
+  model_name: "ViT-B-32"
+  pretrained: "laion2b_s34b_b79k"
+  # Calibrated threshold lives in
+  # whales_be_service/src/whales_be_service/configs/anti_fraud_threshold.yaml

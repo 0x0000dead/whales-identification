@@ -107,33 +107,22 @@ class ArcMarginProduct(nn.Module):
         return (one_hot * output + (1.0 - one_hot) * cosine) * self.s
 
 
-class HappyWhaleModel(nn.Module):
-    """
-    Класс модели для задачи классификации китов с использованием ArcFace и Generalized Mean Pooling.
+class CetaceanIdentificationModel(nn.Module):
+    """Identification model for cetaceans (whales/dolphins) using ArcFace +
+    Generalized Mean Pooling on top of a timm backbone (EfficientNet, ResNet,
+    Swin, ConvNeXt, ...). The backbone is selected via ``model_name``.
 
     Attributes:
-        model (nn.Module): Предобученная модель из библиотеки timm, используемая как основа.
-        pooling (GeM): Слой GeM для пуллинга признаков.
-        embedding (nn.Linear): Линейный слой для уменьшения размерности признаков до embedding_size.
-        fc (ArcMarginProduct): Слой для применения ArcMarginProduct с метками.
+        model: timm backbone with classifier and global pool stripped out.
+        pooling: GeM aggregation.
+        embedding: linear projection to ``embedding_size``.
+        fc: ArcMarginProduct classifier head.
     """
 
     def __init__(
         self, model_name, embedding_size, num_classes, s, m, ls_eps, easy_margin
     ):
-        """
-        Инициализация модели HappyWhale.
-
-        Args:
-            model_name (str): Название предобученной модели из библиотеки timm.
-            embedding_size (int): Размерность пространства embedding.
-            num_classes (int): Количество классов для классификации.
-            s (float): Коэффициент масштабирования для ArcMarginProduct.
-            m (float): Margin отступ для ArcMarginProduct.
-            ls_eps (float): Параметр сглаживания меток.
-            easy_margin (bool): Флаг для включения легкого margin.
-        """
-        super(HappyWhaleModel, self).__init__()
+        super().__init__()
         self.model = timm.create_model(model_name, pretrained=True)
         in_features = self.model.classifier.in_features
         self.model.classifier = nn.Identity()
@@ -150,17 +139,25 @@ class HappyWhaleModel(nn.Module):
         )
 
     def forward(self, images, labels):
-        """
-        Прямой проход через модель.
-
-        Args:
-            images (torch.Tensor): Входные изображения.
-            labels (torch.Tensor): Метки классов.
-
-        Returns:
-            torch.Tensor: Логиты для классификации с использованием ArcMarginProduct.
-        """
         features = self.model(images)
         pooled_features = self.pooling(features).flatten(1)
         embedding = self.embedding(pooled_features)
         return self.fc(embedding, labels)
+
+
+# Deprecated alias preserved for one release cycle so existing notebooks and
+# external scripts that import HappyWhaleModel keep working. Will be removed
+# in the next major version — emit a DeprecationWarning on use.
+import warnings as _warnings
+
+
+def _deprecated_alias(*args, **kwargs):
+    _warnings.warn(
+        "HappyWhaleModel is deprecated; use CetaceanIdentificationModel instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return CetaceanIdentificationModel(*args, **kwargs)
+
+
+HappyWhaleModel = _deprecated_alias  # type: ignore[assignment]

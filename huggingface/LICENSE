@@ -25,7 +25,7 @@ NonCommercial 4.0 International) and ImageNet (non-commercial research only).
 As a result:
 
 1. The trained models may NOT be used for commercial purposes without
-   explicit permission from the original data providers (HappyWhale and
+   explicit permission from the original data providers (the marine mammal community and
    Ministry of Natural Resources of the Russian Federation).
 
 2. This restriction applies specifically to the trained model weights
@@ -39,4 +39,4 @@ https://github.com/0x0000dead/whales-identification/blob/main/LICENSE_MODELS.md
 
 For commercial licensing inquiries:
 - GitHub Issues: https://github.com/0x0000dead/whales-identification/issues
-- HappyWhale: support@happywhale.com
+- Marine mammal community datasets contact: см. LICENSE_DATA.md

@@ -404,7 +404,7 @@ torch.cuda.empty_cache()
 
 **Answer:** ⚠️ **No, commercial use is prohibited** due to:
 
-1. **HappyWhale data:** CC-BY-NC-4.0 (non-commercial)
+1. **Happy Whale data:** CC-BY-NC-4.0 (non-commercial)
 2. **Ministry RF data:** Research-only license
 3. **ImageNet pretrained weights:** Non-commercial terms
 
@@ -447,7 +447,7 @@ torch.cuda.empty_cache()
 
 **Requirements:**
 
-- Cite the original datasets (HappyWhale, Ministry RF)
+- Cite the original datasets (Happy Whale, Ministry RF)
 - Acknowledge the project in publications
 - Share results with the community
 

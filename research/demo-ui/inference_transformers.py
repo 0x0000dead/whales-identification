@@ -6,7 +6,7 @@ from albumentations.pytorch import ToTensorV2
 import cv2
 
 
-class HappyWhaleTestDataset(Dataset):
+class CetaceanImageDataset(Dataset):
     def __init__(self, df_with_arrays, transforms=None):
         self.df = df_with_arrays
         self.transforms = transforms
@@ -197,7 +197,7 @@ modelViT = VisionTransformer(**{
 
 
 def create_loader(image):
-    test_dataset = HappyWhaleTestDataset(
+    test_dataset = CetaceanImageDataset(
         image, transforms=data_transforms['test'])
     test_loader = DataLoader(test_dataset, batch_size=1,
                              num_workers=0, shuffle=False)
