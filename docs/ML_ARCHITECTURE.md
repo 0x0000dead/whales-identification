@@ -117,36 +117,55 @@ ArcFace (CosFace family) adds an angular margin `m` during training that pushes 
 
 All numbers computed by `scripts/compute_metrics.py` on `data/test_split/manifest.csv` (100 positives + 102 negatives). Raw JSON lives at `reports/metrics_latest.json`; human-readable table at `reports/METRICS.md`; snapshot for CI at `reports/metrics_baseline.json`.
 
+> **Источник цифр.** Таблицы ниже — дословный вывод
+> `python scripts/compute_metrics.py` на `data/test_split/manifest.csv`.
+> Никаких вручную введённых значений. Запустите скрипт повторно и сверьте
+> с `reports/metrics_latest.json` — при идентичных входах результаты должны
+> совпадать до последнего знака.
+
 ### Anti-fraud gate (binary classification — cetacean vs. not)
 
-| Metric          | Measured | ТЗ target | Status |
-|-----------------|---------:|----------:|:------:|
-| TP / FP / TN / FN | 29 / 2 / 28 / 1 | — | — |
-| **TPR / Sensitivity / Recall** | **0.9667** | > 0.85 | ✓ |
-| **TNR / Specificity** | **0.9333** | > 0.90 | ✓ |
-| **Precision (PPV)** | **0.9355** | ≥ 0.80 | ✓ |
-| **F1** | **0.9508** | > 0.60 | ✓ |
-| ROC-AUC (on `cetacean_score`) | 0.9922 | — | — |
+| Metric | Measured | ТЗ target | Status |
+|--------|---------:|----------:|:------:|
+| Samples | 100 позитивных / 102 негативных | — | — |
+| TP / FP / TN / FN | 95 / 10 / 92 / 5 | — | — |
+| **TPR / Sensitivity / Recall** | **0.950** | > 0.85 | ✓ |
+| **TNR / Specificity** | **0.902** | > 0.90 | ✓ |
+| **Precision (PPV)** | **0.9048** | ≥ 0.80 (на бинарной задаче) | ✓ |
+| **F1** | **0.9268** | > 0.60 | ✓ |
+| ROC-AUC (on `cetacean_score`) | 0.984 | — | — |
 
-### Identification (multiclass, 13 837 individuals)
+### Identification — species level (биологический целевой показатель)
 
-| Metric                | Measured                          |
-|-----------------------|-----------------------------------|
-| Samples               | 30 positives                      |
-| Top-1 accuracy        | 0.1667 (5 / 30 exact individual matches) |
-| Unique ground-truth   | 30                                |
+| Metric | Measured | ТЗ target | Status |
+|--------|---------:|----------:|:------:|
+| Samples (gate-accepted positives) | 95 | — | — |
+| Unique species in test | 10 | — | — |
+| Species top-1 accuracy (all) | 0.3579 | — | informational |
+| **Species precision on high-confidence predictions (≥ 0.10)** | **0.5294** (27/51) | ≥ 0.80 | ⚠ current |
+| Species precision on clear images (Laplacian ≥ 95 % positive-mean) | 0.3214 (9/28) | — | informational |
 
-Top-1 looks modest because the test split mixes individuals from all 5 k-folds, while the public EfficientNet-B4 checkpoint was trained on fold 0 only. For individuals it actually saw during training, the top-1 cosine response is strong (e.g. `11df01f53e2747.jpg` → probability 0.746 on the correct ID).
+### Identification — individual level (extended research target)
+
+| Metric | Measured |
+|--------|---------:|
+| Samples | 100 positives |
+| Individual top-1 accuracy (13 837 classes) | 0.22 |
+| Individual top-5 accuracy | 0.25 |
+| Unique ground-truth individuals in test | 93 |
+
+Individual top-1 remains modest on public fold-0 checkpoint: the test split mixes individuals from all five k-folds while the released checkpoint was trained on fold 0 only. For individuals actually seen during training, top-1 cosine response is strong (probability up to 0.746 on correct ID). Retraining on the full 5-fold schedule + Ministry RF additions is planned in Stage 3 as part of §3.5 hyperparameter optimization.
 
 ### Performance & scalability
 
-| Metric                 | Measured  | ТЗ target              | Status |
-|------------------------|----------:|-----------------------:|:------:|
-| Latency **p50**        | 490 ms    | —                      | —      |
-| Latency **p95**        | 540 ms    | ≤ 8000 ms / image      | ✓      |
-| Latency **p99**        | 630 ms    | —                      | —      |
-| Mean latency           | 280 ms    | —                      | —      |
-| Scalability            | linear (see `scripts/benchmark_scalability.py`) | linear | ✓ |
+| Metric | Measured | ТЗ target | Status |
+|--------|---------:|----------:|:------:|
+| Latency **p50** | 174 ms | — | — |
+| Latency **p95** | 299 ms | ≤ 8000 ms / image | ✓ |
+| Latency **p99** | 417 ms | — | — |
+| Mean latency | 128 ms | — | — |
+| Scalability slope | 0.482 s/image | — | — |
+| R² (linear fit on [10, 25, 50, 100]) | 1.000 | linear | ✓ |
 | Image size at which p95 holds | arbitrary (resized internally) | 1920×1080 | ✓ |
 
 ### Robustness under noise

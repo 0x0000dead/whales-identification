@@ -6,8 +6,8 @@
       "description": "Browser automation for frontend e2e testing and screenshots"
     },
     "fetch": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-fetch@latest"],
+      "command": "uvx",
+      "args": ["mcp-server-fetch"],
       "description": "HTTP requests to backend API for integration testing"
     }
   }

@@ -1,0 +1,118 @@
+# Kubernetes Deployment — EcoMarineAI inference backend.
+#
+# Targets ТЗ Параметр 3 (линейная временная сложность) and Параметр 7
+# (Availability ≥ 95 %). Base replica count of 3 is the minimum for a rolling
+# upgrade with maxUnavailable=1 and still serving traffic; HPA (hpa.yaml) can
+# scale to 10 under sustained CPU load.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecomarine-backend
+  namespace: ecomarineai
+  labels:
+    app: ecomarine-backend
+    component: api
+    tier: backend
+spec:
+  # Why 3: 2-of-3 pods must stay Ready during rollout to meet the 95 %
+  # availability target. HPA may raise this, but never below this floor.
+  replicas: 3
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: ecomarine-backend
+  template:
+    metadata:
+      labels:
+        app: ecomarine-backend
+        component: api
+        tier: backend
+      annotations:
+        # Why: Prometheus Operator / kube-prometheus scrapes pods with these
+        # annotations automatically — no ServiceMonitor CRD required.
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      # Why: matches the Dockerfile USER appuser (UID 999 in the image).
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: backend
+          image: ecomarine-backend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: ecomarine-backend-config
+          # Why: 1 CPU / 2 GiB request keeps pods schedulable on small nodes,
+          # 2 CPU / 4 GiB limit caps each pod at the Docker-compose-prod ceiling
+          # so dev and prod behave identically.
+          resources:
+            requests:
+              cpu: "1"
+              memory: "2Gi"
+            limits:
+              cpu: "2"
+              memory: "4Gi"
+          # Readiness: fail fast so kube-proxy removes the pod from the
+          # Service's endpoints slice the moment /health goes unhealthy.
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          # Liveness: only restart if /health is unreachable for 60 s straight.
+          # initialDelaySeconds is generous because first-boot model download
+          # can take up to 2 minutes on a cold cache.
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          # Startup probe covers the HF model download on first pod start;
+          # after it succeeds the liveness probe takes over.
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30  # 30 × 10 s = 5 min budget
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false  # rembg writes cache to /app/.u2net
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: logs
+              mountPath: /app/logs
+      volumes:
+        # Why: emptyDir is ephemeral but pod-scoped, safe for /tmp scratch
+        # space and request-scoped logs. For persistent audit logs, swap this
+        # for a PVC bound to an object-storage-backed CSI driver.
+        - name: tmp
+          emptyDir: {}
+        - name: logs
+          emptyDir: {}
+      terminationGracePeriodSeconds: 30

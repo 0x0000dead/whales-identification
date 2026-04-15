@@ -216,7 +216,7 @@ DETECTION_EXAMPLE = {
     "cetacean_score": 0.87,
     "rejected": False,
     "rejection_reason": None,
-    "model_version": "vit_l32-v1",
+    "model_version": "effb4-arcface-v1",
 }
 
 REJECTION_EXAMPLE = {
@@ -230,7 +230,7 @@ REJECTION_EXAMPLE = {
     "cetacean_score": 0.12,
     "rejected": True,
     "rejection_reason": "not_a_marine_mammal",
-    "model_version": "vit_l32-v1",
+    "model_version": "effb4-arcface-v1",
 }
 
 
