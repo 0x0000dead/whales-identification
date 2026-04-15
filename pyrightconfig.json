@@ -1,0 +1,17 @@
+{
+  "venvPath": "whales_be_service",
+  "venv": ".venv",
+  "pythonVersion": "3.11",
+  "include": [
+    "whales_be_service/src",
+    "whales_identify",
+    "scripts"
+  ],
+  "exclude": [
+    "**/__pycache__",
+    ".git",
+    "node_modules"
+  ],
+  "reportMissingImports": true,
+  "reportMissingModuleSource": false
+}

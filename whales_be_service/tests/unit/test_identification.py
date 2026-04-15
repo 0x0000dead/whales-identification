@@ -8,8 +8,6 @@ compute_metrics integration path; here we only exercise:
   * constructor defaults are sensible.
 """
 
-from pathlib import Path
-
 import pytest
 
 from whales_be_service.inference.identification import IdentificationModel

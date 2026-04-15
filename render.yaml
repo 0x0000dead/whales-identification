@@ -1,0 +1,25 @@
+services:
+  # Backend FastAPI (EcoMarineAI API)
+  - type: web
+    name: ecomarineai-backend
+    runtime: docker
+    dockerfilePath: ./whales_be_service/Dockerfile
+    dockerContext: ./whales_be_service
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: ALLOWED_ORIGINS
+        value: https://ecomarineai-frontend.onrender.com
+      - key: MODEL_DOWNLOAD_URL
+        value: https://huggingface.co/baltsat/Whales-Identification/resolve/main/
+
+  # Frontend React (nginx)
+  - type: web
+    name: ecomarineai-frontend
+    runtime: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    plan: free
+    buildArgs:
+      - key: VITE_BACKEND
+        value: https://ecomarineai-backend.onrender.com

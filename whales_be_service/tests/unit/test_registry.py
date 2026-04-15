@@ -32,7 +32,11 @@ class TestRegistryParsing:
         p = tmp_path / "registry.json"
         p.write_text(
             json.dumps(
-                {"models": [{"name": "x", "version": "1.0.0", "weights_url": "https://..."}]}
+                {
+                    "models": [
+                        {"name": "x", "version": "1.0.0", "weights_url": "https://..."}
+                    ]
+                }
             )
         )
         monkeypatch.setattr(registry, "_REGISTRY_PATH", p)

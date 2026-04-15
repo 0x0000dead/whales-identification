@@ -64,7 +64,9 @@ def sample_dir(tmp_path):
 
 
 class TestSqliteSink:
-    def test_writes_rows_to_sqlite(self, stub_pipeline, sample_dir, monkeypatch, tmp_path):
+    def test_writes_rows_to_sqlite(
+        self, stub_pipeline, sample_dir, monkeypatch, tmp_path
+    ):
         mod = _load_module("sqlite_sink", REPO_ROOT / "integrations" / "sqlite_sink.py")
         monkeypatch.setattr(mod, "get_pipeline", lambda: stub_pipeline, raising=False)
 
@@ -80,7 +82,11 @@ class TestSqliteSink:
         assert db_path.exists()
 
         conn = sqlite3.connect(str(db_path))
-        rows = list(conn.execute("SELECT filename, rejected, id_animal, probability FROM detections"))
+        rows = list(
+            conn.execute(
+                "SELECT filename, rejected, id_animal, probability FROM detections"
+            )
+        )
         conn.close()
         assert len(rows) == 3
         filenames = {r[0] for r in rows}
@@ -92,8 +98,12 @@ class TestSqliteSink:
         assert len(neg_rows) == 1
         assert all(r[2] == "humpback_whale" for r in pos_rows)
 
-    def test_schema_has_expected_columns(self, stub_pipeline, sample_dir, monkeypatch, tmp_path):
-        mod = _load_module("sqlite_sink_schema", REPO_ROOT / "integrations" / "sqlite_sink.py")
+    def test_schema_has_expected_columns(
+        self, stub_pipeline, sample_dir, monkeypatch, tmp_path
+    ):
+        mod = _load_module(
+            "sqlite_sink_schema", REPO_ROOT / "integrations" / "sqlite_sink.py"
+        )
         import whales_be_service.inference as inf_mod
 
         monkeypatch.setattr(inf_mod, "get_pipeline", lambda: stub_pipeline)
@@ -103,9 +113,19 @@ class TestSqliteSink:
         cols = [r[1] for r in conn.execute("PRAGMA table_info(detections)")]
         conn.close()
         for expected in [
-            "filename", "rejected", "rejection_reason", "is_cetacean",
-            "cetacean_score", "class_animal", "id_animal", "probability",
-            "bbox_x1", "bbox_y1", "bbox_x2", "bbox_y2", "model_version",
+            "filename",
+            "rejected",
+            "rejection_reason",
+            "is_cetacean",
+            "cetacean_score",
+            "class_animal",
+            "id_animal",
+            "probability",
+            "bbox_x1",
+            "bbox_y1",
+            "bbox_x2",
+            "bbox_y2",
+            "model_version",
         ]:
             assert expected in cols, f"missing column {expected}"
 
@@ -114,7 +134,9 @@ class TestPostgresSink:
     def test_raises_without_psycopg(self, stub_pipeline, sample_dir, monkeypatch):
         """When psycopg is not installed, the sink must exit cleanly with rc=2."""
         monkeypatch.setitem(sys.modules, "psycopg", None)
-        mod = _load_module("postgres_sink", REPO_ROOT / "integrations" / "postgres_sink.py")
+        mod = _load_module(
+            "postgres_sink", REPO_ROOT / "integrations" / "postgres_sink.py"
+        )
         with pytest.raises(SystemExit) as exc:
             mod.run(directory=sample_dir, dsn="postgresql://stub")
         assert exc.value.code == 2
@@ -139,21 +161,26 @@ class TestPostgresSink:
 
         monkeypatch.setattr(inf_mod, "get_pipeline", lambda: stub_pipeline)
 
-        mod = _load_module("postgres_sink2", REPO_ROOT / "integrations" / "postgres_sink.py")
+        mod = _load_module(
+            "postgres_sink2", REPO_ROOT / "integrations" / "postgres_sink.py"
+        )
         rc = mod.run(directory=sample_dir, dsn="postgresql://stub")
         assert rc == 0
         # One schema create + 3 inserts (execute called)
         assert fake_cursor.execute.call_count >= 4
         # All three test images should have been INSERTed
         insert_calls = [
-            c for c in fake_cursor.execute.call_args_list
+            c
+            for c in fake_cursor.execute.call_args_list
             if "INSERT INTO detections" in (c[0][0] if c[0] else "")
         ]
         assert len(insert_calls) == 3
 
 
 class TestOtelSinkNoopMode:
-    def test_runs_without_opentelemetry_installed(self, stub_pipeline, sample_dir, monkeypatch):
+    def test_runs_without_opentelemetry_installed(
+        self, stub_pipeline, sample_dir, monkeypatch
+    ):
         """When opentelemetry isn't installed, the sink must still process
         images in no-op mode (the point is: service-side sink failure shouldn't
         stop predictions).

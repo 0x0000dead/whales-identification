@@ -1,5 +1,7 @@
 """Unit tests for inference schemas (dataclasses + enum)."""
 
+from dataclasses import FrozenInstanceError
+
 import pytest
 
 from whales_be_service.inference.schemas import (
@@ -26,13 +28,17 @@ class TestRejectionReason:
 
 class TestGateResult:
     def test_positive(self):
-        r = GateResult(positive_score=0.9, negative_score=0.1, is_cetacean=True, margin=0.8)
+        r = GateResult(
+            positive_score=0.9, negative_score=0.1, is_cetacean=True, margin=0.8
+        )
         assert r.is_cetacean is True
         assert r.positive_score == 0.9
 
     def test_immutable(self):
-        r = GateResult(positive_score=0.5, negative_score=0.5, is_cetacean=True, margin=0)
-        with pytest.raises(Exception):
+        r = GateResult(
+            positive_score=0.5, negative_score=0.5, is_cetacean=True, margin=0
+        )
+        with pytest.raises(FrozenInstanceError):
             r.positive_score = 1.0  # frozen
 
 
@@ -51,5 +57,5 @@ class TestPredictionResult:
         r = PredictionResult(
             class_id="x", species="y", probability=0.1, bbox=[0, 0, 1, 1]
         )
-        with pytest.raises(Exception):
+        with pytest.raises(FrozenInstanceError):
             r.class_id = "z"

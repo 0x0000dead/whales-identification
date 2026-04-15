@@ -6,10 +6,10 @@ and can be unit-tested in isolation.
 """
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 
-class RejectionReason(str, Enum):
+class RejectionReason(StrEnum):
     NOT_A_MARINE_MAMMAL = "not_a_marine_mammal"
     LOW_CONFIDENCE = "low_confidence"
     CORRUPTED_IMAGE = "corrupted_image"

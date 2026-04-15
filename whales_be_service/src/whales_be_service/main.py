@@ -12,8 +12,8 @@ import logging
 import os
 import time
 from collections import defaultdict
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
 from zipfile import BadZipFile, ZipFile
 
 from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile
@@ -23,7 +23,7 @@ from PIL import Image, UnidentifiedImageError
 from starlette.middleware.cors import CORSMiddleware
 
 from .inference import get_pipeline
-from .inference.pipeline import InferencePipeline
+from .inference.pipeline import InferencePipeline, set_deterministic_mode
 from .monitoring import get_drift_monitor
 from .response_models import Detection
 
@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    set_deterministic_mode()  # fix global PRNG once at startup (not per-instance)
     pipeline = get_pipeline()
     pipeline.warmup()
     app.state.pipeline = pipeline
@@ -42,12 +43,17 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 app = FastAPI(
     title="EcoMarineAI Identification API",
     version="1.1.0",
-    description="Идентификация морских млекопитающих по аэрофотоснимкам с CLIP-антифрод гейтом.",
+    description=(
+        "Идентификация морских млекопитающих по аэрофотоснимкам с CLIP-антифрод гейтом."
+    ),
     lifespan=lifespan,
 )
 
 
-_default_origins = "http://localhost:5173,http://localhost:8080,http://127.0.0.1:5173,http://127.0.0.1:8080"
+_default_origins = (
+    "http://localhost:5173,http://localhost:8080,"
+    "http://127.0.0.1:5173,http://127.0.0.1:8080"
+)
 _allowed_origins = [
     origin.strip()
     for origin in os.environ.get("ALLOWED_ORIGINS", _default_origins).split(",")
@@ -177,16 +183,16 @@ async def metrics() -> PlainTextResponse:
         f"availability_percent {avail:.3f}",
         "# HELP requests_total Total HTTP requests",
         "# TYPE requests_total counter",
-        f'requests_total {_metrics["requests_total"]}',
+        f"requests_total {_metrics['requests_total']}",
         "# HELP errors_total Total HTTP errors (4xx/5xx)",
         "# TYPE errors_total counter",
-        f'errors_total {_metrics["errors_total"]}',
+        f"errors_total {_metrics['errors_total']}",
         "# HELP predictions_total Successful (not rejected) predictions",
         "# TYPE predictions_total counter",
-        f'predictions_total {_metrics["predictions_total"]}',
+        f"predictions_total {_metrics['predictions_total']}",
         "# HELP rejections_total Anti-fraud / low-confidence rejections",
         "# TYPE rejections_total counter",
-        f'rejections_total {_metrics["rejections_total"]}',
+        f"rejections_total {_metrics['rejections_total']}",
         "# HELP latency_avg_ms Average request latency in ms",
         "# TYPE latency_avg_ms gauge",
         f"latency_avg_ms {avg_latency:.2f}",
@@ -285,7 +291,9 @@ async def predict_single_v1(
     summary="ZIP с изображениями → JSON-массив результатов",
     responses={
         200: {
-            "content": {"application/json": {"example": [DETECTION_EXAMPLE, REJECTION_EXAMPLE]}}
+            "content": {
+                "application/json": {"example": [DETECTION_EXAMPLE, REJECTION_EXAMPLE]}
+            }
         },
         400: {
             "description": "Invalid ZIP archive",

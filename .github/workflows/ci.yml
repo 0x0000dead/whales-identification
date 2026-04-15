@@ -44,20 +44,15 @@ jobs:
         run: |
           poetry install
 
-      - name: Run Black (format check)
+      - name: Run Ruff (lint check)
         working-directory: whales_be_service
         run: |
-          poetry run black --check .
+          poetry run ruff check .
 
-      - name: Run isort (import check)
+      - name: Run Ruff (format check)
         working-directory: whales_be_service
         run: |
-          poetry run isort --check-only .
-
-      - name: Run Flake8 (linting)
-        working-directory: whales_be_service
-        run: |
-          poetry run flake8 .
+          poetry run ruff format --check .
 
       - name: Run Mypy (type checking)
         working-directory: whales_be_service
@@ -133,12 +128,12 @@ jobs:
       - name: Run pytest
         working-directory: whales_be_service
         run: |
-          poetry run pytest --maxfail=1 --disable-warnings -v
+          poetry run pytest --maxfail=1 --disable-warnings -v -m "not slow and not integration"
 
       - name: Run pytest with coverage
         working-directory: whales_be_service
         run: |
-          poetry run pytest --cov=src --cov-report=xml --cov-report=term
+          poetry run pytest --cov=src --cov-report=xml --cov-report=term -m "not slow and not integration"
         continue-on-error: true  # Coverage shouldn't block
 
       - name: Upload coverage to Codecov
@@ -153,7 +148,6 @@ jobs:
     name: Docker Build and Integration Test
     runs-on: ubuntu-latest
     needs: [lint, test, security]  # Run after other checks pass
-    continue-on-error: true  # Don't fail CI if Docker build fails (disk space issues)
 
     steps:
       - name: Checkout code

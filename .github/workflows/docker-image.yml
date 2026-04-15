@@ -2,27 +2,69 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
-
   build:
-
+    name: Build and publish Docker images
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+      packages: write
+
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Free up disk space
-      run: |
-        docker system prune -af --volumes
-        sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost
-        df -h
+      - name: Free up disk space
+        run: |
+          docker system prune -af --volumes
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost
+          df -h
 
-    - name: Build Docker images with docker-compose
-      run: docker compose build
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Verify images were built
-      run: docker images
+      - name: Build Docker images with docker-compose
+        run: docker compose build
+
+      - name: Verify images were built
+        run: docker images
+
+      # Push to ghcr.io only on merge to main (not on PRs)
+      - name: Push backend image to ghcr.io
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          docker tag ecomarine-backend:latest ghcr.io/${OWNER}/ecomarine-backend:latest
+          docker tag ecomarine-backend:latest ghcr.io/${OWNER}/ecomarine-backend:${{ github.sha }}
+          docker push ghcr.io/${OWNER}/ecomarine-backend:latest
+          docker push ghcr.io/${OWNER}/ecomarine-backend:${{ github.sha }}
+
+      - name: Push frontend image to ghcr.io
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          docker tag ecomarine-frontend:latest ghcr.io/${OWNER}/ecomarine-frontend:latest
+          docker tag ecomarine-frontend:latest ghcr.io/${OWNER}/ecomarine-frontend:${{ github.sha }}
+          docker push ghcr.io/${OWNER}/ecomarine-frontend:latest
+          docker push ghcr.io/${OWNER}/ecomarine-frontend:${{ github.sha }}
+
+      # Trigger Render deployment via deploy hook (optional — add RENDER_DEPLOY_HOOK_URL secret)
+      - name: Deploy backend to Render
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          RENDER_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -n "$RENDER_HOOK" ]; then
+            echo "Triggering Render deployment..."
+            curl -s "$RENDER_HOOK" | jq .
+          else
+            echo "RENDER_DEPLOY_HOOK_URL not configured — skipping Render deploy"
+          fi
