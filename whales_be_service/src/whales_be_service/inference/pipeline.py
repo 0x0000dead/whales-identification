@@ -35,7 +35,14 @@ class InferencePipeline:
         self.anti_fraud = anti_fraud
         self.identification = identification
         self.min_confidence = min_confidence
-        self.model_version = identification.model_version
+
+    @property
+    def model_version(self) -> str:
+        """Reported in every Detection — reflects the actual loaded backend,
+        not the constructor default (which is still `vit_l32-v1` for backward
+        compatibility). Updated lazily when ``_load()`` promotes a backend.
+        """
+        return self.identification.model_version
 
     def warmup(self) -> None:
         """Force lazy-load of both stages. Called from FastAPI lifespan startup."""
@@ -46,7 +53,11 @@ class InferencePipeline:
             logger.warning("Anti-fraud gate warmup failed: %s", e)
         try:
             self.identification._load()  # noqa: SLF001
-            logger.info("Identification model warmed up.")
+            logger.info(
+                "Identification model warmed up (mode=%s, version=%s).",
+                self.identification._mode,  # noqa: SLF001
+                self.identification.model_version,
+            )
         except Exception as e:  # noqa: BLE001
             logger.warning(
                 "Identification model warmup failed (running without ID stage): %s",

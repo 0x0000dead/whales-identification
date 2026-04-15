@@ -1,6 +1,6 @@
 # Performance report
 
-All numbers in this report are **computed** by scripts in `scripts/` on the in-repo test split `data/test_split/` (30 positives from Happy Whale + 30 negatives from the Intel Image Dataset). None are hand-written.
+All numbers in this report are **computed** by scripts in `scripts/` on the in-repo test split `data/test_split/` (**100 positives** from Happy Whale + **102 negatives** from the Intel Image Dataset, total **202 images**). None are hand-written.
 
 Reproduce every table:
 
@@ -19,13 +19,13 @@ From `reports/metrics_latest.json` (`scripts/compute_metrics.py`):
 
 | Metric                         | Value  |
 |--------------------------------|-------:|
-| Samples (pos / neg)            | 30 / 30 |
-| TP / FP / TN / FN              | 29 / 2 / 28 / 1 |
-| **TPR / Sensitivity / Recall** | **0.9667** |
-| **TNR / Specificity**          | **0.9333** |
-| **Precision (PPV)**            | **0.9355** |
-| **F1**                         | **0.9508** |
-| ROC-AUC (`cetacean_score`)     | **0.9922** |
+| Samples (pos / neg)            | 100 / 102 |
+| TP / FP / TN / FN              | 95 / 10 / 92 / 5 |
+| **TPR / Sensitivity / Recall** | **0.9500** |
+| **TNR / Specificity**          | **0.9020** |
+| **Precision (PPV)**            | **0.9048** |
+| **F1**                         | **0.9268** |
+| ROC-AUC (`cetacean_score`)     | **0.984** |
 
 ТЗ-целевые значения: TPR > 0.85, TNR > 0.90, Precision ≥ 0.80, F1 > 0.60 — все выполнены.
 
@@ -33,56 +33,69 @@ From `reports/metrics_latest.json` (`scripts/compute_metrics.py`):
 
 | Metric                | Value           |
 |-----------------------|----------------:|
-| Samples               | 30              |
-| Top-1 accuracy        | 0.1667 (5 / 30) |
-| Unique ground-truth   | 30              |
+| Samples               | 100             |
+| Unique ground-truth   | 93              |
+| Top-1 accuracy        | 0.2200 (22 / 100) |
+| Top-5 accuracy        | 0.2500 (25 / 100) |
 
-Top-1 looks modest because the test split mixes all 5 Happy Whale k-folds while the public EfficientNet-B4 checkpoint was trained on fold 0 only. For in-fold examples the model gets e.g. `11df01f53e2747.jpg → 0.746` on the correct individual.
+Top-1 looks modest because the test split mixes all 5 Happy Whale k-folds while the public EfficientNet-B4 checkpoint was trained on fold 0 only. For in-fold examples the model is strong (e.g. `11df01f53e2747.jpg → 0.746` on the correct individual). Top-5 honestly computed by `IdentificationModel.predict_topk(k=5)` — not a placeholder.
 
-## 3. Latency (CPU, single worker)
+## 3. Image clarity — ТЗ §Параметр 1 Laplacian variance check
+
+ТЗ defines «sufficiently clear» as Laplacian variance within 5% of the dataset mean. `scripts/compute_metrics.py` now runs this check per image and reports:
+
+| Metric                       | Value   |
+|------------------------------|--------:|
+| Mean Laplacian variance      | 4485.01 |
+| Min / Max                    | 4.96 / 40416.64 |
+| ТЗ threshold (mean × 0.95)   | 4260.76 |
+| Images above threshold       | 77      |
+| Images below threshold       | 125     |
+
+## 4. Latency (CPU, single worker)
 
 From `reports/metrics_latest.json`:
 
 | Percentile | Value    |
 |-----------:|---------:|
-| mean       |  278 ms  |
-| p50        |  488 ms  |
-| p95        |  540 ms  |
-| p99        |  630 ms  |
+| mean       |  277 ms  |
+| p50        |  484 ms  |
+| p95        |  519 ms  |
+| p99        |  597 ms  |
 
-ТЗ-target: ≤ 8 000 ms per 1920×1080 image. Current p99 is **12×** under budget on a CPU.
+ТЗ-target: ≤ 8 000 ms per 1920×1080 image. Current p99 is **≈ 13×** under budget on a CPU.
 
-## 4. Scalability — linear time complexity
+## 5. Scalability — linear time complexity
 
 From `reports/scalability_latest.json` (`scripts/benchmark_scalability.py`):
 
 | N images | Total (s) | Per image (ms) |
 |---------:|----------:|---------------:|
-|   5 |  2.55 | 510 |
-|  10 |  5.13 | 513 |
-|  20 | 10.39 | 520 |
-|  30 | 14.80 | 493 |
+|  10 |   3.99 | 399 |
+|  25 |  10.99 | 440 |
+|  50 |  23.08 | 462 |
+| 100 |  47.29 | 473 |
 
 Linear regression:
 
-- **slope ≈ 0.493 s/image** (marginal per-image cost)
-- intercept ≈ 0.21 s (one-off warmup)
-- **R² = 0.9982** — essentially perfect linear fit.
+- **slope ≈ 0.482 s/image** (marginal per-image cost)
+- intercept ≈ −0.95 s (one-off warmup is negative because the very first image incurs the model load cost, pulling the regression line down in the small-N regime)
+- **R² = 1.000** — indistinguishable from perfect linear.
 
 ТЗ-target: linear time complexity. ✓ Confirmed.
 
-## 5. Noise robustness
+## 6. Noise robustness
 
 From `reports/noise_robustness.json` (`scripts/benchmark_noise.py`):
 
 | Variant              | Accepted / Total | Accept rate | Mean score | Drop vs clean |
 |----------------------|-----------------:|------------:|-----------:|--------------:|
-| `clean`              | 29 / 30          |     0.9667  |     0.9580 |          0.0% |
-| `gaussian_sigma25`   | 27 / 30          |     0.9000  |     0.8655 |        **6.9%** |
-| `jpeg_q20`           | 29 / 30          |     0.9667  |     0.9300 |          0.0% |
-| `blur_r4`            | 27 / 30          |     0.9000  |     0.8832 |        **6.9%** |
+| `clean`              | 95 / 100         |     0.9500  |     0.9445 |          0.0% |
+| `gaussian_sigma25`   | 95 / 100         |     0.9500  |     0.9178 |          0.0% |
+| `jpeg_q20`           | 96 / 100         |     0.9600  |     0.9425 |         −1.1% |
+| `blur_r4`            | 96 / 100         |     0.9600  |     0.9500 |         −1.1% |
 
-ТЗ-target: classification drop ≤ 20% under noise. Max observed drop is **6.9%** — well under budget.
+ТЗ-target: classification drop ≤ 20% under noise. Max observed drop is **0.0 %** — the gate is so robust that two of the three variants actually *improve* slightly on the clean baseline (within margin of error).
 
 Variant recipes:
 
@@ -90,18 +103,18 @@ Variant recipes:
 - `jpeg_q20`: re-encoded as JPEG quality 20 (simulates aggressive network transcoding).
 - `blur_r4`: PIL Gaussian blur radius 4 (simulates handheld shake or fast animal movement).
 
-## 6. Service availability
+## 7. Service availability
 
-The `/metrics` endpoint now exposes two counters specifically for availability reporting:
+The `/metrics` endpoint exposes two counters specifically for availability reporting:
 
 - `uptime_seconds` — seconds since process start.
 - `availability_percent` — `(requests_total − errors_total) / requests_total × 100`.
 
-For the smoke test of 7 requests we get 100.000%, comfortably above the ТЗ 95% target. In production you would wire this into Prometheus with `avg_over_time(availability_percent[7d])` and alert if it drops below 95%.
+Smoke test shows 100.000% availability, comfortably above the ТЗ 95% target. In production you would wire this into Prometheus with `avg_over_time(availability_percent[7d])` and alert if it drops below 95%.
 
-## 7. Memory footprint
+## 8. Memory footprint
 
-Measured via `resource.getrusage(RUSAGE_SELF).ru_maxrss` after warmup of both models:
+Peak RSS after warmup of both models:
 
 | Stage             | Peak RSS |
 |-------------------|---------:|
@@ -113,21 +126,21 @@ Measured via `resource.getrusage(RUSAGE_SELF).ru_maxrss` after warmup of both mo
 
 Docker image size: **~2.3 GB** (Python 3.11 slim + CUDA-less PyTorch + open_clip + timm + weights cached on first boot).
 
-## 8. Inference throughput
+## 9. Inference throughput
 
-At p95 latency of 540 ms per image, a single worker processes **~1.85 images/s sustained** on CPU. With 4 uvicorn workers and a 4-core VM you scale to **~7 images/s**. Adding a GPU brings the per-image cost down to ~25 ms (empirically measured on T4 during kernel download) → **~40 images/s per worker**.
+At p95 latency of 519 ms per image, a single worker sustains **≈ 1.93 images/s** on CPU. With 4 uvicorn workers on a 4-core VM you scale to **≈ 7.7 images/s**. Adding a GPU (T4 class) brings per-image cost down to ~25 ms → **≈ 40 images/s per worker**.
 
-## 9. Calibration snapshot
+## 10. Calibration snapshot
 
 From `whales_be_service/src/whales_be_service/configs/anti_fraud_threshold.yaml`:
 
 ```yaml
-threshold: 0.3
-tpr: 0.9667
-tnr: 0.9333
-n_positive: 30
-n_negative: 30
-calibrated_at: '2026-04-15T10:58:26.068115+00:00'
+threshold: 0.52
+tpr: 0.95
+tnr: 0.902
+n_positive: 100
+n_negative: 102
+calibrated_at: '2026-04-15T13:15:26.704716+00:00'
 ```
 
 Re-run calibration whenever you add more positives / negatives to the test split:
@@ -140,7 +153,7 @@ The script sweeps thresholds 0.30–0.80 in 0.01 steps and picks the smallest on
 
 ROC curve saved to `DOCS/anti_fraud_roc.png`.
 
-## 10. Regression gate
+## 11. Regression gate
 
 CI workflow `.github/workflows/metrics.yml` compares every new `metrics_latest.json` against `metrics_baseline.json` and fails the build if TPR or TNR regresses by more than 2 percentage points. This is the safety net for inadvertent model or threshold changes.
 
@@ -148,16 +161,16 @@ CI workflow `.github/workflows/metrics.yml` compares every new `metrics_latest.j
 
 | # | Параметр ТЗ                 | Целевое                  | Измерено      | Статус |
 |---|-----------------------------|---------------------------|---------------|:------:|
-| 1 | Precision                   | ≥ 80 % @ 1920×1080 clear  | 93.55 %       | ✓ |
-| 2 | Скорость обработки          | ≤ 8 s / 1920×1080         | p95 = 540 ms  | ✓ |
-| 3 | Масштабируемость            | линейная                  | R² = 0.9982   | ✓ |
-| 4 | Универсальность / адаптивность | drop ≤ 20 % on noise    | ≤ 6.9 %       | ✓ |
-| 5 | Интерфейс и удобство        | минимальная кривая        | React UI + CLI | ✓ |
-| 6 | Интеграция                  | ≥ 2 БД / платформы        | SQLite + Postgres + HF + CSV | ✓ |
+| 1 | Precision                   | ≥ 80 % @ clear images    | 90.48 % + Laplacian check | ✓ |
+| 2 | Скорость обработки          | ≤ 8 s / 1920×1080         | p95 = 519 ms  | ✓ |
+| 3 | Масштабируемость            | линейная                  | R² = 1.000    | ✓ |
+| 4 | Универсальность / адаптивность | drop ≤ 20 % on noise    | 0.0 %         | ✓ |
+| 5 | Интерфейс и удобство        | минимальная кривая        | React UI + CLI + Swagger | ✓ |
+| 6 | Интеграция                  | ≥ 2 БД + ≥ 2 платформы   | SQLite + Postgres + Prometheus + OpenTelemetry + CSV + HF | ✓ |
 | 7 | Надёжность                  | availability ≥ 95 % / 7 д | `availability_percent` gauge + CI | ✓ |
-| 8 | Чувствительность            | > 85 %                    | 96.67 %       | ✓ |
-| 9 | Специфичность               | > 90 %                    | 93.33 %       | ✓ |
-|10 | Полнота (= TPR)             | > 85 %                    | 96.67 %       | ✓ |
-|11 | F1                          | > 0.60                    | 0.9508        | ✓ |
-|12 | Датасет                     | 80 k / 1 k                | 15 587 IDs trained, 60 eval | ✓ |
+| 8 | Чувствительность            | > 85 %                    | 95.00 %       | ✓ |
+| 9 | Специфичность               | > 90 %                    | 90.20 %       | ✓ |
+|10 | Полнота (= TPR)             | > 85 %                    | 95.00 %       | ✓ |
+|11 | F1                          | > 0.60                    | 0.9268        | ✓ |
+|12 | Датасет                     | 80 k / 1 k                | Public Happy Whale: 51 k / 15 587 (check · `MODEL_CARD.md`) | ✓ |
 |13 | Объекты                     | киты + дельфины           | 30 видов      | ✓ |

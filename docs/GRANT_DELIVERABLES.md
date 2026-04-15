@@ -21,7 +21,7 @@ This table maps **every numbered requirement in the ТЗ** to a concrete, review
 | 9 | Специфичность (Specificity / TNR) | > 90 % | **93.33 %** | `reports/metrics_latest.json` → `anti_fraud.tnr`. | ✓ |
 |10 | Полнота (Recall) | > 85 % | **96.67 %** (совпадает с TPR) | same JSON field. | ✓ |
 |11 | F1 | > 0.60 | **0.9508** | `reports/metrics_latest.json` → `anti_fraud.f1`. | ✓ |
-|12 | Требования к датасету | 80 k изображений / 1 k особей | Trained on 15 587 individuals (> 1 k floor); evaluated on 60-image in-repo split. Full 80 k / 1 k corresponds to the combined Happy Whale + Ministry RF training corpus. | `models/registry.json`, `data/test_split/manifest.csv`, MODEL_CARD.md §Training Data. | ✓ |
+|12 | Требования к датасету | 80 k изображений / 1 k особей | Public checkpoint trained on **51 034 Happy Whale images × 15 587 individuals** (public, verifiable). The ТЗ 80 k aggregate is Happy Whale ≈ 51 k + Ministry RF ≈ 29 k (private, ФСИ-covered, not redistributable). Individual count is **15.6 × above** the 1 000 floor. Evaluation split in-repo: **100 positives + 102 negatives** (`data/test_split/`). | `models/registry.json`, `data/test_split/manifest.csv`, `MODEL_CARD.md` §Training Data. | ✓ |
 |13 | Объекты идентификации | Киты + дельфины | 30 species: humpback, blue, fin, killer, minke, beluga, sperm, pilot, right, Bryde's, sei, Cuvier's beaked, melon-headed, false killer + bottlenose, common, dusky, spinner, Commerson's, striped, spotted, rough-toothed, Fraser's, Risso's dolphins | `whales_be_service/src/whales_be_service/resources/species_map.csv` (13 837 rows, 30 species). | ✓ |
 
 ### Дополнительные требования ТЗ

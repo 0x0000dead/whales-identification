@@ -16,7 +16,7 @@ def get_weather_data(lat, lon):
         'appid': WEATHER_API_KEY,
         'units': 'metric'
     }
-    response = requests.get(WEATHER_API_URL, params=params)
+    response = requests.get(WEATHER_API_URL, params=params, timeout=15)
     if response.status_code == 200:
         return response.json()
     else:
@@ -30,7 +30,7 @@ def get_migration_data(lat, lon):
         'latitude': lat,
         'longitude': lon
     }
-    response = requests.get(MAP_API_URL, params=params)
+    response = requests.get(MAP_API_URL, params=params, timeout=15)
     if response.status_code == 200:
         return response.json()
     else:

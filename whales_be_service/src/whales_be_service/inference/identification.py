@@ -187,6 +187,7 @@ class IdentificationModel:
         )
         self._model = model
         self._mode = "effb4_15k"
+        self.model_version = "effb4-arcface-v1"
         self._loaded = True
         logger.info(
             "Loaded IdentificationModel (effb4_15k): %d classes, device=%s, ckpt=%s",
@@ -356,6 +357,40 @@ class IdentificationModel:
         from PIL import Image  # noqa: PLC0415
 
         return self.predict(Image.fromarray(np_img))
+
+    def predict_topk(self, pil_img: "Image.Image", k: int = 5) -> list[tuple[str, str, float]]:
+        """Return top-k predictions as [(class_id, species, probability), ...].
+
+        Only supported by the ``effb4_15k`` backend; returns a single-element
+        list for the other backends. Used by scripts/compute_metrics.py to
+        compute top-5 accuracy honestly.
+        """
+        self._load()
+
+        import torch  # noqa: PLC0415
+
+        if self._mode == "effb4_15k":
+            tensor = (
+                self._torchvision_transform(pil_img.convert("RGB"))
+                .unsqueeze(0)
+                .to(self._device)
+            )
+            n_active = len(self._id_list)
+            with torch.no_grad():
+                logits = self._model(tensor)
+                scaled = logits[:, :n_active] * 30.0
+                probs = torch.softmax(scaled, dim=1)[0]
+                top = probs.topk(min(k, n_active))
+            results: list[tuple[str, str, float]] = []
+            for prob, idx in zip(top.values.tolist(), top.indices.tolist(), strict=False):
+                class_id = self._id_list[int(idx)]
+                species = self._id_to_name.get(class_id, class_id)
+                results.append((class_id, species, round(float(prob), 4)))
+            return results
+
+        # Fallback: single prediction wrapped in a list
+        single = self.predict(pil_img)
+        return [(single.class_id, single.species, single.probability)]
 
     def background_mask(self, img_bytes: bytes) -> str | None:
         """Return base64-encoded PNG with background removed (rembg).

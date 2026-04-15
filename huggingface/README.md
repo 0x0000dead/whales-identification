@@ -1,6 +1,5 @@
 ---
-license: apache-2.0
-license_name: Apache 2.0 with Usage Restrictions
+license: cc-by-nc-4.0
 license_link: LICENSE
 library_name: pytorch
 pipeline_tag: image-classification

@@ -1,20 +1,26 @@
 # Model License
 
-## Apache License 2.0 with Usage Restrictions
+## CC-BY-NC-4.0 (Creative Commons Attribution-NonCommercial 4.0 International)
 
 Copyright (c) 2024 Baltsat Konstantin, Tarasov Artem, Vandanov Sergey, Serov Alexandr
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use these models except in compliance with the License.
-You may obtain a copy of the License at
+The trained model weights distributed through this project are licensed under
+the **Creative Commons Attribution-NonCommercial 4.0 International** licence —
+the same licence that governs the upstream training data (Happy Whale). A
+model is a derivative of its training set; we cannot relax the upstream
+restriction.
 
-    http://www.apache.org/licenses/LICENSE-2.0
+- Full legal text: https://creativecommons.org/licenses/by-nc/4.0/legalcode
+- SPDX identifier: **CC-BY-NC-4.0**
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+### Historical note
+
+Earlier drafts of this repository labelled the models as Apache 2.0. That
+labelling was **inconsistent** with the upstream Happy Whale dataset's
+CC-BY-NC-4.0 terms, and the issue was flagged during expert review of the
+intermediate НТО (round 4). The correct canonical licence is CC-BY-NC-4.0.
+The Hugging Face mirror at `0x0000dead/ecomarineai-cetacean-effb4` matches
+this file.
 
 ---
 
@@ -24,7 +30,7 @@ limitations under the License.
 
 The trained models in this repository were developed using datasets that include data licensed under **CC-BY-NC-4.0** (Creative Commons Attribution-NonCommercial 4.0 International). As a result:
 
-1. **The trained models may NOT be used for commercial purposes** without explicit permission from the original data providers (open dataset community and Ministry of Natural Resources of the Russian Federation).
+1. **The trained models may NOT be used for commercial purposes** without explicit permission from the original data providers (Happy Whale and Ministry of Natural Resources of the Russian Federation).
 
 2. This restriction applies specifically to the **trained model weights** (`.pt`, `.pth`, `.onnx` files) and any derivatives thereof.
 

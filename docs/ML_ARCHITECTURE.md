@@ -11,7 +11,7 @@ Reproducible artifacts (all checked into the repo):
 - `scripts/compute_metrics.py` — pipeline evaluator, writes `reports/metrics_latest.json` + `reports/METRICS.md`
 - `scripts/benchmark_scalability.py` — latency vs. batch-size sweep
 - `scripts/benchmark_noise.py` — precision under Gaussian / JPEG / motion-blur noise
-- `data/test_split/` — 60 images total (30 positives from Happy Whale, 30 negatives from Intel Image Dataset) with `manifest.csv`
+- `data/test_split/` — 202 images total (100 positives from Happy Whale, 102 negatives from Intel Image Dataset) with `manifest.csv`
 
 ---
 
@@ -54,7 +54,7 @@ Reproducible artifacts (all checked into the repo):
   - 10 positive templates (`"a photo of a whale fluke or dorsal fin"`, `"an aerial photo of a whale"`, ...)
   - 14 negative templates (`"a photo of a building"`, `"a photo of text on a blank page"`, `"a photo of a fish"` — important, cetaceans aren't fish, ...)
 - **Scoring:** image embedding vs. the 24-prompt text matrix → softmax → `positive_score = Σ over positive rows`.
-- **Threshold:** calibrated via `scripts/calibrate_clip_threshold.py` → `configs/anti_fraud_threshold.yaml` (currently `0.30`, achieving TPR=0.9667 / TNR=0.9333 on our 60-image test split).
+- **Threshold:** calibrated via `scripts/calibrate_clip_threshold.py` → `configs/anti_fraud_threshold.yaml` (currently `0.30`, achieving TPR= 0.95 / TNR=0.902 on our 202-image test split).
 - **Graceful degradation:** if `open_clip_torch` is missing at runtime, the gate returns `(is_cetacean=True, score=0.5)` and logs ERROR. The service stays up; operators get a visible signal in `/metrics`.
 
 ### Stage 2 — Individual identification
@@ -115,7 +115,7 @@ ArcFace (CosFace family) adds an angular margin `m` during training that pushes 
 
 ## 3. Measured performance
 
-All numbers computed by `scripts/compute_metrics.py` on `data/test_split/manifest.csv` (30 positives + 30 negatives). Raw JSON lives at `reports/metrics_latest.json`; human-readable table at `reports/METRICS.md`; snapshot for CI at `reports/metrics_baseline.json`.
+All numbers computed by `scripts/compute_metrics.py` on `data/test_split/manifest.csv` (100 positives + 102 negatives). Raw JSON lives at `reports/metrics_latest.json`; human-readable table at `reports/METRICS.md`; snapshot for CI at `reports/metrics_baseline.json`.
 
 ### Anti-fraud gate (binary classification — cetacean vs. not)
 
@@ -158,7 +158,7 @@ Top-1 looks modest because the test split mixes individuals from all 5 k-folds, 
 
 | Variant          | Accept rate | Baseline drop |
 |------------------|------------:|--------------:|
-| Clean            | TPR=0.9667  | —             |
+| Clean            | TPR= 0.95  | —             |
 | + Gaussian noise | reported    | ≤ 20% (target)|
 | + Low JPEG       | reported    | ≤ 20% (target)|
 | + Blur           | reported    | ≤ 20% (target)|

@@ -26,7 +26,7 @@ It is designed to close three concrete gaps in current marine-mammal monitoring:
 ## What it does (user-facing)
 
 1. **Accepts** any RGB image (JPEG/PNG/WEBP/BMP) or a ZIP archive of many images.
-2. **Filters** out anything that isn't a photo of a whale or dolphin (CLIP zero-shot anti-fraud gate, TNR ≥ 93%).
+2. **Filters** out anything that isn't a photo of a whale or dolphin (CLIP zero-shot anti-fraud gate, TNR ≥ 90.2%).
 3. **Identifies** the individual animal from 13 837 known cetacean individuals across 30 species.
 4. **Returns** a structured response with species name, individual ID, confidence, and an optional background-removed mask.
 5. **Logs** every prediction to an in-memory drift monitor so operators see degradation before users complain.
@@ -43,18 +43,18 @@ Full technical details in [ML_ARCHITECTURE.md](ML_ARCHITECTURE.md).
 
 ## Measured performance
 
-All numbers below are computed by `scripts/compute_metrics.py` on a reproducible in-repo test split (30 whale photos from Happy Whale + 30 non-whale scenes from Intel Image Dataset).
+All numbers below are computed by `scripts/compute_metrics.py` on a reproducible in-repo test split (**100 positives** from Happy Whale + **102 negatives** from Intel Image Dataset, total **202 images**).
 
-| Metric                 | Measured  | ТЗ target  | Status |
-|------------------------|----------:|-----------:|:------:|
-| Sensitivity / TPR      | 0.9667    | > 0.85     | ✓ |
-| Specificity / TNR      | 0.9333    | > 0.90     | ✓ |
-| Precision              | 0.9355    | ≥ 0.80     | ✓ |
-| F1                     | 0.9508    | > 0.60     | ✓ |
-| Latency (p95, CPU)     | 540 ms    | ≤ 8 000 ms | ✓ |
-| Linear time complexity | R² = 0.998| linear     | ✓ |
-| Noise robustness       | ≤ 6.9 % drop | ≤ 20 %  | ✓ |
-| Identified individuals | 13 837    | ≥ 1 000    | ✓ |
+| Metric                 | Measured       | ТЗ target  | Status |
+|------------------------|---------------:|-----------:|:------:|
+| Sensitivity / TPR      | **0.9500**     | > 0.85     | ✓ |
+| Specificity / TNR      | **0.9020**     | > 0.90     | ✓ |
+| Precision              | **0.9048**     | ≥ 0.80     | ✓ |
+| F1                     | **0.9268**     | > 0.60     | ✓ |
+| Latency (p95, CPU)     | **519 ms**     | ≤ 8 000 ms | ✓ |
+| Linear time complexity | **R² = 1.000** | linear     | ✓ |
+| Noise robustness       | **0.0 % drop** | ≤ 20 %     | ✓ |
+| Identified individuals | **13 837**     | ≥ 1 000    | ✓ |
 
 ## Why it matters beyond this one project
 

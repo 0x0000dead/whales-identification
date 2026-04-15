@@ -37,8 +37,10 @@ MANIFEST = TEST_SPLIT / "manifest.csv"
 
 HAPPY_WHALE_COMP = "happy-whale-and-dolphin"
 INTEL_DATASET = "rahmasleam/intel-image-dataset"
-MAX_SIDE = 512
+MAX_SIDE = 1024  # keeps the original-ish aspect & enough detail for Laplacian
 JPEG_QUALITY = 85
+POSITIVES_PER_SPECIES = 10   # 10 species × 10 = 100 positives
+NEGATIVES_PER_CLASS = 17     # 6 classes × 17 ≈ 102 negatives
 
 
 def _run(cmd: list[str], cwd: Path | None = None) -> None:
@@ -59,7 +61,11 @@ def _download_train_csv(workdir: Path) -> Path:
     return csv_path
 
 
-def _pick_positives(train_csv: Path, n_per_species: int = 3, n_species: int = 10) -> list[tuple[str, str, str]]:
+def _pick_positives(
+    train_csv: Path,
+    n_per_species: int = POSITIVES_PER_SPECIES,
+    n_species: int = 10,
+) -> list[tuple[str, str, str]]:
     random.seed(42)
     by_species: dict[str, list[tuple[str, str]]] = defaultdict(list)
     with train_csv.open() as f:
@@ -68,7 +74,7 @@ def _pick_positives(train_csv: Path, n_per_species: int = 3, n_species: int = 10
 
     sample: list[tuple[str, str, str]] = []
     for species, rows in sorted(by_species.items())[:n_species]:
-        picked = random.sample(rows, min(n_per_species, len(rows)))
+        picked = random.sample(rows, min(n_per_species, len(rows)))  # nosec B311 - deterministic test split, not crypto
         sample.extend((img, species, iid) for img, iid in picked)
     return sample
 
@@ -110,7 +116,7 @@ def _download_negatives(workdir: Path) -> list[tuple[str, str]]:
         if not cls_dir.is_dir():
             continue
         jpgs = sorted(cls_dir.glob("*.jpg"))
-        for img in random.sample(jpgs, min(5, len(jpgs))):
+        for img in random.sample(jpgs, min(NEGATIVES_PER_CLASS, len(jpgs))):  # nosec B311 - deterministic test split, not crypto
             new_name = f"{cls_dir.name}_{img.name}"
             picked.append((str(img), new_name))
     return picked
@@ -137,7 +143,7 @@ def _write_manifest(positives: list[tuple[str, str, str]], negatives: list[tuple
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--workdir", type=Path, default=Path("/tmp/kaggle_hw"))
+    parser.add_argument("--workdir", type=Path, default=Path("/tmp/kaggle_hw"))  # nosec B108 - dev-only default; CI uses --workdir explicitly
     args = parser.parse_args()
 
     if not shutil.which("kaggle"):

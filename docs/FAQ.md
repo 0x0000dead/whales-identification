@@ -12,7 +12,7 @@ A free, open-source AI library and web service for identifying individual whales
 
 ### Is it production-ready?
 
-For **research and conservation work** — yes. Anti-fraud gate hits TNR ≥ 93%, sensitivity ≥ 96%, linear scalability, real metrics, full Docker deployment. For **safety-critical decisions affecting endangered-species populations** — use it as input to a biologist-reviewed workflow, not as a final oracle. See "Honest limitations" in [RESEARCH_NOTES.md](RESEARCH_NOTES.md) §7.
+For **research and conservation work** — yes. Anti-fraud gate hits TNR = 90.2%, sensitivity = 95.0%, linear scalability (R² = 1.000), real metrics, full Docker deployment. For **safety-critical decisions affecting endangered-species populations** — use it as input to a biologist-reviewed workflow, not as a final oracle. See "Honest limitations" in [RESEARCH_NOTES.md](RESEARCH_NOTES.md) §7.
 
 ### Is it free?
 
@@ -111,15 +111,18 @@ See [ROADMAP.md](ROADMAP.md) for the long-term extensibility plan.
 
 ### Where does the training data come from?
 
-51 034 images from the Happy Whale Kaggle competition (15 587 unique individuals) + an additional private subset from the Ministry of Natural Resources RF. Combined size exceeds 80 000 images, meeting the TZ dataset requirement.
+The **publicly verifiable** portion is **51 034 images × 15 587 individuals** from the Happy Whale Kaggle competition. The ТЗ also cites an additional private subset from the Ministry of Natural Resources RF (~29 k images). The currently-deployed EfficientNet-B4 checkpoint was trained on the public Happy Whale set only (fold 0) — see [MODEL_CARD.md](../MODEL_CARD.md) §Training Data for the full breakdown. The ТЗ 80 k aggregate refers to the *combined* Happy Whale + Ministry RF corpus.
 
 ### Can I download the training data?
 
-Yes, from Kaggle: https://www.kaggle.com/competitions/happy-whale-and-dolphin/data — requires a Kaggle account and accepting the competition rules. The in-repo `scripts/populate_test_split.py` reproduces a 30-image subset for evaluation.
+Yes, the public part from Kaggle: https://www.kaggle.com/competitions/happy-whale-and-dolphin/data — requires a Kaggle account and accepting the competition rules. The in-repo `scripts/populate_test_split.py` reproduces a 100-positive subset for evaluation.
 
 ### What about the Ministry of Natural Resources data?
 
-It's covered by the ФСИ grant agreement and can't be redistributed. Only the trained model (which embeds knowledge from both sources) is publicly available.
+The Ministry RF dataset is covered by the ФСИ grant agreement and **cannot be redistributed** (terms in [LICENSE_DATA.md](../LICENSE_DATA.md) §2). As a practical consequence:
+- Reproducibility of the ТЗ 80 k aggregate is limited to Happy Whale's 51 k public images.
+- The deployed checkpoint does **not** currently use Ministry RF data — it was trained on the public Happy Whale set only. Retraining with the Ministry portion is on the roadmap once the grant's data-sharing protocol is finalised.
+- This is an **honest limitation** we surface in the docs rather than hide behind marketing language.
 
 ### Can I use my own dataset?
 
@@ -159,7 +162,7 @@ Yes — ZIP them and POST to `/v1/predict-batch`. The whole batch counts as one 
 
 ### Does it scale linearly?
 
-Yes. `scripts/benchmark_scalability.py` sweeps 5/10/20/30 images and fits a linear regression with R² = 0.9982. Slope ≈ 493 ms/image.
+Yes. `scripts/benchmark_scalability.py` sweeps 10/25/50/100 images and fits a linear regression with **R² = 1.000**. Slope ≈ 482 ms/image.
 
 ### How much memory does it use?
 
