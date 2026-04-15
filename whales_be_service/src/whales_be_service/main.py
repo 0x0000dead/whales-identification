@@ -285,7 +285,9 @@ async def predict_single_v1(
     summary="ZIP с изображениями → JSON-массив результатов",
     responses={
         200: {
-            "content": {"application/json": {"example": [DETECTION_EXAMPLE, REJECTION_EXAMPLE]}}
+            "content": {
+                "application/json": {"example": [DETECTION_EXAMPLE, REJECTION_EXAMPLE]}
+            }
         },
         400: {
             "description": "Invalid ZIP archive",

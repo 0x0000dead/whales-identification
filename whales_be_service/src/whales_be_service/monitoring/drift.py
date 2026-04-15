@@ -70,7 +70,9 @@ class DriftMonitor:
             "n": len(scores),
             "alarms_total": self._alarms_total,
             "score_mean": round(statistics.fmean(scores), 4),
-            "score_std": round(statistics.pstdev(scores) if len(scores) > 1 else 0.0, 4),
+            "score_std": round(
+                statistics.pstdev(scores) if len(scores) > 1 else 0.0, 4
+            ),
             "probability_mean": round(statistics.fmean(probs), 4) if probs else 0.0,
         }
 

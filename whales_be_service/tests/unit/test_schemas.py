@@ -26,12 +26,16 @@ class TestRejectionReason:
 
 class TestGateResult:
     def test_positive(self):
-        r = GateResult(positive_score=0.9, negative_score=0.1, is_cetacean=True, margin=0.8)
+        r = GateResult(
+            positive_score=0.9, negative_score=0.1, is_cetacean=True, margin=0.8
+        )
         assert r.is_cetacean is True
         assert r.positive_score == 0.9
 
     def test_immutable(self):
-        r = GateResult(positive_score=0.5, negative_score=0.5, is_cetacean=True, margin=0)
+        r = GateResult(
+            positive_score=0.5, negative_score=0.5, is_cetacean=True, margin=0
+        )
         with pytest.raises(Exception):
             r.positive_score = 1.0  # frozen
 

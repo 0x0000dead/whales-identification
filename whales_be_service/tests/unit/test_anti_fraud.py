@@ -11,8 +11,16 @@ import types
 import pytest
 from PIL import Image
 
-from whales_be_service.inference.anti_fraud import AntiFraudGate, _load_calibrated_threshold
-from whales_be_service.inference.prompts import ALL_PROMPTS, NEGATIVE_PROMPTS, NUM_POSITIVE, POSITIVE_PROMPTS
+from whales_be_service.inference.anti_fraud import (
+    AntiFraudGate,
+    _load_calibrated_threshold,
+)
+from whales_be_service.inference.prompts import (
+    ALL_PROMPTS,
+    NEGATIVE_PROMPTS,
+    NUM_POSITIVE,
+    POSITIVE_PROMPTS,
+)
 
 
 class TestPromptsInventory:
