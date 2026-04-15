@@ -6,7 +6,6 @@ tests in ``tests/integration/test_metrics.py``).
 """
 
 import sys
-import types
 
 import pytest
 from PIL import Image

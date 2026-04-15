@@ -291,7 +291,7 @@ class IdentificationModel:
             self.fallback_ckpt.name,
         )
 
-    def predict(self, pil_img: "Image.Image") -> PredictionResult:
+    def predict(self, pil_img: Image.Image) -> PredictionResult:
         """Run inference on a PIL image and return ``PredictionResult``.
 
         First call lazily loads the model. Subsequent calls reuse whichever
@@ -361,14 +361,14 @@ class IdentificationModel:
             bbox=[0, 0, w, h],
         )
 
-    def predict_array(self, np_img: "np.ndarray") -> PredictionResult:
+    def predict_array(self, np_img: np.ndarray) -> PredictionResult:
         """Convenience wrapper for code paths that already have a numpy image."""
         from PIL import Image  # noqa: PLC0415
 
         return self.predict(Image.fromarray(np_img))
 
     def predict_topk(
-        self, pil_img: "Image.Image", k: int = 5
+        self, pil_img: Image.Image, k: int = 5
     ) -> list[tuple[str, str, float]]:
         """Return top-k predictions as [(class_id, species, probability), ...].
 

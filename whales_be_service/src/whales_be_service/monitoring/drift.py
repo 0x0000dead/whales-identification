@@ -13,7 +13,6 @@ import logging
 import statistics
 from collections import deque
 from threading import Lock
-from typing import Deque
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +28,8 @@ class DriftMonitor:
         self.baseline_mean = baseline_mean
         self.alarm_drop = alarm_drop
 
-        self._scores: Deque[float] = deque(maxlen=window_size)
-        self._probabilities: Deque[float] = deque(maxlen=window_size)
+        self._scores: deque[float] = deque(maxlen=window_size)
+        self._probabilities: deque[float] = deque(maxlen=window_size)
         self._lock = Lock()
         self._alarms_total = 0
 

@@ -80,11 +80,11 @@ class InferencePipeline:
 
     def predict(
         self,
-        pil_img: "Image.Image",
+        pil_img: Image.Image,
         filename: str,
         img_bytes: bytes | None = None,
         generate_mask: bool = True,
-    ) -> "Detection":
+    ) -> Detection:
         """Run the full pipeline. Returns a ``Detection`` with all fields populated.
 
         ``img_bytes`` is optional and only used for the rembg background mask

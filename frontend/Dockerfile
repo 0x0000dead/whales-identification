@@ -5,7 +5,7 @@ WORKDIR /app
 ARG VITE_BACKEND=http://localhost:8000
 ENV VITE_BACKEND=${VITE_BACKEND}
 
-COPY package*.json tsconfig.json vite.config.ts index.html tailwind.config.js ./
+COPY package*.json tsconfig.json vite.config.ts index.html ./
 
 RUN npm install
 

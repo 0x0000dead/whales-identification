@@ -44,20 +44,15 @@ jobs:
         run: |
           poetry install
 
-      - name: Run Black (format check)
+      - name: Run Ruff (lint check)
         working-directory: whales_be_service
         run: |
-          poetry run black --check .
+          poetry run ruff check .
 
-      - name: Run isort (import check)
+      - name: Run Ruff (format check)
         working-directory: whales_be_service
         run: |
-          poetry run isort --check-only .
-
-      - name: Run Flake8 (linting)
-        working-directory: whales_be_service
-        run: |
-          poetry run flake8 .
+          poetry run ruff format --check .
 
       - name: Run Mypy (type checking)
         working-directory: whales_be_service

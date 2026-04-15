@@ -4,7 +4,6 @@ We stub both stages (anti-fraud gate and identification) so the test exercises
 the orchestration logic without touching torch or CLIP.
 """
 
-from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest

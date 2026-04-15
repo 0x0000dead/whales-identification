@@ -12,8 +12,8 @@ import logging
 import os
 import time
 from collections import defaultdict
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
 from zipfile import BadZipFile, ZipFile
 
 from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile
@@ -43,8 +43,7 @@ app = FastAPI(
     title="EcoMarineAI Identification API",
     version="1.1.0",
     description=(
-        "Идентификация морских млекопитающих по аэрофотоснимкам"
-        " с CLIP-антифрод гейтом."
+        "Идентификация морских млекопитающих по аэрофотоснимкам с CLIP-антифрод гейтом."
     ),
     lifespan=lifespan,
 )
@@ -183,16 +182,16 @@ async def metrics() -> PlainTextResponse:
         f"availability_percent {avail:.3f}",
         "# HELP requests_total Total HTTP requests",
         "# TYPE requests_total counter",
-        f'requests_total {_metrics["requests_total"]}',
+        f"requests_total {_metrics['requests_total']}",
         "# HELP errors_total Total HTTP errors (4xx/5xx)",
         "# TYPE errors_total counter",
-        f'errors_total {_metrics["errors_total"]}',
+        f"errors_total {_metrics['errors_total']}",
         "# HELP predictions_total Successful (not rejected) predictions",
         "# TYPE predictions_total counter",
-        f'predictions_total {_metrics["predictions_total"]}',
+        f"predictions_total {_metrics['predictions_total']}",
         "# HELP rejections_total Anti-fraud / low-confidence rejections",
         "# TYPE rejections_total counter",
-        f'rejections_total {_metrics["rejections_total"]}',
+        f"rejections_total {_metrics['rejections_total']}",
         "# HELP latency_avg_ms Average request latency in ms",
         "# TYPE latency_avg_ms gauge",
         f"latency_avg_ms {avg_latency:.2f}",

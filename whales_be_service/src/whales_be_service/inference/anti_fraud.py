@@ -116,7 +116,7 @@ class AntiFraudGate:
             self.threshold,
         )
 
-    def score(self, pil_img: "Image.Image") -> GateResult:
+    def score(self, pil_img: Image.Image) -> GateResult:
         """Compute (positive_score, negative_score, is_cetacean, margin).
 
         In degraded mode (open_clip not installed), returns a permissive
