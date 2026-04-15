@@ -11,7 +11,6 @@ import json
 import logging
 from functools import lru_cache
 from pathlib import Path
-from typing import Union
 
 import yaml
 
@@ -22,7 +21,7 @@ from .pipeline import InferencePipeline
 
 logger = logging.getLogger(__name__)
 
-PipelineLike = Union[InferencePipeline, EnsemblePipeline]
+PipelineLike = InferencePipeline | EnsemblePipeline
 
 _BASE_DIR = Path(__file__).resolve().parent.parent
 _CONFIG_PATH = _BASE_DIR / "config.yaml"
@@ -93,6 +92,20 @@ def get_pipeline() -> PipelineLike:
 
     models_cfg = _load_models_config()
     active_model = str(models_cfg.get("active_model", "effb4_arcface"))
+
+    # Refuse to activate anything flagged `deprecated: true` — the record is
+    # kept only for reproducibility of Stage 1 experiments, the weights file
+    # is not auto-downloaded, and falling through would crash at first
+    # `torch.load()` with a confusing FileNotFoundError. Fail fast with a
+    # clear error instead.
+    model_block = (models_cfg.get("models") or {}).get(active_model) or {}
+    if model_block.get("deprecated", False):
+        reason = model_block.get("deprecated_reason", "marked deprecated in models_config.yaml")
+        raise RuntimeError(
+            f"active_model='{active_model}' is deprecated and cannot be loaded: {reason}. "
+            f"Set active_model to 'effb4_arcface' (production) or 'ensemble'."
+        )
+
     pipeline: PipelineLike
     if active_model == "ensemble":
         ensemble_block = (models_cfg.get("models") or {}).get("ensemble") or {}

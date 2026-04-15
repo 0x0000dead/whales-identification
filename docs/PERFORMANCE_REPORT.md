@@ -59,9 +59,9 @@ From `reports/metrics_latest.json`:
 | Percentile | Value    |
 |-----------:|---------:|
 | mean       |  277 ms  |
-| p50        |  484 ms  |
-| p95        |  519 ms  |
-| p99        |  597 ms  |
+| p50        |  174 ms  |
+| p95        |  299 ms  |
+| p99        |  417 ms  |
 
 ТЗ-target: ≤ 8 000 ms per 1920×1080 image. Current p99 is **≈ 13×** under budget on a CPU.
 
@@ -128,7 +128,7 @@ Docker image size: **~2.3 GB** (Python 3.11 slim + CUDA-less PyTorch + open_clip
 
 ## 9. Inference throughput
 
-At p95 latency of 519 ms per image, a single worker sustains **≈ 1.93 images/s** on CPU. With 4 uvicorn workers on a 4-core VM you scale to **≈ 7.7 images/s**. Adding a GPU (T4 class) brings per-image cost down to ~25 ms → **≈ 40 images/s per worker**.
+At p95 latency of 299 ms per image, a single worker sustains **≈ 3.35 images/s** on CPU. With 4 uvicorn workers on a 4-core VM you scale to **≈ 7.7 images/s**. Adding a GPU (T4 class) brings per-image cost down to ~25 ms → **≈ 40 images/s per worker**.
 
 ## 10. Calibration snapshot
 
@@ -162,7 +162,7 @@ CI workflow `.github/workflows/metrics.yml` compares every new `metrics_latest.j
 | # | Параметр ТЗ                 | Целевое                  | Измерено      | Статус |
 |---|-----------------------------|---------------------------|---------------|:------:|
 | 1 | Precision                   | ≥ 80 % @ clear images    | 90.48 % + Laplacian check | ✓ |
-| 2 | Скорость обработки          | ≤ 8 s / 1920×1080         | p95 = 519 ms  | ✓ |
+| 2 | Скорость обработки          | ≤ 8 s / 1920×1080         | p95 = 299 ms  | ✓ |
 | 3 | Масштабируемость            | линейная                  | R² = 1.000    | ✓ |
 | 4 | Универсальность / адаптивность | drop ≤ 20 % on noise    | 0.0 %         | ✓ |
 | 5 | Интерфейс и удобство        | минимальная кривая        | React UI + CLI + Swagger | ✓ |

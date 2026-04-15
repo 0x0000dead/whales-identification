@@ -257,22 +257,16 @@ def laplacian_variance(pil_img) -> float:
 
 ### 3.1 Выбор архитектуры
 
-На ранних этапах проекта исследовались 7 архитектур:
+На ранних этапах проекта исследовалось несколько архитектур компьютерного зрения для задачи идентификации морских млекопитающих: семейства ResNet, EfficientNet, Vision Transformer и Swin Transformer. Воспроизводимые сравнительные результаты сохранены в исследовательских ноутбуках `research/notebooks/06_benchmark_multiclass.ipynb` и `research/notebooks/08_benchmark_all_compare.ipynb` — там же содержатся конкретные значения Precision / Recall / Latency на зафиксированных выборках Stage 1. В настоящем НТО сводная таблица тех ранних экспериментов не приводится по двум причинам: (а) они измерялись на разных тестовых выборках и разной аппаратной конфигурации, и прямое сравнение чисел между архитектурами некорректно; (б) для ФСИ в качестве источника истины рассматривается единственный production-чекпоинт и его метрики, полученные скриптом `scripts/compute_metrics.py` на зафиксированной выборке `data/test_split/manifest.csv`.
 
-| Архитектура | Precision на Stage 1 validation | Latency CPU (ms) | Решение |
-|-------------|-------------------------------|------------------|---------|
-| ResNet-54 | 0.82 | 800 | Baseline |
-| ResNet-101 | 0.85 | 1200 | Fallback |
-| EfficientNet-B0 | 0.88 | 1000 | Slow baseline |
-| **EfficientNet-B4** | **0.91** | **1500 (до оптимизации)** | **Production** |
-| EfficientNet-B5 | 0.91 | 1800 | Overkill для задачи |
-| ViT-B/16 | 0.91 | 2000 | Высокая стоимость |
-| ViT-L/32 | 0.93 | 3500 | Легacy Stage-1 |
-| Swin Transformer | 0.90 | 2200 | Не вошел в production |
+**Обоснование выбора EfficientNet-B4 ArcFace:**
 
-Подробные результаты экспериментов — в ноутбуках `research/notebooks/06_benchmark_multiclass.ipynb` и `08_benchmark_all_compare.ipynb`.
+1. **Качество на задаче individual identification.** EfficientNet-B4 c ArcFace-головой показал лучший compound-score среди рассмотренных compound-scaled CNN на Happy Whale competition (см. публичную leaderboard Kaggle `happy-whale-and-dolphin` и upstream чекпоинт `ktakita/happywhale-exp004-effb4-trainall`).
+2. **Latency-efficiency trade-off.** По результатам измерений текущей production-инфраструктуры (см. §3.5) производственная инференс-latency p95 составляет 298.87 мс на CPU — 27-кратный запас относительно требования ТЗ ≤ 8 с. Vision Transformer L/32, давший лучшие показатели в ранних Stage 1 экспериментах, требует в 4–5 раз больших вычислительных ресурсов и не подходит для бюджетного CPU-деплоя без дополнительной оптимизации (INT8 quantization, model distillation).
+3. **Пригодность для plug-and-play расширения.** ArcFace голова с запасом слотов (15 587 общих / 13 837 активных на момент Stage 3) позволяет дообучать модель на новых особях без полного retraining, что отвечает требованию ТЗ о возможности дообучения системы пользователями.
+4. **Публичная доступность.** Upstream чекпоинт выпущен по CC-BY-NC-4.0 и может быть загружен любым независимым экспертом через `scripts/download_models.sh` с SHA256-верификацией, что обеспечивает воспроизводимость результатов.
 
-**Выбор EfficientNet-B4** обусловлен оптимальным балансом точности и latency при приемлемой стоимости обучения. После оптимизации (см. §3.4) latency p95 снижена до 299 мс — 27-кратный запас относительно требования ТЗ ≤ 8 с.
+Результаты измерения production-модели EfficientNet-B4 ArcFace (detailed performance/precision numbers в §3.3) подтверждают её соответствие большинству параметров ТЗ. По §Параметру 1 запланирован retraining на полной 5-fold Happy Whale схеме + fine-tuning на данных Минприроды РФ в рамках Stage 3 §3.5 — ожидаемое улучшение species-level precision с текущих 0.5294 до целевого ≥ 0.80.
 
 ### 3.2 Metric Learning с ArcFace
 
@@ -383,7 +377,7 @@ L = -log(exp(s·cos(θ+m)) / (exp(s·cos(θ+m)) + Σ_j exp(s·cos(θ_j))))
 
 Полный отчёт — в `reports/LOAD_TEST.md`. Ключевые цифры:
 
-- Single-image p50 / p95 / p99 = 484 / 519 / 597 мс (измерения offline из `reports/METRICS.md`)
+- Single-image p50 / p95 / p99 = **174 / 299 / 417 мс** (измерения offline из `reports/metrics_latest.json`, `scripts/compute_metrics.py`, 202 sample split, CPU)
 - Scalability: R² = 1.000 на [10, 25, 50, 100] изображениях → линейная временная сложность (§Параметр 3)
 - Availability через `/metrics::availability_percent` gauge — production 7-дневный замер проводится в рамках финальной приёмки
 

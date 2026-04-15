@@ -21,8 +21,8 @@ import csv
 import io
 import json
 import sys
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 TEST_SPLIT = REPO_ROOT / "data" / "test_split"
@@ -117,7 +117,7 @@ def run() -> dict:
         }
 
     baseline = results.get("clean", {}).get("accept_rate", 0.0) or 1e-9
-    for variant, data in results.items():
+    for _variant, data in results.items():
         drop = (baseline - data["accept_rate"]) / baseline
         data["drop_vs_clean"] = round(drop, 4)
         data["passes_20pct_target"] = drop <= 0.20

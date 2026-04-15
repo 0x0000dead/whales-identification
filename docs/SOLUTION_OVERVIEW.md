@@ -51,7 +51,7 @@ All numbers below are computed by `scripts/compute_metrics.py` on a reproducible
 | Specificity / TNR      | **0.9020**     | > 0.90     | ✓ |
 | Precision              | **0.9048**     | ≥ 0.80     | ✓ |
 | F1                     | **0.9268**     | > 0.60     | ✓ |
-| Latency (p95, CPU)     | **519 ms**     | ≤ 8 000 ms | ✓ |
+| Latency (p95, CPU)     | **298.87 ms** | ≤ 8 000 ms | ✓ |
 | Linear time complexity | **R² = 1.000** | linear     | ✓ |
 | Noise robustness       | **0.0 % drop** | ≤ 20 %     | ✓ |
 | Identified individuals | **13 837**     | ≥ 1 000    | ✓ |

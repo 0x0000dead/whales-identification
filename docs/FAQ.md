@@ -41,7 +41,7 @@ Also cite the Happy Whale dataset (CC-BY-NC-4.0) and, if relevant, the upstream 
 
 ### Do I need a GPU?
 
-No. CPU-only inference gives p95 latency ≈ 540 ms, which is 12× under the TZ budget. A GPU brings it down to ~25 ms if you need higher throughput.
+No. CPU-only inference gives p95 latency ≈ 299 ms, which is 27× under the ТЗ budget. A GPU brings it down to ~25 ms if you need higher throughput.
 
 ### How big is the download?
 
@@ -154,7 +154,7 @@ Not directly yet — but the SQLite schema is Darwin Core-friendly. A `darwin_co
 
 ### How fast is it?
 
-Per-image p95 latency of 540 ms on a single CPU worker. With 4 workers on a 4-core VM you get ~7 images/second. With a GPU (T4 class) it's ~40 images/second per worker. See [PERFORMANCE_REPORT.md](PERFORMANCE_REPORT.md) §3 and §8.
+Per-image p95 latency of 299 ms on a single CPU worker. With 4 workers on a 4-core VM you get ~13 images/second. With a GPU (T4 class) it's ~40 images/second per worker. See [PERFORMANCE_REPORT.md](PERFORMANCE_REPORT.md) §3 and §8.
 
 ### Can I batch many images in one request?
 

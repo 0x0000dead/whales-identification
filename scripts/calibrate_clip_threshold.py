@@ -16,7 +16,7 @@ import argparse
 import csv
 import logging
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import yaml
@@ -149,7 +149,7 @@ def main() -> int:
                 "tnr": round(chosen["tnr"], 4),
                 "n_positive": len(pos_scores),
                 "n_negative": len(neg_scores),
-                "calibrated_at": datetime.now(timezone.utc).isoformat(),
+                "calibrated_at": datetime.now(UTC).isoformat(),
             },
             sort_keys=False,
         ),

@@ -84,7 +84,7 @@ class iNaturalistSink:  # noqa: N801 — name matches upstream product
         if not -180.0 <= lon <= 180.0:
             raise ValueError(f"lon out of range: {lon}")
 
-        if isinstance(observed_on, (datetime, date)):
+        if isinstance(observed_on, datetime | date):
             observed_str = observed_on.isoformat()
         else:
             observed_str = str(observed_on)
