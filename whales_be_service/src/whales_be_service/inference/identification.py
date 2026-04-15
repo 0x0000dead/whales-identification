@@ -126,6 +126,7 @@ class IdentificationModel:
         encoder_classes[idx] → species_map lookup.
         """
         import csv as _csv  # noqa: PLC0415
+
         import numpy as np  # noqa: PLC0415
         import timm  # noqa: PLC0415
         import torch  # noqa: PLC0415
