@@ -1,0 +1,32 @@
+{
+  "generated_at": "2026-04-15T11:33:06.977796+00:00",
+  "manifest_path": "data/test_split/manifest.csv",
+  "sample_size": 60,
+  "model_version": "vit_l32-v1",
+  "anti_fraud": {
+    "n_positive": 30,
+    "n_negative": 30,
+    "tp": 29,
+    "fp": 2,
+    "tn": 28,
+    "fn": 1,
+    "tpr": 0.9667,
+    "tnr": 0.9333,
+    "precision": 0.9355,
+    "f1": 0.9508,
+    "roc_auc": 0.9922
+  },
+  "identification": {
+    "n_samples": 30,
+    "top1_accuracy": 0.1667,
+    "top5_accuracy": 0.0,
+    "n_unique_individuals": 30
+  },
+  "performance": {
+    "n_samples": 60,
+    "latency_p50_ms": 489.27,
+    "latency_p95_ms": 540.31,
+    "latency_p99_ms": 607.56,
+    "latency_mean_ms": 278.81
+  }
+}

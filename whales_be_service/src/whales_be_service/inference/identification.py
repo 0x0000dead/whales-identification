@@ -24,6 +24,13 @@ logger = logging.getLogger(__name__)
 _BASE_DIR = Path(__file__).resolve().parent.parent
 _DEFAULT_CSV = _BASE_DIR / "resources" / "database.csv"
 _DEFAULT_CKPT = _BASE_DIR / "models" / "model-e15.pt"
+_FALLBACK_CKPT = _BASE_DIR / "models" / "resnet101.pth"
+# EfficientNet-B4 checkpoint from ktakita/happywhale-exp004-effb4-trainall
+# mirrored to the EcoMarineAI HF org.
+_EFFB4_CKPT = _BASE_DIR / "models" / "efficientnet_b4_512_fold0.ckpt"
+_EFFB4_CLASSES = _BASE_DIR / "models" / "encoder_classes.npy"
+_EFFB4_SPECIES_MAP = _BASE_DIR / "resources" / "species_map.csv"
+_EFFB4_IMG_SIZE = 512
 _DEFAULT_IMG_SIZE = 448
 _DEFAULT_PATCH = 32
 
@@ -44,17 +51,28 @@ class IdentificationModel:
         img_size: int = _DEFAULT_IMG_SIZE,
         patch_size: int = _DEFAULT_PATCH,
         model_version: str = "vit_l32-v1",
+        fallback_ckpt: Path = _FALLBACK_CKPT,
+        effb4_ckpt: Path = _EFFB4_CKPT,
+        effb4_classes: Path = _EFFB4_CLASSES,
+        effb4_species_map: Path = _EFFB4_SPECIES_MAP,
     ) -> None:
         self.csv_path = csv_path
         self.ckpt_path = ckpt_path
+        self.fallback_ckpt = fallback_ckpt
+        self.effb4_ckpt = effb4_ckpt
+        self.effb4_classes = effb4_classes
+        self.effb4_species_map = effb4_species_map
         self.img_size = img_size
         self.patch_size = patch_size
         self.model_version = model_version
 
         self._loaded = False
+        # "vit_full" | "effb4_15k" | "resnet_fallback" | "uninitialised"
+        self._mode: str = "uninitialised"
         self._model = None
         self._device = None
         self._transform = None
+        self._torchvision_transform = None
         self._id_list: list[str] = []
         self._id_to_name: dict[str, str] = {}
 
@@ -62,18 +80,122 @@ class IdentificationModel:
         if self._loaded:
             return
 
-        # Cheap pre-flight checks first — fail fast before pulling in torch.
-        if not self.csv_path.exists():
-            raise FileNotFoundError(
-                f"Identification database not found at {self.csv_path}. "
-                "Run scripts/download_models.sh or set IDENTIFICATION_CSV env var."
-            )
-        if not self.ckpt_path.exists():
-            raise FileNotFoundError(
-                f"Model checkpoint not found at {self.ckpt_path}. "
-                "Run scripts/download_models.sh to fetch weights."
-            )
+        # Preferred: EfficientNet-B4 trained on 13837 individual_ids (ArcFace).
+        # This is the canonical production checkpoint mirrored on our HF.
+        if (
+            self.effb4_ckpt.exists()
+            and self.effb4_classes.exists()
+            and self.effb4_species_map.exists()
+        ):
+            self._load_effb4_arcface()
+            self.model_version = "effb4-arcface-v1"
+            return
 
+        # Secondary: original ViT + individual_id database ------------------
+        if self.csv_path.exists() and self.ckpt_path.exists():
+            self._load_vit_full()
+            return
+
+        # Fallback: a simple pickled torchvision classifier (e.g. resnet101) --
+        if self.fallback_ckpt.exists():
+            try:
+                self._load_resnet_fallback()
+                return
+            except Exception as e:  # noqa: BLE001
+                logger.warning(
+                    "ResNet fallback failed (%s); gate-only mode will be used.", e
+                )
+
+        raise FileNotFoundError(
+            f"No identification weights found. Tried: {self.effb4_ckpt} (effb4), "
+            f"{self.ckpt_path} (ViT), {self.fallback_ckpt} (ResNet). "
+            "Run scripts/download_models.sh to populate models/."
+        )
+
+    def _load_effb4_arcface(self) -> None:
+        """Load the EfficientNet-B4 + ArcFace checkpoint (13837 individuals).
+
+        The checkpoint keys are::
+
+            model.*             — timm efficientnet_b4 backbone
+            embedding.{weight,bias} — Linear(1792 → 512)
+            arc.weight          — [num_classes, 512] ArcFace row-wise cosine head
+
+        Inference: image → backbone → adaptive_avg_pool → embedding → L2 normalise
+        → cosine similarity vs normalised arc.weight → softmax → argmax →
+        encoder_classes[idx] → species_map lookup.
+        """
+        import csv as _csv  # noqa: PLC0415
+        import numpy as np  # noqa: PLC0415
+        import timm  # noqa: PLC0415
+        import torch  # noqa: PLC0415
+        import torch.nn as nn  # noqa: PLC0415
+        import torch.nn.functional as F  # noqa: PLC0415
+        from torchvision import transforms  # noqa: PLC0415
+
+        self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+        class _EffB4Arcface(nn.Module):
+            def __init__(self, num_classes: int = 15587) -> None:
+                super().__init__()
+                self.backbone = timm.create_model(
+                    "efficientnet_b4", pretrained=False, num_classes=0, global_pool=""
+                )
+                self.embedding = nn.Linear(1792, 512)
+                self.arc_weight = nn.Parameter(torch.zeros(num_classes, 512))
+
+            def forward(self, x):
+                feat = self.backbone(x)
+                feat = F.adaptive_avg_pool2d(feat, 1).flatten(1)
+                emb = self.embedding(feat)
+                emb_n = F.normalize(emb, dim=1)
+                w_n = F.normalize(self.arc_weight, dim=1)
+                return emb_n @ w_n.T
+
+        classes = np.load(self.effb4_classes, allow_pickle=True)
+        self._id_list = [str(c) for c in classes]
+
+        with self.effb4_species_map.open() as f:
+            self._id_to_name = {
+                row["individual_id"]: row["species"] for row in _csv.DictReader(f)
+            }
+
+        model = _EffB4Arcface(num_classes=15587)
+        ckpt = torch.load(  # nosec B614
+            self.effb4_ckpt, map_location=self._device, weights_only=False
+        )
+        sd = ckpt["state_dict"]
+        remap: dict = {}
+        for k, v in sd.items():
+            if k.startswith("model."):
+                remap["backbone." + k[len("model."):]] = v
+            elif k.startswith("embedding."):
+                remap[k] = v
+            elif k == "arc.weight":
+                remap["arc_weight"] = v
+        model.load_state_dict(remap, strict=False)
+        model.eval().to(self._device)
+
+        self._torchvision_transform = transforms.Compose(
+            [
+                transforms.Resize((_EFFB4_IMG_SIZE, _EFFB4_IMG_SIZE)),
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                ),
+            ]
+        )
+        self._model = model
+        self._mode = "effb4_15k"
+        self._loaded = True
+        logger.info(
+            "Loaded IdentificationModel (effb4_15k): %d classes, device=%s, ckpt=%s",
+            len(self._id_list),
+            self._device,
+            self.effb4_ckpt.name,
+        )
+
+    def _load_vit_full(self) -> None:
         import albumentations as A  # noqa: PLC0415
         import pandas as pd  # noqa: PLC0415
         import torch  # noqa: PLC0415
@@ -120,29 +242,100 @@ class IdentificationModel:
         model.load_state_dict(state["model_state_dict"], strict=False)
 
         self._model = model
+        self._mode = "vit_full"
         self._loaded = True
         logger.info(
-            "Loaded IdentificationModel: %d classes, device=%s, ckpt=%s",
+            "Loaded IdentificationModel (vit_full): %d classes, device=%s, ckpt=%s",
             len(self._id_list),
             self._device,
             self.ckpt_path.name,
         )
 
+    def _load_resnet_fallback(self) -> None:
+        """Minimal fallback: pickled torchvision ResNet used as a coarse species
+        classifier. Without a proper class-to-name mapping, predictions are
+        surfaced as ``class_idx:<N>`` strings. Better than nothing for
+        demo / sanity-check purposes.
+        """
+        import torch  # noqa: PLC0415
+        from torchvision import transforms  # noqa: PLC0415
+
+        self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        model = torch.load(  # nosec B614
+            self.fallback_ckpt,
+            map_location=self._device,
+            weights_only=False,
+        )
+        model.eval()
+        # Pre-built torchvision transforms — inferred from standard 224×224
+        # ImageNet-style eval pipelines used by ResNet/EfficientNet checkpoints.
+        self._torchvision_transform = transforms.Compose(
+            [
+                transforms.Resize(256),
+                transforms.CenterCrop(224),
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                ),
+            ]
+        )
+        self._model = model
+        self._mode = "resnet_fallback"
+        self._loaded = True
+        n_out = getattr(getattr(model, "fc", None), "out_features", None)
+        logger.info(
+            "Loaded IdentificationModel (resnet_fallback): out_features=%s, ckpt=%s",
+            n_out,
+            self.fallback_ckpt.name,
+        )
+
     def predict(self, pil_img: "Image.Image") -> PredictionResult:
         """Run inference on a PIL image and return ``PredictionResult``.
 
-        First call lazily loads the model. Subsequent calls reuse it.
+        First call lazily loads the model. Subsequent calls reuse whichever
+        backend was chosen (``vit_full`` or ``resnet_fallback``).
         """
         self._load()
 
-        import cv2  # noqa: PLC0415
         import numpy as np  # noqa: PLC0415
         import torch  # noqa: PLC0415
 
-        # PIL → BGR numpy (cv2 convention) → RGB
         np_img = np.array(pil_img.convert("RGB"))
         h, w = np_img.shape[:2]
 
+        if self._mode == "resnet_fallback":
+            tensor = self._torchvision_transform(pil_img.convert("RGB")).unsqueeze(0).to(self._device)
+            with torch.no_grad():
+                logits = self._model(tensor)
+                probs = torch.softmax(logits, dim=1)[0]
+                top_prob, top_idx = probs.max(0)
+            class_id = f"class_idx:{int(top_idx)}"
+            return PredictionResult(
+                class_id=class_id,
+                species="cetacean_coarse_fallback",
+                probability=round(float(top_prob), 4),
+                bbox=[0, 0, w, h],
+            )
+
+        if self._mode == "effb4_15k":
+            tensor = self._torchvision_transform(pil_img.convert("RGB")).unsqueeze(0).to(self._device)
+            n_active = len(self._id_list)
+            with torch.no_grad():
+                logits = self._model(tensor)  # [1, 15587] cosine similarities
+                # Temperature-scaled softmax over just the active classes.
+                scaled = logits[:, :n_active] * 30.0
+                probs = torch.softmax(scaled, dim=1)[0]
+                top_prob, top_idx = probs.max(0)
+            class_id = self._id_list[int(top_idx)]
+            species = self._id_to_name.get(class_id, class_id)
+            return PredictionResult(
+                class_id=class_id,
+                species=species,
+                probability=round(float(top_prob), 4),
+                bbox=[0, 0, w, h],
+            )
+
+        # vit_full path
         tensor = self._transform(image=np_img)["image"].unsqueeze(0).to(self._device)
         with torch.no_grad():
             logits = self._model(tensor)
@@ -164,13 +357,24 @@ class IdentificationModel:
 
         return self.predict(Image.fromarray(np_img))
 
-    def background_mask(self, img_bytes: bytes) -> str:
-        """Return base64-encoded PNG with background removed (rembg)."""
+    def background_mask(self, img_bytes: bytes) -> str | None:
+        """Return base64-encoded PNG with background removed (rembg).
+
+        Falls back to ``None`` (no mask) if rembg isn't importable — some
+        older Python versions have rembg bugs that terminate on import.
+        """
         import base64  # noqa: PLC0415
 
-        from rembg import remove  # noqa: PLC0415
-
-        return base64.b64encode(remove(img_bytes)).decode()
+        try:
+            from rembg import remove  # noqa: PLC0415
+        except (ImportError, SystemExit) as e:
+            logger.warning("rembg unavailable (%s); skipping background mask.", e)
+            return None
+        try:
+            return base64.b64encode(remove(img_bytes)).decode()
+        except Exception as e:  # noqa: BLE001
+            logger.warning("rembg.remove failed (%s); skipping background mask.", e)
+            return None
 
 
 # ---------------------------------------------------------------------------

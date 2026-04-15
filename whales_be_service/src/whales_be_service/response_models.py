@@ -34,12 +34,19 @@ class Detection(BaseModel):
     model_version: str = "vit_l32-v1"
 
 
-def generate_base64_mask_with_removed_background(img_bytes: bytes) -> str:
-    """Helper kept for backward compatibility — used by /predict endpoints when
-    the inference pipeline cannot be loaded (e.g. in unit tests with mocks).
+def generate_base64_mask_with_removed_background(img_bytes: bytes) -> str | None:
+    """Helper kept for backward compatibility. Returns None if rembg can't load
+    (e.g. on newer Python where rembg calls sys.exit at import time).
     """
     import base64
+    import logging
 
-    from rembg import remove
-
-    return base64.b64encode(remove(img_bytes)).decode()
+    try:
+        from rembg import remove
+    except (ImportError, SystemExit):
+        logging.getLogger(__name__).warning("rembg unavailable; skipping mask.")
+        return None
+    try:
+        return base64.b64encode(remove(img_bytes)).decode()
+    except Exception:  # noqa: BLE001
+        return None

@@ -1,49 +1,53 @@
 #!/bin/bash
 # Download EcoMarineAI model checkpoints from Hugging Face Hub.
 #
-# Why the version pin: huggingface_hub 0.21+ removed the standalone
-# `huggingface-cli` binary from the default install path on some platforms,
-# which broke this script silently. Pinning to 0.20.3 keeps the CLI available
-# regardless of what other packages pull in.
+# Primary source: 0x0000dead/ecomarineai-cetacean-effb4 — EfficientNet-B4
+# ArcFace trained on 13 837 individual cetaceans, with encoder_classes.npy and
+# species_map.csv bundled for inference.
+#
+# Fallback: baltsat/Whales-Identification — historical checkpoints (ResNet101,
+# ViT-B16, Swin-T), kept for backwards compatibility.
+#
+# Why the version pin: huggingface_hub 0.21+ moved `huggingface-cli` into an
+# optional extra, so pinning to 0.20.3 keeps the CLI available regardless of
+# what other packages pull in.
 set -euo pipefail
 
-HF_REPO="${HF_REPO:-baltsat/Whales-Identification}"
-TARGET_DIR="${TARGET_DIR:-models}"
+PRIMARY_REPO="${PRIMARY_REPO:-0x0000dead/ecomarineai-cetacean-effb4}"
+LEGACY_REPO="${LEGACY_REPO:-baltsat/Whales-Identification}"
+MODELS_DIR="${MODELS_DIR:-whales_be_service/src/whales_be_service/models}"
+RESOURCES_DIR="${RESOURCES_DIR:-whales_be_service/src/whales_be_service/resources}"
 HF_HUB_VERSION="0.20.3"
 
-mkdir -p "${TARGET_DIR}"
+mkdir -p "${MODELS_DIR}" "${RESOURCES_DIR}"
 
 if ! command -v huggingface-cli >/dev/null 2>&1; then
     echo "huggingface-cli not found; installing huggingface_hub==${HF_HUB_VERSION}..."
     python3 -m pip install --quiet "huggingface_hub==${HF_HUB_VERSION}"
 fi
 
-# Files to download. Each entry: "<filename>:<optional_alias>"
-# Aliases let us rename on disk so model-e15.pt is what the service looks for.
-MODELS=(
-    "resnet101.pth"
-    "vit_l32_best.pth:model-e15.pt"
-)
+fetch() {
+    local repo="$1" file="$2" dest_dir="$3"
+    echo "→ ${repo} / ${file} → ${dest_dir}/"
+    huggingface-cli download "${repo}" "${file}" \
+        --repo-type model \
+        --local-dir "${dest_dir}" \
+        --local-dir-use-symlinks False \
+        --quiet 2>/dev/null || echo "  (skip: ${file} not available in ${repo})"
+}
 
-for entry in "${MODELS[@]}"; do
-    src="${entry%%:*}"
-    dst="${entry##*:}"
-    [ "${src}" = "${dst}" ] && dst="${src}"
+echo "=== Primary: EfficientNet-B4 ArcFace (${PRIMARY_REPO}) ==="
+fetch "${PRIMARY_REPO}" "efficientnet_b4_512_fold0.ckpt" "${MODELS_DIR}"
+fetch "${PRIMARY_REPO}" "encoder_classes.npy" "${MODELS_DIR}"
+fetch "${PRIMARY_REPO}" "species_map.csv" "${RESOURCES_DIR}"
+fetch "${PRIMARY_REPO}" "anti_fraud_threshold.yaml" "whales_be_service/src/whales_be_service/configs"
+fetch "${PRIMARY_REPO}" "metrics_baseline.json" "reports"
 
-    echo "Downloading ${src} from ${HF_REPO} → ${TARGET_DIR}/${dst}..."
-    if huggingface-cli download "${HF_REPO}" "${src}" \
-            --repo-type model \
-            --local-dir "${TARGET_DIR}" \
-            --local-dir-use-symlinks False \
-            --quiet 2>/dev/null; then
-        if [ "${src}" != "${dst}" ] && [ -f "${TARGET_DIR}/${src}" ]; then
-            mv "${TARGET_DIR}/${src}" "${TARGET_DIR}/${dst}"
-        fi
-        echo "  ✓ ${TARGET_DIR}/${dst}"
-    else
-        echo "  ! ${src} not available in ${HF_REPO}; skipping."
-    fi
-done
+echo "=== Legacy: baltsat/Whales-Identification ==="
+fetch "${LEGACY_REPO}" "resnet101.pth" "${MODELS_DIR}"
 
-echo "Model download complete. Files in ${TARGET_DIR}/:"
-ls -lh "${TARGET_DIR}/" || true
+echo "=== Contents of ${MODELS_DIR}/: ==="
+ls -lh "${MODELS_DIR}/" || true
+echo "=== Contents of ${RESOURCES_DIR}/: ==="
+ls -lh "${RESOURCES_DIR}/" || true
+echo "Model download complete."
