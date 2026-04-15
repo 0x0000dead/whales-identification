@@ -13,7 +13,6 @@ import logging
 import statistics
 from collections import deque
 from threading import Lock
-from typing import Deque
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +28,8 @@ class DriftMonitor:
         self.baseline_mean = baseline_mean
         self.alarm_drop = alarm_drop
 
-        self._scores: Deque[float] = deque(maxlen=window_size)
-        self._probabilities: Deque[float] = deque(maxlen=window_size)
+        self._scores: deque[float] = deque(maxlen=window_size)
+        self._probabilities: deque[float] = deque(maxlen=window_size)
         self._lock = Lock()
         self._alarms_total = 0
 
@@ -48,7 +47,7 @@ class DriftMonitor:
             with self._lock:
                 self._alarms_total += 1
             logger.warning(
-                "Drift detected: rolling mean cetacean_score=%.4f, baseline=%.4f (drop>%.2f)",
+                "Drift detected: rolling mean=%.4f, baseline=%.4f (drop>%.2f)",
                 current,
                 self.baseline_mean,
                 self.alarm_drop,
@@ -70,7 +69,9 @@ class DriftMonitor:
             "n": len(scores),
             "alarms_total": self._alarms_total,
             "score_mean": round(statistics.fmean(scores), 4),
-            "score_std": round(statistics.pstdev(scores) if len(scores) > 1 else 0.0, 4),
+            "score_std": round(
+                statistics.pstdev(scores) if len(scores) > 1 else 0.0, 4
+            ),
             "probability_mean": round(statistics.fmean(probs), 4) if probs else 0.0,
         }
 

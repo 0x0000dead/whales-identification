@@ -61,7 +61,9 @@ class AntiFraudGate:
     ) -> None:
         self.model_name = model_name
         self.pretrained = pretrained
-        self.threshold = threshold if threshold is not None else _load_calibrated_threshold()
+        self.threshold = (
+            threshold if threshold is not None else _load_calibrated_threshold()
+        )
 
         self._loaded = False
         self._unavailable = False  # True if open_clip can't be imported (degraded mode)
@@ -114,7 +116,7 @@ class AntiFraudGate:
             self.threshold,
         )
 
-    def score(self, pil_img: "Image.Image") -> GateResult:
+    def score(self, pil_img: Image.Image) -> GateResult:
         """Compute (positive_score, negative_score, is_cetacean, margin).
 
         In degraded mode (open_clip not installed), returns a permissive
@@ -154,7 +156,9 @@ class AntiFraudGate:
 
         if self._unavailable:
             return [
-                GateResult(positive_score=0.5, negative_score=0.5, is_cetacean=True, margin=0.0)
+                GateResult(
+                    positive_score=0.5, negative_score=0.5, is_cetacean=True, margin=0.0
+                )
                 for _ in pil_imgs
             ]
 

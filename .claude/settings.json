@@ -1,0 +1,10 @@
+{
+  "lsp": {
+    "python": {
+      "command": "pyright-langserver",
+      "args": ["--stdio"],
+      "rootPatterns": ["pyproject.toml", "setup.py"],
+      "filetypes": ["python"]
+    }
+  }
+}

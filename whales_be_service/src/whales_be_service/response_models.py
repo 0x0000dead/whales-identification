@@ -28,9 +28,9 @@ class Detection(BaseModel):
     is_cetacean: bool = True
     cetacean_score: float = Field(ge=0.0, le=1.0, default=1.0)
     rejected: bool = False
-    rejection_reason: Literal[
-        "not_a_marine_mammal", "low_confidence", "corrupted_image"
-    ] | None = None
+    rejection_reason: (
+        Literal["not_a_marine_mammal", "low_confidence", "corrupted_image"] | None
+    ) = None
     model_version: str = "vit_l32-v1"
 
 

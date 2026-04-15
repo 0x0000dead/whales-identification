@@ -9,7 +9,11 @@ random mock data directly in the route handler; that path has been removed.
 from __future__ import annotations
 
 import logging
+import random
 from typing import TYPE_CHECKING
+
+import numpy as np
+import torch
 
 from .anti_fraud import AntiFraudGate
 from .identification import IdentificationModel
@@ -21,6 +25,25 @@ if TYPE_CHECKING:
     from ..response_models import Detection
 
 logger = logging.getLogger(__name__)
+
+_REPRODUCIBILITY_SEED = 2022
+
+
+def set_deterministic_mode(seed: int = _REPRODUCIBILITY_SEED) -> None:
+    """Fix all random seeds for fully deterministic inference.
+
+    Call once at application startup (e.g. inside FastAPI lifespan), not inside
+    class constructors — repeated calls reset global PRNG state and break test
+    isolation between independent ``InferencePipeline`` instances.
+    """
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    logger.info("Deterministic mode enabled (seed=%d).", seed)
 
 
 class InferencePipeline:
@@ -66,11 +89,11 @@ class InferencePipeline:
 
     def predict(
         self,
-        pil_img: "Image.Image",
+        pil_img: Image.Image,
         filename: str,
         img_bytes: bytes | None = None,
         generate_mask: bool = True,
-    ) -> "Detection":
+    ) -> Detection:
         """Run the full pipeline. Returns a ``Detection`` with all fields populated.
 
         ``img_bytes`` is optional and only used for the rembg background mask

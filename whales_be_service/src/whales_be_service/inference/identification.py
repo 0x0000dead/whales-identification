@@ -126,6 +126,7 @@ class IdentificationModel:
         encoder_classes[idx] → species_map lookup.
         """
         import csv as _csv  # noqa: PLC0415
+
         import numpy as np  # noqa: PLC0415
         import timm  # noqa: PLC0415
         import torch  # noqa: PLC0415
@@ -168,7 +169,7 @@ class IdentificationModel:
         remap: dict = {}
         for k, v in sd.items():
             if k.startswith("model."):
-                remap["backbone." + k[len("model."):]] = v
+                remap["backbone." + k[len("model.") :]] = v
             elif k.startswith("embedding."):
                 remap[k] = v
             elif k == "arc.weight":
@@ -290,7 +291,7 @@ class IdentificationModel:
             self.fallback_ckpt.name,
         )
 
-    def predict(self, pil_img: "Image.Image") -> PredictionResult:
+    def predict(self, pil_img: Image.Image) -> PredictionResult:
         """Run inference on a PIL image and return ``PredictionResult``.
 
         First call lazily loads the model. Subsequent calls reuse whichever
@@ -305,7 +306,11 @@ class IdentificationModel:
         h, w = np_img.shape[:2]
 
         if self._mode == "resnet_fallback":
-            tensor = self._torchvision_transform(pil_img.convert("RGB")).unsqueeze(0).to(self._device)
+            tensor = (
+                self._torchvision_transform(pil_img.convert("RGB"))
+                .unsqueeze(0)
+                .to(self._device)
+            )
             with torch.no_grad():
                 logits = self._model(tensor)
                 probs = torch.softmax(logits, dim=1)[0]
@@ -319,7 +324,11 @@ class IdentificationModel:
             )
 
         if self._mode == "effb4_15k":
-            tensor = self._torchvision_transform(pil_img.convert("RGB")).unsqueeze(0).to(self._device)
+            tensor = (
+                self._torchvision_transform(pil_img.convert("RGB"))
+                .unsqueeze(0)
+                .to(self._device)
+            )
             n_active = len(self._id_list)
             with torch.no_grad():
                 logits = self._model(tensor)  # [1, 15587] cosine similarities
@@ -352,13 +361,15 @@ class IdentificationModel:
             bbox=[0, 0, w, h],
         )
 
-    def predict_array(self, np_img: "np.ndarray") -> PredictionResult:
+    def predict_array(self, np_img: np.ndarray) -> PredictionResult:
         """Convenience wrapper for code paths that already have a numpy image."""
         from PIL import Image  # noqa: PLC0415
 
         return self.predict(Image.fromarray(np_img))
 
-    def predict_topk(self, pil_img: "Image.Image", k: int = 5) -> list[tuple[str, str, float]]:
+    def predict_topk(
+        self, pil_img: Image.Image, k: int = 5
+    ) -> list[tuple[str, str, float]]:
         """Return top-k predictions as [(class_id, species, probability), ...].
 
         Only supported by the ``effb4_15k`` backend; returns a single-element
@@ -382,7 +393,9 @@ class IdentificationModel:
                 probs = torch.softmax(scaled, dim=1)[0]
                 top = probs.topk(min(k, n_active))
             results: list[tuple[str, str, float]] = []
-            for prob, idx in zip(top.values.tolist(), top.indices.tolist(), strict=False):
+            for prob, idx in zip(
+                top.values.tolist(), top.indices.tolist(), strict=False
+            ):
                 class_id = self._id_list[int(idx)]
                 species = self._id_to_name.get(class_id, class_id)
                 results.append((class_id, species, round(float(prob), 4)))
@@ -429,7 +442,9 @@ def _img_to_patch(x, patch: int, flat: bool = True):
     return x
 
 
-def _make_attention_block(embed_dim: int, hidden_dim: int, num_heads: int, dropout: float):
+def _make_attention_block(
+    embed_dim: int, hidden_dim: int, num_heads: int, dropout: float
+):
     import torch.nn as nn  # noqa: PLC0415
 
     class AttentionBlock(nn.Module):
@@ -488,9 +503,7 @@ class _VisionTransformer:
                     nn.Linear(embed_dim, num_classes),
                 )
                 self.cls_token = nn.Parameter(torch.randn(1, 1, embed_dim))
-                self.pos_emb = nn.Parameter(
-                    torch.randn(1, 1 + num_patches, embed_dim)
-                )
+                self.pos_emb = nn.Parameter(torch.randn(1, 1 + num_patches, embed_dim))
                 self.drop = nn.Dropout(dropout)
 
             def forward(self, x):

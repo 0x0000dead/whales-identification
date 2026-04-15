@@ -6,13 +6,20 @@ tests in ``tests/integration/test_metrics.py``).
 """
 
 import sys
-import types
 
 import pytest
 from PIL import Image
 
-from whales_be_service.inference.anti_fraud import AntiFraudGate, _load_calibrated_threshold
-from whales_be_service.inference.prompts import ALL_PROMPTS, NEGATIVE_PROMPTS, NUM_POSITIVE, POSITIVE_PROMPTS
+from whales_be_service.inference.anti_fraud import (
+    AntiFraudGate,
+    _load_calibrated_threshold,
+)
+from whales_be_service.inference.prompts import (
+    ALL_PROMPTS,
+    NEGATIVE_PROMPTS,
+    NUM_POSITIVE,
+    POSITIVE_PROMPTS,
+)
 
 
 class TestPromptsInventory:
@@ -59,6 +66,12 @@ class TestAntiFraudGateDegradedMode:
         results = gate.score_many(imgs)
         assert len(results) == 3
         assert all(r.is_cetacean for r in results)
+
+    def test_score_many_empty_list_in_degraded(self, monkeypatch):
+        monkeypatch.setitem(sys.modules, "open_clip", None)
+        gate = AntiFraudGate()
+        results = gate.score_many([])
+        assert results == []
 
 
 class TestCalibratedThresholdLoader:

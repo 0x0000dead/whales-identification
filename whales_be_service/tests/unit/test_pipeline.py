@@ -4,14 +4,17 @@ We stub both stages (anti-fraud gate and identification) so the test exercises
 the orchestration logic without touching torch or CLIP.
 """
 
-from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
 from PIL import Image
 
 from whales_be_service.inference.pipeline import InferencePipeline
-from whales_be_service.inference.schemas import GateResult, PredictionResult, RejectionReason
+from whales_be_service.inference.schemas import (
+    GateResult,
+    PredictionResult,
+    RejectionReason,
+)
 
 
 def _make_gate(is_cetacean: bool, pos: float = 0.85):
@@ -26,13 +29,18 @@ def _make_gate(is_cetacean: bool, pos: float = 0.85):
     return g
 
 
-def _make_ident(probability: float = 0.9, raise_on_load: bool = False, raise_on_predict: bool = False):
+def _make_ident(
+    probability: float = 0.9,
+    raise_on_load: bool = False,
+    raise_on_predict: bool = False,
+):
     i = MagicMock()
     i.model_version = "stub-effb4-v1"
 
     def _load():
         if raise_on_load:
             raise FileNotFoundError("weights missing")
+
     i._load.side_effect = _load
 
     def _predict(pil):
@@ -44,6 +52,7 @@ def _make_ident(probability: float = 0.9, raise_on_load: bool = False, raise_on_
             probability=probability,
             bbox=[0, 0, pil.width, pil.height],
         )
+
     i.predict.side_effect = _predict
     i.background_mask.return_value = "base64_mask_placeholder"
     return i
