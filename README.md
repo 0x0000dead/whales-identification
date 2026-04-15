@@ -19,7 +19,7 @@
 | Precision | **0.905** | ≥ 0.80 ✓ |
 | F1 | **0.927** | > 0.60 ✓ |
 | ROC-AUC | **0.984** | — |
-| Latency p95 | **519 ms** | ≤ 8000 ms ✓ |
+| Latency p95 | **298.87 ms** | ≤ 8000 ms ✓ |
 | Linear scalability | **R² = 1.000** | linear ✓ |
 | Noise robustness drop | **0.0%** | ≤ 20 % ✓ |
 

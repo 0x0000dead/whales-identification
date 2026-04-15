@@ -71,20 +71,20 @@ Linear regression on the four points:
 - R² = **1.000**
 
 Per-image HTTP round-trip latency on the same dataset
-(source: `reports/METRICS.md`, 202 timed samples):
+(source: `reports/metrics_latest.json`, 202 timed samples, CPU):
 
 | Percentile | Value (ms) |
 |------------|-----------:|
-| p50        | 484        |
-| p95        | 519        |
-| p99        | 597        |
-| mean       | 277        |
+| p50        | 174.16     |
+| p95        | 298.87     |
+| p99        | 416.73     |
+| mean       | 127.79     |
 
 **Interpretation.** A single backend pod processes one cetacean image in
-≈ 0.48 s with an R² of 1.0, confirming the linear time complexity required
-by **ТЗ Параметр 3**. The p95 of 0.52 s leaves a generous headroom below
-the 8 s ceiling — even under a 15× latency penalty from contention a
-single pod would still meet the SLA.
+≈ 128 ms mean / 299 ms p95 with an R² of 1.0, confirming the linear time
+complexity required by **ТЗ Параметр 3**. The p95 of 0.30 s leaves a
+~27× headroom below the 8 s ceiling — even under a 15× latency penalty
+from contention a single pod would still meet the SLA.
 
 ## 3. Results — HTTP load test (Locust, 50 RPS target)
 
@@ -114,7 +114,7 @@ numbers above can be reproduced or refreshed without editing this report.
 | ТЗ Параметр                       | Target                       | Evidence                                          | Met?   |
 |-----------------------------------|------------------------------|---------------------------------------------------|--------|
 | 3 — linear time complexity        | R² ≥ 0.99 on throughput data | §2 pipeline benchmark, R² = 1.000                 | yes    |
-| 3 — per-image latency             | ≤ 8 s for 1920×1080          | §2 HTTP p95 = 519 ms                              | yes    |
+| 3 — per-image latency             | ≤ 8 s for 1920×1080          | §2 HTTP p95 = 299 ms (production compute_metrics.py) | yes    |
 | 7 — availability                  | ≥ 95 % over 7 days            | `/metrics availability_percent`, continuous scrape | TBD // long-run |
 
 - Steady-state offline linearity is proven (§2).

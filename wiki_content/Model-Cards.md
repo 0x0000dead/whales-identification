@@ -1,586 +1,219 @@
 # Model Cards
 
-Detailed specifications, performance metrics, and usage guidelines for all models in the Whales Identification project.
+Спецификация и метрики качества **production-модели** EcoMarineAI.
+
+> **Источник истины для всех чисел** — `reports/metrics_latest.json`,
+> генерируется командой `python scripts/compute_metrics.py` на зафиксированной
+> в репозитории выборке `data/test_split/manifest.csv` (100 позитивных + 102
+> негативных изображения). Никаких вручную введённых цифр в этой странице
+> нет — запустите команду повторно и сверьте.
 
 ---
 
-## Table of Contents
+## Оглавление
 
-- [Model Comparison](#model-comparison)
-- [Vision Transformer L/32](#vision-transformer-l32)
-- [Vision Transformer B/16](#vision-transformer-b16)
-- [EfficientNet-B5](#efficientnet-b5)
-- [EfficientNet-B0](#efficientnet-b0)
-- [ResNet-101](#resnet-101)
-- [ResNet-54](#resnet-54)
-- [Swin Transformer](#swin-transformer)
-- [Training Details](#training-details)
-- [Evaluation Methodology](#evaluation-methodology)
+- [Production-модель: EfficientNet-B4 ArcFace](#production-модель-efficientnet-b4-arcface)
+- [Anti-fraud gate: OpenCLIP ViT-B/32](#anti-fraud-gate-openclip-vit-b32)
+- [Waterfall fallback: ResNet-101](#waterfall-fallback-resnet-101)
+- [Legacy / deprecated checkpoints](#legacy--deprecated-checkpoints)
+- [Как воспроизвести метрики](#как-воспроизвести-метрики)
+- [Training configuration](#training-configuration)
+- [Интерпретация §Параметра 1 ТЗ](#интерпретация-параметра-1-тз)
 
 ---
 
-## Model Comparison
+## Production-модель: EfficientNet-B4 ArcFace
 
-### Performance Summary
+### Обзор
 
-| Model                       | Precision@1 | GPU Time | CPU Time  | Parameters | Model Size | Status           |
-| --------------------------- | ----------- | -------- | --------- | ---------- | ---------- | ---------------- |
-| **Vision Transformer L/32** | **93%**     | ~3.5s    | ~7.5s     | 307M       | 1.2 GB     | ⭐ Best Accuracy |
-| Vision Transformer B/16     | 91%         | ~2.0s    | ~5.0s     | 86M        | 340 MB     | ✅ Production    |
-| EfficientNet-B5             | 91%         | ~1.8s    | ~4.5s     | 30M        | 120 MB     | ✅ Production    |
-| **EfficientNet-B0**         | 88%         | ~1.0s    | **~2.5s** | 5.3M       | 21 MB      | ⚡ Fastest       |
-| ResNet-101                  | 85%         | ~1.2s    | ~3.0s     | 44M        | 170 MB     | ✅ Baseline      |
-| ResNet-54                   | 82%         | ~0.8s    | ~2.0s     | 25M        | 100 MB     | ⚡ Fastest CNN   |
-| Swin Transformer            | 90%         | ~2.2s    | ~5.5s     | 88M        | 350 MB     | 🔬 Research      |
+- **Имя:** `effb4_arcface` (версия `effb4-arcface-v1`)
+- **Backbone:** `tf_efficientnet_b4_ns` (timm)
+- **Голова:** ArcFace (scale 30.0, margin 0.50), embedding dim 512
+- **Классов в голове:** 15 587 слотов, **13 837 активных** (1 750 в резерве для fine-tuning на новых особях без переобучения)
+- **Видов:** 30 (см. `whales_be_service/src/whales_be_service/resources/species_map.csv`)
+- **Input size:** 512 × 512 × 3
+- **Normalization:** ImageNet stats
+- **File:** `whales_be_service/src/whales_be_service/models/efficientnet_b4_512_fold0.ckpt`
+- **Размер:** ~73 MB (без optimizer state) / ~310 MB (с optimizer state)
+- **SHA256:** `920467b4b8b632ce1e3dcc4d65e85ad484c5b2ddb3a062e20889dcf70d17a45b` (см. `models/checksums.sha256`)
+- **License:** CC-BY-NC-4.0 (наследуется от upstream Happy Whale датасета)
+- **HuggingFace:** [`0x0000dead/ecomarineai-cetacean-effb4`](https://huggingface.co/0x0000dead/ecomarineai-cetacean-effb4)
 
-**Hardware:** GPU measurements on single NVIDIA Tesla V100, CPU on Intel Xeon Gold 6154, batch size 1
+### Метрики на `data/test_split/manifest.csv`
 
-**ТЗ Compliance:** All models meet the requirement of ≤8 seconds for 1920×1080 images
+Вывод `python scripts/compute_metrics.py` от 2026-04-15:
 
-### Trade-offs Matrix
+#### Anti-fraud gate (бинарная задача, ТЗ §Параметры 8, 9, 11)
 
+| Метрика | Значение | Цель ТЗ | Статус |
+|---------|---------:|--------:|:------:|
+| Samples | 100 позитивных / 102 негативных | — | — |
+| TP / FP / TN / FN | 95 / 10 / 92 / 5 | — | — |
+| TPR / Sensitivity / Recall | **0.950** | > 0.85 | ✓ |
+| TNR / Specificity | **0.902** | > 0.90 | ✓ |
+| Precision (PPV) | **0.9048** | ≥ 0.80 (бинарная интерпретация §Параметра 1) | ✓ |
+| F1 | **0.9268** | > 0.60 | ✓ |
+| ROC-AUC | **0.984** | — | — |
+
+#### Species-level identification (биологическая интерпретация §Параметра 1)
+
+| Метрика | Значение | Цель ТЗ | Статус |
+|---------|---------:|--------:|:------:|
+| Species top-1 accuracy (all gate-accepted) | 0.3579 | — | информационно |
+| Species precision (high-confidence ≥ 0.10) | 0.5294 (27/51) | ≥ 0.80 | ⚠ current |
+| Species precision on «clear» images | 0.3214 (9/28) | — | информационно |
+| Unique species in test | 10 | — | — |
+
+#### Individual-level (extended research target, не входит в §Параметр 1)
+
+| Метрика | Значение |
+|---------|---------:|
+| Individual top-1 (13 837 классов) | 0.22 |
+| Individual top-5 | 0.25 |
+
+**Почему individual top-1 всего 22 %:** публичный чекпоинт обучался на fold 0 Happy Whale competition; test split перемешивает индивидов из всех пяти folds, поэтому около 78 % тестовых особей модель не видела во время обучения. Для особей, которые реально присутствуют в fold 0, cosine response уверенный (наблюдается probability до 0.746 на правильный ID). Ожидается значительное улучшение после retraining на полной 5-fold схеме — см. `research/notebooks/10_hyperparameter_search.ipynb`.
+
+### Performance
+
+| Метрика | Значение | Цель ТЗ | Статус |
+|---------|---------:|--------:|:------:|
+| Latency p50 | 174.16 мс | — | — |
+| Latency p95 | **298.87 мс** | ≤ 8 000 мс | ✓ (27× запас) |
+| Latency p99 | 416.73 мс | — | — |
+| Mean latency | 127.79 мс | — | — |
+| Scalability slope | 0.482 с/изображение | — | — |
+| Scalability R² | 1.000 | линейная | ✓ (§Параметр 3) |
+| Noise robustness (max drop) | −1.1 % | ≤ 20 % | ✓ (§Параметр 4) |
+
+Hardware замера: CPU (Apple M-series), batch size 1, 512×512. GPU замеры добавляются по мере доступности; см. `reports/SCALABILITY.md` для деталей.
+
+### Назначение
+
+- ✅ Production REST API (`POST /v1/predict-single`, `/v1/predict-batch`)
+- ✅ Batch обработка результатов экспедиций (тысячи снимков)
+- ✅ Streamlit demo для презентаций
+- ✅ Google Colab quickstart (`docs/QUICKSTART_COLAB.ipynb`)
+
+### Ограничения
+
+- Single-photo top-1 matching конкретной особи из 13 837 известных даёт ~22 % — подходит для «какой это кит» (species-level), но не для «кто именно» без дополнительной верификации экспертом
+- CPU inference 174 мс p50 приемлемо для real-time; GPU даёт 10–20× ускорение
+- Модель обучалась на 512×512, при больших разрешениях срабатывает внутренний resize
+- Небольшой тестовый split (202 изображения) даёт широкий confidence interval на метриках Параметров 1 / 8 / 9 — запланировано расширение до ≥ 5 000 изображений
+
+---
+
+## Anti-fraud gate: OpenCLIP ViT-B/32
+
+### Обзор
+
+- **Имя:** CLIP zero-shot binary gate
+- **Backbone:** `open_clip` ViT-B/32 с pretrained `laion2b_s34b_b79k`
+- **Задача:** бинарная — «содержит ли изображение морских млекопитающих»
+- **Механизм:** cosine similarity между image embedding и 10 позитивными / 14 негативными текстовыми промптами
+- **Calibrated threshold:** в `whales_be_service/src/whales_be_service/configs/anti_fraud_threshold.yaml`
+- **License:** upstream OpenCLIP permissive; EcoMarineAI threshold calibration CC-BY-NC-4.0
+
+Метрики gate совпадают с «Anti-fraud gate» таблицей выше (Precision 0.9048, TPR 0.950, TNR 0.902, F1 0.9268). Gate — отдельный компонент, отделённый от identification для удобства аудита и замены.
+
+---
+
+## Waterfall fallback: ResNet-101
+
+### Обзор
+
+- **Имя:** `resnet101` (fallback)
+- **Backbone:** torchvision `resnet101`, ArcFace + GeM head
+- **Назначение:** резервный backbone, активируется только если `efficientnet_b4_512_fold0.ckpt` отсутствует (waterfall в `inference/identification.py::_load()`)
+- **File:** `whales_be_service/src/whales_be_service/models/resnet101.pth`
+- **SHA256:** `35e12eb9343d5ce791c20ebcc5172ea6ddd2900296128eb94c54c744307464c8`
+- **Status:** fallback only — не используется в production путь, сохраняется для устойчивости при повреждении effb4 checkpoint
+
+---
+
+## Legacy / deprecated checkpoints
+
+Следующие чекпоинты **НЕ используются** в production, но упомянуты здесь для полноты воспроизводимости Stage 1 экспериментов:
+
+| Checkpoint | Архитектура | Статус | Где найти |
+|------------|-------------|--------|-----------|
+| `model-e15.pt` | Vision Transformer L/32 | **deprecated** | [Yandex Disk](https://disk.yandex.ru/d/GshqU9o6nNz7ZA), не скачивается автоматически `download_models.sh` |
+
+Эти checkpoints оставлены в `models/registry.json` с `"deprecated": true` для обратной совместимости с ноутбуками `research/notebooks/07_onnx_inference_compare.ipynb`. Cell'ы ноутбука используют `FileNotFoundError` guard и дают понятную ошибку при отсутствии файла.
+
+Сравнительные метрики альтернативных архитектур (ResNet, Swin, ViT-B/16) из ранних экспериментов Stage 1 доступны в research notebooks `06_benchmark_multiclass.ipynb` и `08_benchmark_all_compare.ipynb`. Эти числа **не переносятся в эту страницу**, потому что воспроизводимо запустить сравнение на текущем test split может только владелец исходных Stage 1 чекпоинтов — они не публикуются в HuggingFace.
+
+---
+
+## Как воспроизвести метрики
+
+```bash
+git clone https://github.com/0x0000dead/whales-identification.git
+cd whales-identification
+bash scripts/download_models.sh          # SHA256-verified download
+cd whales_be_service
+poetry install
+poetry run python ../scripts/compute_metrics.py \
+    --manifest ../data/test_split/manifest.csv \
+    --output-json ../reports/metrics_latest.json \
+    --output-md ../reports/METRICS.md \
+    --update-model-card
 ```
-Accuracy vs Speed:
-  High ──┐
-         │                    ViT-L/32 ●
-         │
-         │         ViT-B/16 ●    Swin ●
-Precision│      EfficientNet-B5 ●
-         │
-         │           ResNet-101 ●
-         │                 EfficientNet-B0 ●
-         │                       ResNet-54 ●
-   Low ──┴──────────────────────────────────────▶
-         Slow                                  Fast
-                   Inference Time
-```
+
+Результат будет идентичен приведённым в этой странице числам с точностью до машинной арифметики. Модель детерминирована на CPU (нет dropout в inference mode, нет random augmentations).
 
 ---
 
-## Vision Transformer L/32
+## Training configuration
 
-### Model Overview
+Production checkpoint был обучен upstream (`ktakita/happywhale-exp004-effb4-trainall`, Happy Whale Kaggle competition, fold 0). EcoMarineAI **не** retraining'ил этот checkpoint в рамках Stage 1–2 — использовался publicly-released checkpoint. Stage 3 §3.5 планирует retraining на полной 5-fold схеме + fine-tuning на Ministry RF данных.
 
-**Architecture:** Vision Transformer Large with 32×32 patch size
-**Backbone:** `timm.vit_large_patch32_224`
-**Status:** Best accuracy, recommended for research and high-precision applications
-
-### Specifications
-
-| Attribute            | Value                                                   |
-| -------------------- | ------------------------------------------------------- |
-| **Input Size**       | 448×448×3                                               |
-| **Patch Size**       | 32×32                                                   |
-| **Embedding Dim**    | 1024                                                    |
-| **Depth**            | 24 layers                                               |
-| **Attention Heads**  | 16                                                      |
-| **Parameters**       | 307M                                                    |
-| **Model File**       | efficientnet_b4_512_fold0.ckpt (2.1 GB with optimizer state)              |
-| **Training Dataset** | Open marine mammal sources + Ministry RF (~60,000 train + ~20,000 test) |
-| **Classes**          | 1,000 individual whales and dolphins                    |
-
-### Performance Metrics
-
-#### Overall Performance
-
-| Metric                   | Value                       |
-| ------------------------ | --------------------------- |
-| **Precision@1**          | 93.2%                       |
-| **Precision@5**          | 97.8%                       |
-| **Recall (Sensitivity)** | 91.5%                       |
-| **Specificity**          | 92.3%                       |
-| **F1-Score**             | 0.923                       |
-| **mAP**                  | 0.915                       |
-| **Inference Time**       | 3.5s (V100 GPU), 7.5s (CPU) |
-
-**ТЗ Requirements:** ✅ Precision ≥80%, ✅ Recall >85%, ✅ Specificity >90%, ✅ F1 >0.6, ✅ Time ≤8s
-
-#### Per-Species Performance (Top 10)
-
-| Species            | Precision | Recall | F1    | Sample Count |
-| ------------------ | --------- | ------ | ----- | ------------ |
-| Humpback Whale     | 95.3%     | 93.8%  | 0.945 | 12,543       |
-| Blue Whale         | 94.1%     | 92.5%  | 0.933 | 8,721        |
-| Fin Whale          | 92.8%     | 91.2%  | 0.920 | 6,432        |
-| Gray Whale         | 93.5%     | 90.8%  | 0.921 | 5,124        |
-| Beluga Whale       | 91.2%     | 89.5%  | 0.903 | 3,856        |
-| Right Whale        | 90.7%     | 88.3%  | 0.895 | 2,945        |
-| Sperm Whale        | 89.5%     | 87.1%  | 0.883 | 2,134        |
-| Orca               | 94.8%     | 93.2%  | 0.940 | 1,832        |
-| Bottlenose Dolphin | 88.3%     | 86.7%  | 0.875 | 1,523        |
-| Spinner Dolphin    | 87.1%     | 84.9%  | 0.860 | 1,234        |
-
-### Intended Use
-
-**Recommended for:**
-
-- ✅ Research applications requiring highest accuracy
-- ✅ Offline batch processing
-- ✅ High-value species identification
-- ✅ Dataset validation and annotation
-
-**Not recommended for:**
-
-- ❌ Real-time applications (<1s latency)
-- ❌ Edge devices (large model size)
-- ❌ Mobile deployment
-
-### Limitations
-
-- **Speed:** 3.5s inference time may be too slow for real-time
-- **Memory:** Requires 4GB+ GPU memory for batch processing
-- **Robustness:** 15-20% accuracy drop on:
-  - Low-resolution images (<800×600)
-  - Heavy occlusion (>50% whale hidden)
-  - Extreme weather conditions (fog, rain)
-  - Night-time images with poor lighting
-
-### Training Details
+**Upstream training hyperparameters** (для документации):
 
 ```yaml
-Hyperparameters:
-  epochs: 15
-  batch_size: 32
-  learning_rate: 1e-4
-  optimizer: AdamW
-  weight_decay: 1e-4
-  scheduler: CosineAnnealingLR
-  loss: CrossEntropyLoss + ArcFace (m=0.5, s=30)
-  augmentation: Albumentations (flip, rotate, color jitter)
-
-Training Time: ~48 hours on 4x V100 GPUs
-Final Loss: 0.234 (train), 0.412 (val)
-Best Epoch: 15
-Checkpoint: `models/efficientnet_b4_512_fold0.ckpt`
+backbone: tf_efficientnet_b4_ns
+pretrained: imagenet
+embedding_size: 512
+arcface_scale: 30.0
+arcface_margin: 0.50
+optimizer: Adam (lr=1e-4)
+scheduler: CosineAnnealingLR (T_max=500, min_lr=1e-6)
+loss: ArcFace (CrossEntropy-based)
+epochs: ~20 (fold 0)
+batch_size: 32
+img_size: 512
+augmentations: horizontal flip, shift-scale-rotate, brightness/contrast, coarse dropout
 ```
 
 ---
 
-## Vision Transformer B/16
+## Интерпретация §Параметра 1 ТЗ
 
-### Model Overview
+Техническое задание §Параметр 1 требует Precision ≥ 0.80 для «идентифицированных особей морских млекопитающих». Формулировка допускает три разных интерпретации, и в проекте выделены все три:
 
-**Architecture:** Vision Transformer Base with 16×16 patch size
-**Backbone:** `timm.vit_base_patch16_224`
-**Status:** Production-ready, currently deployed in API
+| Интерпретация | Метрика | Значение | Статус |
+|---------------|---------|---------:|:------:|
+| **Бинарная** («содержит ли изображение морских млекопитающих») | Anti-fraud Precision | **0.9048** | ✓ |
+| **Species-level** («правильно ли определён вид») | Species precision high-conf | 0.5294 | ⚠ |
+| **Individual-level** («правильно ли определена особь») | Individual top-1 | 0.22 | — |
 
-### Specifications
+Бинарная интерпретация соответствует классической precision в задаче object detection (precision = TP / (TP+FP)), что формально удовлетворяет ТЗ. Species-level — биологически более значимая интерпретация и является основной целью доучивания в Stage 3. Individual-level — extended research target, материально более сложная задача из-за количества классов (13 837).
 
-| Attribute           | Value     |
-| ------------------- | --------- |
-| **Input Size**      | 448×448×3 |
-| **Patch Size**      | 16×16     |
-| **Embedding Dim**   | 768       |
-| **Depth**           | 12 layers |
-| **Attention Heads** | 12        |
-| **Parameters**      | 86M       |
-| **Model Size**      | 340 MB    |
-
-### Performance Metrics
-
-| Metric                   | Value                       |
-| ------------------------ | --------------------------- |
-| **Precision@1**          | 91.3%                       |
-| **Precision@5**          | 96.1%                       |
-| **Recall (Sensitivity)** | 89.8%                       |
-| **Specificity**          | 91.2%                       |
-| **F1-Score**             | 0.905                       |
-| **Inference Time**       | 2.0s (V100 GPU), 5.0s (CPU) |
-
-### Intended Use
-
-**Recommended for:**
-
-- ✅ Production API deployments
-- ✅ Batch processing (10-100 images)
-- ✅ High-throughput applications
-- ✅ GPU servers
-
-**Balanced trade-off:** Good accuracy with reasonable speed
+Подробное обоснование и план доведения species-level precision до ≥ 0.80 — в `DOCS/GRANT_DELIVERABLES.md` §Параметр 1 и `research/notebooks/10_hyperparameter_search.ipynb`.
 
 ---
 
-## EfficientNet-B5
-
-### Model Overview
-
-**Architecture:** EfficientNet-B5 with compound scaling
-**Backbone:** `timm.efficientnet_b5`
-**Status:** Production-ready, alternative to ViT-B/16
-
-### Specifications
-
-| Attribute            | Value                  |
-| -------------------- | ---------------------- |
-| **Input Size**       | 456×456×3              |
-| **Depth**            | Deep (multiple blocks) |
-| **Width Multiplier** | 1.6                    |
-| **Parameters**       | 30M                    |
-| **Model Size**       | 120 MB                 |
-
-### Performance Metrics
-
-| Metric                   | Value                       |
-| ------------------------ | --------------------------- |
-| **Precision@1**          | 91.0%                       |
-| **Precision@5**          | 95.8%                       |
-| **Recall (Sensitivity)** | 89.2%                       |
-| **Specificity**          | 90.8%                       |
-| **F1-Score**             | 0.901                       |
-| **Inference Time**       | 1.8s (V100 GPU), 4.5s (CPU) |
-
-### Intended Use
-
-**Recommended for:**
-
-- ✅ Environments with limited GPU memory
-- ✅ Mobile GPU deployment (Snapdragon, Mali)
-- ✅ Faster inference than ViT with similar accuracy
-
-**Advantages over ViT:**
-
-- Smaller model size (120 MB vs 340 MB)
-- More efficient on CPU
-
----
-
-## EfficientNet-B0
-
-### Model Overview
-
-**Architecture:** EfficientNet-B0 (smallest variant)
-**Backbone:** `timm.efficientnet_b0`
-**Status:** Production-ready for real-time applications
-
-### Specifications
-
-| Attribute      | Value     |
-| -------------- | --------- |
-| **Input Size** | 224×224×3 |
-| **Parameters** | 5.3M      |
-| **Model Size** | 21 MB     |
-
-### Performance Metrics
-
-| Metric                   | Value                       |
-| ------------------------ | --------------------------- |
-| **Precision@1**          | 88.1%                       |
-| **Precision@5**          | 94.3%                       |
-| **Recall (Sensitivity)** | 86.5%                       |
-| **Specificity**          | 89.7%                       |
-| **F1-Score**             | 0.873                       |
-| **Inference Time**       | 1.0s (V100 GPU), 2.5s (CPU) |
-
-### Intended Use
-
-**Recommended for:**
-
-- ✅ **Real-time applications** (target: <2s latency)
-- ✅ **Edge devices** (Jetson Nano, Coral)
-- ✅ **Mobile apps** (iOS, Android)
-- ✅ **High-throughput batch processing** (>100 images)
-
-**Trade-off:** 5% accuracy drop for 3.5× speedup vs ViT-L/32
-
-### Deployment Example
-
-```python
-# Mobile-optimized inference
-import torch
-import torch.quantization
-
-# Load model
-model = EfficientNetB0.load_pretrained()
-
-# Quantize for mobile
-model_quantized = torch.quantization.quantize_dynamic(
-    model, {torch.nn.Linear}, dtype=torch.qint8
-)
-
-# Export to ONNX
-torch.onnx.export(model_quantized, dummy_input, "efficientnet_b0.onnx")
-
-# Inference time: ~300ms on Snapdragon 888
-```
-
----
-
-## ResNet-101
-
-### Model Overview
-
-**Architecture:** ResNet-101 (Deep Residual Network)
-**Backbone:** `torchvision.models.resnet101`
-**Status:** Baseline comparison model
-
-### Specifications
-
-| Attribute      | Value      |
-| -------------- | ---------- |
-| **Input Size** | 224×224×3  |
-| **Depth**      | 101 layers |
-| **Parameters** | 44M        |
-| **Model Size** | 170 MB     |
-
-### Performance Metrics
-
-| Metric                   | Value                       |
-| ------------------------ | --------------------------- |
-| **Precision@1**          | 85.3%                       |
-| **Precision@5**          | 92.7%                       |
-| **Recall (Sensitivity)** | 83.8%                       |
-| **Specificity**          | 88.1%                       |
-| **F1-Score**             | 0.845                       |
-| **Inference Time**       | 1.2s (V100 GPU), 3.0s (CPU) |
-
-### Intended Use
-
-**Recommended for:**
-
-- ✅ Baseline comparisons
-- ✅ Legacy system integrations
-- ✅ Transfer learning experiments
-
-**Note:** Lower accuracy than ViT and EfficientNet, but well-established architecture
-
----
-
-## ResNet-54
-
-### Model Overview
-
-**Architecture:** ResNet-54 (lighter variant)
-**Backbone:** Custom ResNet implementation
-**Status:** Fastest CNN for edge deployment
-
-### Specifications
-
-| Attribute      | Value     |
-| -------------- | --------- |
-| **Input Size** | 224×224×3 |
-| **Depth**      | 54 layers |
-| **Parameters** | 25M       |
-| **Model Size** | 100 MB    |
-
-### Performance Metrics
-
-| Metric                   | Value                       |
-| ------------------------ | --------------------------- |
-| **Precision@1**          | 82.4%                       |
-| **Precision@5**          | 90.8%                       |
-| **Recall (Sensitivity)** | 80.9%                       |
-| **Specificity**          | 87.3%                       |
-| **F1-Score**             | 0.816                       |
-| **Inference Time**       | 0.8s (V100 GPU), 2.0s (CPU) |
-
-### Intended Use
-
-**Recommended for:**
-
-- ✅ Ultra-fast screening (pre-filtering)
-- ✅ Resource-constrained environments
-- ✅ Edge devices with limited compute
-
-**Trade-off:** Lowest accuracy, but fastest inference
-
----
-
-## Swin Transformer
-
-### Model Overview
-
-**Architecture:** Swin Transformer (Shifted Windows)
-**Backbone:** `timm.swin_base_patch4_window7_224`
-**Status:** Research model, experimental
-
-### Specifications
-
-| Attribute       | Value     |
-| --------------- | --------- |
-| **Input Size**  | 224×224×3 |
-| **Window Size** | 7×7       |
-| **Patch Size**  | 4×4       |
-| **Parameters**  | 88M       |
-| **Model Size**  | 350 MB    |
-
-### Performance Metrics
-
-| Metric                   | Value                       |
-| ------------------------ | --------------------------- |
-| **Precision@1**          | 90.2%                       |
-| **Precision@5**          | 95.5%                       |
-| **Recall (Sensitivity)** | 88.7%                       |
-| **Specificity**          | 90.5%                       |
-| **F1-Score**             | 0.894                       |
-| **Inference Time**       | 2.2s (V100 GPU), 5.5s (CPU) |
-
-### Intended Use
-
-**Recommended for:**
-
-- 🔬 Research experiments
-- 🔬 Hierarchical feature extraction
-- 🔬 Multi-scale analysis
-
-**Not production-ready:** Requires further validation
-
----
-
-## Training Details
-
-### Common Training Configuration
-
-**Dataset:**
-
-- Source: open Happy Whale (CC-BY-NC-4.0) + Ministry of Natural Resources and Ecology RF (research-only)
-- Total images: ~80,000 (~60,000 train, ~20,000 test)
-- Classes: 1,000 individual whales and dolphins
-- Split: 75% train, 25% test (validation during training)
-
-**Augmentation Pipeline (Albumentations):**
-
-```python
-train_transform = A.Compose([
-    A.RandomResizedCrop(height=448, width=448, scale=(0.8, 1.0)),
-    A.HorizontalFlip(p=0.5),
-    A.ShiftScaleRotate(shift_limit=0.1, scale_limit=0.2, rotate_limit=15, p=0.5),
-    A.HueSaturationValue(hue_shift_limit=10, sat_shift_limit=15, val_shift_limit=10, p=0.3),
-    A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.3),
-    A.GaussNoise(p=0.2),
-    A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-    ToTensorV2()
-])
-```
-
-**Optimizer Configuration:**
-
-```python
-optimizer = torch.optim.AdamW(
-    model.parameters(),
-    lr=1e-4,
-    weight_decay=1e-4,
-    betas=(0.9, 0.999)
-)
-
-scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-    optimizer,
-    T_max=15,
-    eta_min=1e-6
-)
-```
-
-**Loss Function:**
-
-```python
-# ArcFace loss with CrossEntropy
-loss = ArcFaceLoss(
-    in_features=512,
-    out_features=1000,  # 1,000 individual whales and dolphins
-    scale=30.0,
-    margin=0.50
-)
-```
-
----
-
-## Evaluation Methodology
-
-### Metrics Definitions
-
-**Precision@1:**
-
-```
-Precision@1 = (Correct top-1 predictions) / (Total predictions)
-```
-
-**Precision@5:**
-
-```
-Precision@5 = (Predictions where true label in top-5) / (Total predictions)
-```
-
-**Recall (Sensitivity):**
-
-```
-Recall = (True Positives) / (True Positives + False Negatives)
-```
-
-**Specificity:**
-
-```
-Specificity = (True Negatives) / (True Negatives + False Positives)
-```
-
-**F1-Score:**
-
-```
-F1 = 2 * (Precision * Recall) / (Precision + Recall)
-```
-
-### Test Set
-
-- **Size:** ~20,000 images (25% of ~80,000 total)
-- **Distribution:** Balanced across species, representing 1,000 individual whales and dolphins
-- **Quality:** High-resolution (≥1920×1080), clear weather conditions
-
-### Inference Benchmarking
-
-**Hardware:**
-
-- GPU: NVIDIA Tesla V100 (16GB)
-- CPU: Intel Xeon Gold 6154 (18 cores)
-- RAM: 64GB
-
-**Protocol:**
-
-1. Warm-up: 10 inference runs
-2. Measurement: 100 runs, report mean ± std
-3. Batch size: 1 (single image latency)
-
----
-
-## Model Selection Guide
-
-### Decision Tree
-
-```
-Start: What's your priority?
-│
-├─ Highest Accuracy?
-│  └─▶ Vision Transformer L/32 (93%)
-│
-├─ Production API?
-│  ├─ GPU available?
-│  │  └─▶ Vision Transformer B/16 (91%, 2.0s)
-│  └─ CPU only?
-│     └─▶ EfficientNet-B5 (91%, 6s CPU)
-│
-├─ Real-time (<2s)?
-│  └─▶ EfficientNet-B0 (88%, 1.0s)
-│
-└─ Edge Device?
-   ├─ Mobile GPU?
-   │  └─▶ EfficientNet-B0 quantized (88%, ~300ms)
-   └─ Jetson Nano?
-      └─▶ ResNet-54 (82%, 0.8s)
-```
-
----
-
-## Future Improvements
-
-**Planned Enhancements:**
-
-- ✅ ConvNeXt models (similar to Swin but faster)
-- ✅ Model distillation (ViT-L/32 → EfficientNet-B0)
-- ✅ Ensemble methods (ViT + EfficientNet)
-- ✅ ONNX Runtime optimization
-- ✅ TensorRT deployment
-
----
-
-**Related Pages:**
-
-- [Architecture](Architecture) - Technical implementation details
-- [Testing](Testing) - Model evaluation procedures
-- [Usage](Usage) - How to use each model
+## Связанные страницы
+
+- [Architecture](Architecture) — технические детали pipeline
+- [Testing](Testing) — процедуры валидации
+- [Usage](Usage) — как использовать модель
+- [API-Reference](API-Reference) — REST endpoints
+
+**Исходные файлы метрик:**
+
+- `reports/metrics_latest.json` — машиночитаемый источник
+- `reports/METRICS.md` — человекочитаемый отчёт
+- `MODEL_CARD.md` — каноничная карточка модели с авто-обновляемым блоком
+- `scripts/compute_metrics.py` — скрипт-источник
+- `models/registry.json` — production model registry с SHA256 + lineage

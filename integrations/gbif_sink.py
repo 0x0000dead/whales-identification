@@ -109,7 +109,7 @@ class GBIFSink:
         if count < 1:
             raise ValueError(f"count must be >= 1, got {count}")
 
-        if isinstance(observed_on, (datetime, date)):
+        if isinstance(observed_on, datetime | date):
             event_date = observed_on.isoformat()
         else:
             event_date = str(observed_on)

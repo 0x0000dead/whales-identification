@@ -36,10 +36,10 @@ import logging
 import statistics
 import sys
 import time
+from collections.abc import Iterable
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Iterable
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_MANIFEST = REPO_ROOT / "data" / "test_split" / "manifest.csv"
@@ -281,7 +281,9 @@ def run(
 ) -> MetricsReport:
     """Programmatic entry point used by tests and CLI."""
     sys.path.insert(0, str(REPO_ROOT / "whales_be_service" / "src"))
-    from whales_be_service.inference import get_pipeline  # type: ignore  # noqa: PLC0415
+    from whales_be_service.inference import (
+        get_pipeline,  # type: ignore  # noqa: PLC0415
+    )
 
     rows = _load_manifest(manifest, sample_size)
     if not rows:
@@ -291,7 +293,7 @@ def run(
     pipeline.warmup()
 
     report = MetricsReport(
-        generated_at=datetime.now(timezone.utc).isoformat(),
+        generated_at=datetime.now(UTC).isoformat(),
         manifest_path=str(manifest.relative_to(REPO_ROOT)),
         sample_size=len(rows),
         model_version=pipeline.model_version,

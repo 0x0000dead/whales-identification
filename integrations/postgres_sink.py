@@ -29,7 +29,7 @@ from __future__ import annotations
 
 import argparse
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -105,7 +105,7 @@ def run(directory: Path, dsn: str) -> int:
                         probability, bbox, model_version)
                        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
                     (
-                        datetime.now(timezone.utc),
+                        datetime.now(UTC),
                         det.image_ind,
                         det.rejected,
                         det.rejection_reason,
