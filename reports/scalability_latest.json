@@ -1,0 +1,29 @@
+{
+  "points": [
+    {
+      "n": 5,
+      "total_s": 2.5497,
+      "per_image_s": 0.5099
+    },
+    {
+      "n": 10,
+      "total_s": 5.1292,
+      "per_image_s": 0.5129
+    },
+    {
+      "n": 20,
+      "total_s": 10.3924,
+      "per_image_s": 0.5196
+    },
+    {
+      "n": 30,
+      "total_s": 14.8035,
+      "per_image_s": 0.4934
+    }
+  ],
+  "regression": {
+    "slope_s_per_image": 0.493,
+    "intercept_s": 0.2081,
+    "r_squared": 0.9982
+  }
+}

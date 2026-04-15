@@ -43,39 +43,34 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 # Copy source code
 COPY src ./src
 
-# --- ML assets the service needs at runtime ---
-# These were missing from the previous image, which is why "real" inference
-# never worked in Docker. Both paths are referenced by inference/identification.py
-# and inference/anti_fraud.py.
-ARG MODEL_DOWNLOAD_URL=""
-ARG HF_REPO="baltsat/Whales-Identification"
-ARG HF_MODEL_FILE="resnet101.pth"
-
-# Resources directory contains database.csv (individual_id → species mapping).
-# Anti-fraud configs are also under src/whales_be_service/configs/.
+# Resources directory holds database.csv and species_map.csv; configs holds
+# calibrated anti-fraud thresholds. Created empty — docker-entrypoint.sh
+# populates them from Hugging Face on first boot.
 RUN mkdir -p src/whales_be_service/resources \
  && mkdir -p src/whales_be_service/models \
- && mkdir -p src/whales_be_service/configs
+ && mkdir -p src/whales_be_service/configs \
+ && mkdir -p reports
 
-# If a direct download URL is supplied at build time, fetch it; otherwise leave
-# the model directory empty and let the service start with the gate-only path
-# (the API will return cetacean classifications without individual ID).
-RUN if [ -n "$MODEL_DOWNLOAD_URL" ]; then \
-      curl -fsSL "$MODEL_DOWNLOAD_URL" -o src/whales_be_service/models/model-e15.pt; \
-    fi
+# Entrypoint that fetches model weights from HF on first boot if missing,
+# then launches uvicorn. Makes `docker compose up` Just Work without any
+# host-side `scripts/download_models.sh` dance.
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 
-# Create non-root user
+# Create non-root user and grant write access to the dirs the entrypoint
+# downloads into.
 RUN groupadd -r appuser && useradd -r -g appuser -d /app appuser \
  && chown -R appuser:appuser /app
 USER appuser
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app/src \
-    ALLOWED_ORIGINS="*"
+    ALLOWED_ORIGINS="*" \
+    HF_REPO="0x0000dead/ecomarineai-cetacean-effb4"
 
 EXPOSE 8000
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=30s --start-period=300s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
 
-CMD ["python", "-m", "uvicorn", "whales_be_service.main:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
