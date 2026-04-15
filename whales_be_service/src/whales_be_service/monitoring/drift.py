@@ -48,7 +48,7 @@ class DriftMonitor:
             with self._lock:
                 self._alarms_total += 1
             logger.warning(
-                "Drift detected: rolling mean cetacean_score=%.4f, baseline=%.4f (drop>%.2f)",
+                "Drift detected: rolling mean=%.4f, baseline=%.4f (drop>%.2f)",
                 current,
                 self.baseline_mean,
                 self.alarm_drop,

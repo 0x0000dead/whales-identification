@@ -42,12 +42,18 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 app = FastAPI(
     title="EcoMarineAI Identification API",
     version="1.1.0",
-    description="Идентификация морских млекопитающих по аэрофотоснимкам с CLIP-антифрод гейтом.",
+    description=(
+        "Идентификация морских млекопитающих по аэрофотоснимкам"
+        " с CLIP-антифрод гейтом."
+    ),
     lifespan=lifespan,
 )
 
 
-_default_origins = "http://localhost:5173,http://localhost:8080,http://127.0.0.1:5173,http://127.0.0.1:8080"
+_default_origins = (
+    "http://localhost:5173,http://localhost:8080,"
+    "http://127.0.0.1:5173,http://127.0.0.1:8080"
+)
 _allowed_origins = [
     origin.strip()
     for origin in os.environ.get("ALLOWED_ORIGINS", _default_origins).split(",")
