@@ -1,0 +1,34 @@
+{
+  "clean": {
+    "accepted": 29,
+    "total": 30,
+    "accept_rate": 0.9667,
+    "mean_cetacean_score": 0.958,
+    "drop_vs_clean": 0.0,
+    "passes_20pct_target": true
+  },
+  "gaussian_sigma25": {
+    "accepted": 27,
+    "total": 30,
+    "accept_rate": 0.9,
+    "mean_cetacean_score": 0.8655,
+    "drop_vs_clean": 0.069,
+    "passes_20pct_target": true
+  },
+  "jpeg_q20": {
+    "accepted": 29,
+    "total": 30,
+    "accept_rate": 0.9667,
+    "mean_cetacean_score": 0.93,
+    "drop_vs_clean": 0.0,
+    "passes_20pct_target": true
+  },
+  "blur_r4": {
+    "accepted": 27,
+    "total": 30,
+    "accept_rate": 0.9,
+    "mean_cetacean_score": 0.8832,
+    "drop_vs_clean": 0.069,
+    "passes_20pct_target": true
+  }
+}

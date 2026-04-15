@@ -1,6 +1,6 @@
 # EcoMarineAI Metrics Report
 
-_Generated: 2026-04-15T11:33:06.977796+00:00_
+_Generated: 2026-04-15T12:17:31.237686+00:00_
 _Manifest: `data/test_split/manifest.csv`_
 _Sample size: 60_
 _Model version: `vit_l32-v1`_
@@ -31,5 +31,5 @@ _Model version: `vit_l32-v1`_
 | Metric                       | Value     |
 |------------------------------|-----------|
 | Samples timed                | 60 |
-| Latency p50 / p95 / p99 (ms) | 489.27 / 540.31 / 607.56 |
-| Latency mean (ms)            | 278.81 |
+| Latency p50 / p95 / p99 (ms) | 487.97 / 522.54 / 629.75 |
+| Latency mean (ms)            | 278.02 |

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-15T11:33:06.977796+00:00",
+  "generated_at": "2026-04-15T12:17:31.237686+00:00",
   "manifest_path": "data/test_split/manifest.csv",
   "sample_size": 60,
   "model_version": "vit_l32-v1",
@@ -24,9 +24,9 @@
   },
   "performance": {
     "n_samples": 60,
-    "latency_p50_ms": 489.27,
-    "latency_p95_ms": 540.31,
-    "latency_p99_ms": 607.56,
-    "latency_mean_ms": 278.81
+    "latency_p50_ms": 487.97,
+    "latency_p95_ms": 522.54,
+    "latency_p99_ms": 629.75,
+    "latency_mean_ms": 278.02
   }
 }

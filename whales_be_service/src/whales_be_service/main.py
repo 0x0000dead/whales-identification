@@ -90,6 +90,7 @@ async def rate_limit_middleware(request: Request, call_next):
 
 # --- Metrics collection ---
 _metrics: dict[str, object] = {
+    "start_time": time.time(),
     "requests_total": 0,
     "requests_by_endpoint": defaultdict(int),
     "errors_total": 0,
@@ -160,7 +161,20 @@ async def metrics() -> PlainTextResponse:
         if _metrics["cetacean_score_count"] > 0
         else 0
     )
+    uptime = time.time() - _metrics["start_time"]
+    total_req = _metrics["requests_total"]
+    avail = (
+        (total_req - _metrics["errors_total"]) / total_req * 100
+        if total_req > 0
+        else 100.0
+    )
     lines = [
+        "# HELP uptime_seconds Seconds since the service started",
+        "# TYPE uptime_seconds counter",
+        f"uptime_seconds {uptime:.1f}",
+        "# HELP availability_percent Service availability (% of non-5xx requests)",
+        "# TYPE availability_percent gauge",
+        f"availability_percent {avail:.3f}",
         "# HELP requests_total Total HTTP requests",
         "# TYPE requests_total counter",
         f'requests_total {_metrics["requests_total"]}',
