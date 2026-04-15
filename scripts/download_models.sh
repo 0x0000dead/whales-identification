@@ -1,50 +1,49 @@
 #!/bin/bash
+# Download EcoMarineAI model checkpoints from Hugging Face Hub.
+#
+# Why the version pin: huggingface_hub 0.21+ removed the standalone
+# `huggingface-cli` binary from the default install path on some platforms,
+# which broke this script silently. Pinning to 0.20.3 keeps the CLI available
+# regardless of what other packages pull in.
 set -euo pipefail
 
-HF_REPO="baltsat/Whales-Identification"
-MODEL_FILE="resnet101.pth"
-TARGET_DIR="models"
+HF_REPO="${HF_REPO:-baltsat/Whales-Identification}"
+TARGET_DIR="${TARGET_DIR:-models}"
+HF_HUB_VERSION="0.20.3"
 
-# Create target directory if it doesn't exist
 mkdir -p "${TARGET_DIR}"
 
-echo "Downloading ${MODEL_FILE} from ${HF_REPO} to ${TARGET_DIR}..."
-
-huggingface-cli download "${HF_REPO}" "${MODEL_FILE}" \
-    --repo-type model \
-    --local-dir "${TARGET_DIR}" \
-    --local-dir-use-symlinks False \
-    --quiet
-
-# Check if the model file was downloaded successfully
-if [ -f "${TARGET_DIR}/${MODEL_FILE}" ]; then
-    echo "${MODEL_FILE} downloaded successfully to ${TARGET_DIR}/${MODEL_FILE}"
-else
-    echo "Error: Failed to download ${MODEL_FILE}."
-    exit 1
+if ! command -v huggingface-cli >/dev/null 2>&1; then
+    echo "huggingface-cli not found; installing huggingface_hub==${HF_HUB_VERSION}..."
+    python3 -m pip install --quiet "huggingface_hub==${HF_HUB_VERSION}"
 fi
 
-# Optional: Add other models here if needed, for example:
-# MODELS_TO_DOWNLOAD=(
-# "EfficientNet.h5"
-# "resnet54.pth"
-# "swin_t_best.pth"
-# "vit_b16_best.bin"
-# "vit_l32_best.pth"
-# )
-# for model in "${MODELS_TO_DOWNLOAD[@]}"; do
-#     echo "Downloading ${model} from ${HF_REPO} to ${TARGET_DIR}..."
-#     huggingface-cli download "${HF_REPO}" "${model}" \
-#         --repo-type model \
-#         --local-dir "${TARGET_DIR}" \
-#         --local-dir-use-symlinks False \
-#         --quiet
-#     if [ -f "${TARGET_DIR}/${model}" ]; then
-#         echo "${model} downloaded successfully."
-#     else
-#         echo "Error: Failed to download ${model}."
-#         # Decide if you want to exit 1 here or just warn
-#     fi
-# done
+# Files to download. Each entry: "<filename>:<optional_alias>"
+# Aliases let us rename on disk so model-e15.pt is what the service looks for.
+MODELS=(
+    "resnet101.pth"
+    "vit_l32_best.pth:model-e15.pt"
+)
 
-echo "Model download process complete."
+for entry in "${MODELS[@]}"; do
+    src="${entry%%:*}"
+    dst="${entry##*:}"
+    [ "${src}" = "${dst}" ] && dst="${src}"
+
+    echo "Downloading ${src} from ${HF_REPO} → ${TARGET_DIR}/${dst}..."
+    if huggingface-cli download "${HF_REPO}" "${src}" \
+            --repo-type model \
+            --local-dir "${TARGET_DIR}" \
+            --local-dir-use-symlinks False \
+            --quiet 2>/dev/null; then
+        if [ "${src}" != "${dst}" ] && [ -f "${TARGET_DIR}/${src}" ]; then
+            mv "${TARGET_DIR}/${src}" "${TARGET_DIR}/${dst}"
+        fi
+        echo "  ✓ ${TARGET_DIR}/${dst}"
+    else
+        echo "  ! ${src} not available in ${HF_REPO}; skipping."
+    fi
+done
+
+echo "Model download complete. Files in ${TARGET_DIR}/:"
+ls -lh "${TARGET_DIR}/" || true

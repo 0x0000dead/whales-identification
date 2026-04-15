@@ -1,100 +1,108 @@
-# Model Card: EcoMarineAI Whale Identification
+# Model Card: EcoMarineAI Cetacean Identification
 
 ## Model Details
 
-- **Model Name:** EcoMarineAI Vision Transformer (ViT-L/32)
-- **Version:** 1.0.0
-- **Type:** Multi-class classification with metric learning (ArcFace)
-- **Architecture:** Vision Transformer Large, patch size 32
-- **Framework:** PyTorch 2.4.1
-- **License:** Apache 2.0 with restrictions (see LICENSE_MODELS.md)
+- **Model Name:** EcoMarineAI Vision Transformer (ViT-L/32) with CLIP anti-fraud gate
+- **Version:** 1.1.0
+- **Type:** Two-stage pipeline — CLIP zero-shot gate → multiclass identification with metric learning (ArcFace)
+- **Architecture:** Vision Transformer Large, patch size 32 (identification) + OpenCLIP ViT-B/32 LAION-2B (gate)
+- **Framework:** PyTorch 2.4.1 + open_clip_torch 2.24+
+- **License:** MIT (code) + dataset-specific terms (see LICENSE_DATA.md / LICENSE_MODELS.md)
 - **Repository:** [baltsat/Whales-Identification](https://huggingface.co/baltsat/Whales-Identification)
 
 ## Intended Use
 
-- **Primary Use:** Automated identification of individual marine mammals (whales and dolphins) from aerial photography
-- **Users:** Marine biologists, ecology researchers, government environmental agencies, conservation organizations
-- **Out-of-scope:** Real-time video processing, underwater photography, species not in the training set
+- **Primary use:** Automated identification of individual cetaceans (whales and dolphins) from aerial photography for conservation and scientific monitoring.
+- **Users:** Marine biologists, ecology researchers, government environmental agencies, conservation organizations.
+- **Out-of-scope:** Real-time video processing, underwater photography, species not in the training set, commercial wildlife exploitation.
+
+## Pipeline
+
+1. **CLIP zero-shot anti-fraud gate** (`open_clip_torch`, ViT-B/32 LAION-2B). Computes cosine similarity against 10 positive prompts (whale/dolphin/cetacean photographs) and 14 negative prompts (text, people, buildings, fish, sharks, etc.). Rejects with `rejection_reason: "not_a_marine_mammal"` when the positive class probability falls below the calibrated threshold.
+2. **Identification model** — ViT-L/32 with ArcFace + Generalized Mean Pooling head. Predicts an individual `class_animal` ID and maps it to a species name via `config.yaml`.
+3. **Confidence threshold** — predictions below `min_confidence` are returned with `rejection_reason: "low_confidence"`.
 
 ## Training Data
 
-- **Source:** HappyWhale community dataset + Ministry of Natural Resources and Ecology of RF
-- **Size:** ~60,000 training images, ~20,000 test images
-- **Classes:** 15,587 unique individual whale/dolphin IDs
-- **Species:** Whales (humpback, blue, fin, right, etc.) and dolphins
-- **License:** CC-BY-NC-4.0 (see LICENSE_DATA.md)
-
-## Model Architectures & Performance
-
-| Architecture | Precision | Inference Time | Parameters |
-|---|---|---|---|
-| **Vision Transformer L/32** | **93%** | ~3.5s | ~307M |
-| Vision Transformer B/16 | 91% | ~2.0s | ~86M |
-| EfficientNet-B5 | 91% | ~1.8s | ~30M |
-| EfficientNet-B0 | 88% | ~1.0s | ~5M |
-| Swin Transformer | 90% | ~2.2s | ~29M |
-| ResNet-101 | 85% | ~1.2s | ~45M |
-| ResNet-54 | 82% | ~0.8s | ~26M |
-
-**Production model:** Vision Transformer L/32 (best accuracy)
+- **Source:** Happy Whale community dataset + Ministry of Natural Resources and Ecology of RF.
+- **Size (planned):** 80 000 images annotated with 1 000 individuals (per ТЗ).
+- **Classes:** 15 587 unique individual IDs (current production checkpoint).
+- **Species:** Whales (humpback, blue, fin, beluga, killer, etc.) and dolphins (bottlenose, etc.).
+- **License:** CC-BY-NC-4.0 (see LICENSE_DATA.md).
 
 ## Metrics
 
-- **Precision:** >= 80% for clear 1920x1080 images (target met: 93%)
-- **Sensitivity/Recall:** > 85% (target met)
-- **Specificity:** > 90% (target met)
-- **F1-score:** > 0.6 (target met)
-- **Processing Speed:** < 8 seconds per 1920x1080 image (target met: ~3.5s)
-- **Robustness:** Accuracy drop <= 20% on noisy images (target met)
+<!-- metrics:start -->
+Metrics are computed by `scripts/compute_metrics.py` on `data/test_split/manifest.csv` and committed to `reports/metrics_latest.json`. Run `make compute-metrics` to refresh this section.
+<!-- metrics:end -->
 
-## Input/Output
+### Targets (TZ requirements)
+
+| Requirement                    | Target  | Status                |
+|--------------------------------|---------|------------------------|
+| Precision (clear 1920×1080)    | ≥ 80%   | Measured by compute_metrics.py |
+| Sensitivity / Recall           | > 85%   | Measured by compute_metrics.py |
+| Specificity (TNR)              | > 90%   | Enforced by CLIP gate calibration |
+| F1                             | > 0.6   | Measured by compute_metrics.py |
+| Latency per image              | ≤ 8 s   | p95 reported in METRICS.md |
+| Robustness on noisy imagery    | ≤ 20% drop | Tracked by integration_tests |
+
+## Input / Output
 
 ### Input
 
-- **Format:** RGB images (JPEG, PNG)
-- **Resolution:** Any (resized to 448x448 internally)
-- **Normalization:** ImageNet stats (mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+- **Format:** RGB images (JPEG, PNG, WEBP).
+- **Resolution:** Any (resized to 448×448 internally for identification, 224×224 for CLIP).
+- **Normalization:** ImageNet stats (mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]).
 
-### Output
+### Output (`Detection` schema)
 
-- **Classification:** Individual whale ID (one of 15,587 classes)
-- **Species mapping:** ID mapped to species name via config.yaml
-- **Confidence:** Softmax probability (0.0-1.0)
-- **Background removal:** Optional base64 PNG mask via rembg
+| Field             | Type     | Meaning                                                            |
+|-------------------|----------|--------------------------------------------------------------------|
+| `image_ind`       | string   | Filename or batch entry name                                       |
+| `bbox`            | int[4]   | Detected region (currently full image; bbox detector planned v2)   |
+| `class_animal`    | string   | Individual ID (one of N classes) — empty when rejected             |
+| `id_animal`       | string   | Species name mapped from class_animal                              |
+| `probability`     | float    | Identification confidence (0.0–1.0)                                |
+| `mask`            | string?  | Optional base64 PNG with background removed                        |
+| `is_cetacean`     | bool     | True iff CLIP gate accepted the image                              |
+| `cetacean_score`  | float    | CLIP positive-prompt aggregate softmax score                        |
+| `rejected`        | bool     | True if either gate or low_confidence rejected                     |
+| `rejection_reason`| enum?    | `not_a_marine_mammal` / `low_confidence` / `corrupted_image` / null |
+| `model_version`   | string   | e.g. `vit_l32-v1`                                                  |
 
 ## Training Configuration
 
-- **Optimizer:** Adam (lr=1e-4, weight_decay=1e-6)
-- **Scheduler:** CosineAnnealingLR (T_max=500, min_lr=1e-6)
-- **Loss:** ArcFace (s=30.0, m=0.50) + CrossEntropy
-- **Batch Size:** 32 (train), 64 (valid)
-- **Image Size:** 448x448
-- **Augmentations:** ShiftScaleRotate, HueSaturationValue, RandomBrightnessContrast
-- **Epochs:** 15 (best checkpoint: epoch 15)
-- **Seed:** 2022 (fully reproducible)
+- **Optimizer:** Adam (lr=1e-4, weight_decay=1e-6).
+- **Scheduler:** CosineAnnealingLR (T_max=500, min_lr=1e-6).
+- **Loss:** ArcFace (s=30.0, m=0.50) + CrossEntropy.
+- **Batch size:** 32 (train), 64 (valid).
+- **Image size:** 448×448.
+- **Augmentations:** ShiftScaleRotate, HueSaturationValue, RandomBrightnessContrast.
+- **Seed:** 2022 (fully reproducible).
 
 ## Limitations
 
-- **Clear imagery required:** Performance degrades on heavily occluded, underwater, or very low-resolution images
-- **Known species only:** Cannot identify species not present in the training dataset
-- **Single-animal focus:** Best performance on images containing a single marine mammal
-- **Lighting conditions:** Extreme backlighting or glare can reduce accuracy up to 20%
-- **Geographic bias:** Training data predominantly from Northern Hemisphere whale populations
+- **Clear imagery required:** Performance degrades on heavily occluded, underwater, or very low-resolution images.
+- **Known individuals only:** Cannot identify particular animals not present in the training dataset (returns the closest match plus low confidence).
+- **Single-animal focus:** Best performance on images containing a single cetacean.
+- **Lighting conditions:** Extreme backlighting or glare can reduce accuracy.
+- **Geographic bias:** Training data predominantly from Northern Hemisphere populations.
 
 ## Ethical Considerations
 
-- **Conservation purpose:** Designed to support marine mammal conservation efforts
-- **Data privacy:** No personally identifiable human data in training
-- **Dual use:** Intended for scientific and conservation use only, not for commercial exploitation of marine resources
-- **Bias:** Under-represented species may have lower identification accuracy
+- **Conservation purpose:** Designed to support marine mammal conservation efforts.
+- **Data privacy:** No personally identifiable human data in training.
+- **Dual use:** Intended for scientific and conservation use only, not for commercial exploitation of marine resources.
+- **Bias:** Under-represented species may have lower identification accuracy. The CLIP anti-fraud gate sometimes rejects rare species or extreme crops; an authenticated `?skip_anti_fraud=true` query parameter is planned for expert use.
 
 ## Citation
 
 ```bibtex
-@software{ecomarineai2024,
-  title={EcoMarineAI: AI Library for Marine Mammal Identification},
+@software{ecomarineai2025,
+  title={EcoMarineAI: Open Library for Cetacean Identification from Aerial Imagery},
   author={Baltsat, K.I. and Tarasov, A.A. and Vandanov, S.A. and Serov, A.I.},
-  year={2024},
-  url={https://github.com/baltsat/whales-identification}
+  year={2025},
+  url={https://github.com/0x0000dead/whales-identification}
 }
 ```

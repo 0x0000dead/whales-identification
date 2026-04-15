@@ -5,10 +5,14 @@ services:
     build:
       context: ./whales_be_service
       dockerfile: Dockerfile
-    container_name: whales-be
+      args:
+        MODEL_DOWNLOAD_URL: "${MODEL_DOWNLOAD_URL:-}"
+    container_name: ecomarine-be
     ports:
       - "8000:8000"
     restart: unless-stopped
+    environment:
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:8080,http://127.0.0.1:5173,http://127.0.0.1:8080}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 30s
@@ -22,7 +26,9 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: whale-frontend
+      args:
+        VITE_BACKEND: "${VITE_BACKEND:-http://localhost:8000}"
+    container_name: ecomarine-fe
     ports:
       - "8080:80"
     restart: unless-stopped
@@ -32,8 +38,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
-    environment:
-      - VITE_BACKEND=http://backend:8000
     depends_on:
       backend:
         condition: service_healthy

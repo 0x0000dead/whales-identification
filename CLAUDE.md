@@ -43,7 +43,7 @@ scripts/                  # Utility scripts (e.g., download_models.sh)
 
 **1. ML Pipeline (whales_identify/):**
 
-- `model.py`: HappyWhaleModel with GeM pooling + ArcMarginProduct
+- `model.py`: CetaceanIdentificationModel with GeM pooling + ArcMarginProduct
 - `dataset.py`: PyTorch Dataset with Albumentations augmentation
 - `train.py`: Training loop with checkpoint saving
 - `config.py`: Training hyperparameters (448x448, EfficientNet-B0)
@@ -262,7 +262,7 @@ class Detection(BaseModel):
 - ~60,000 training images
 - ~20,000 test images
 - Species: Whales and dolphins
-- Source: HappyWhale + Ministry of Natural Resources RF
+- Source: Happy Whale + Ministry of Natural Resources RF
 
 ## Workflow (Git)
 

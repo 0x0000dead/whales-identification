@@ -290,7 +290,7 @@ jupyter notebook
 ```python
 from whales_identify.train import train_model
 from whales_identify.dataset import WhaleDataset
-from whales_identify.model import HappyWhaleModel
+from whales_identify.model import CetaceanIdentificationModel
 
 # Prepare dataset
 dataset = WhaleDataset(
@@ -300,7 +300,7 @@ dataset = WhaleDataset(
 )
 
 # Initialize model
-model = HappyWhaleModel(
+model = CetaceanIdentificationModel(
     backbone="efficientnet_b0",
     num_classes=1000,  # 1,000 individual whales and dolphins
     embedding_size=512
@@ -319,12 +319,12 @@ train_model(
 #### Inference
 
 ```python
-from whales_identify.model import HappyWhaleModel
+from whales_identify.model import CetaceanIdentificationModel
 import torch
 from PIL import Image
 
 # Load model
-model = HappyWhaleModel.load_from_checkpoint("models/model-e15.pt")
+model = CetaceanIdentificationModel.load_from_checkpoint("models/model-e15.pt")
 model.eval()
 
 # Load image

@@ -24,13 +24,13 @@ limitations under the License.
 
 The trained models in this repository were developed using datasets that include data licensed under **CC-BY-NC-4.0** (Creative Commons Attribution-NonCommercial 4.0 International). As a result:
 
-1. **The trained models may NOT be used for commercial purposes** without explicit permission from the original data providers (HappyWhale and Ministry of Natural Resources of the Russian Federation).
+1. **The trained models may NOT be used for commercial purposes** without explicit permission from the original data providers (open dataset community and Ministry of Natural Resources of the Russian Federation).
 
 2. This restriction applies specifically to the **trained model weights** (`.pt`, `.pth`, `.onnx` files) and any derivatives thereof.
 
 3. Under EU law, models trained on non-commercial data inherit those restrictions when the model is sold or used commercially.
 
-4. **Pretrained Models (Transfer Learning):** This project uses pretrained models (ResNet, EfficientNet, ViT, Swin Transformer) that were originally trained on ImageNet. ImageNet has **non-commercial research-only terms**, adding another layer of restriction beyond HappyWhale and Ministry RF data.
+4. **Pretrained Models (Transfer Learning):** This project uses pretrained models (ResNet, EfficientNet, ViT, Swin Transformer) that were originally trained on ImageNet. ImageNet has **non-commercial research-only terms**, adding another layer of restriction beyond Happy Whale and Ministry RF data.
 
 ---
 
@@ -72,7 +72,7 @@ Our fine-tuned models are built upon pretrained models from the following source
 
 Our models face **triple restrictions** on commercial use:
 
-1. **HappyWhale Training Data:** CC-BY-NC-4.0 (non-commercial)
+1. **Marine Mammal Community Training Data:** CC-BY-NC-4.0 (non-commercial)
 2. **Ministry RF Training Data:** Government research-only terms
 3. **ImageNet Pretrained Weights:** Non-commercial research-only terms
 
@@ -156,13 +156,13 @@ When using these models, you must provide proper attribution:
   year = {2024},
   publisher = {GitHub},
   url = {https://github.com/0x0000dead/whales-identification},
-  note = {Models trained on HappyWhale and Ministry of Natural Resources RF data}
+  note = {Models trained on Happy Whale and Ministry of Natural Resources RF data}
 }
 ```
 
 Additionally, you must acknowledge the original data sources:
 
-- **HappyWhale:** "This work uses data from HappyWhale (happywhale.com), licensed under CC-BY-NC-4.0"
+- **Happy Whale:** "This work uses data from Happy Whale (happywhale.com), licensed under CC-BY-NC-4.0"
 - **Ministry of Natural Resources RF:** "This work uses data provided by the Ministry of Natural Resources and Ecology of the Russian Federation"
 
 ---
@@ -215,7 +215,7 @@ Model versions follow semantic versioning: `vMAJOR.MINOR.PATCH`
 For inquiries regarding commercial use, custom licensing, or partnerships:
 
 - **GitHub Issues:** https://github.com/0x0000dead/whales-identification/issues
-- **Data Provider (HappyWhale):** support@happywhale.com
+- **Data Provider (Happy Whale):** support@happywhale.com
 - **Data Provider (Ministry):** minprirody@mnr.gov.ru, +7 (499) 657-57-00
 
 ---

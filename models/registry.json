@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "active": "vit_l32",
+  "models": [
+    {
+      "name": "vit_l32",
+      "display_name": "Vision Transformer L/32",
+      "version": "1.0.0",
+      "architecture": "VisionTransformer",
+      "weights_path": "models/model-e15.pt",
+      "weights_url": "https://huggingface.co/baltsat/Whales-Identification/resolve/main/vit_l32_best.pth",
+      "sha256": null,
+      "trained_at": null,
+      "metrics_snapshot": "reports/metrics_baseline.json",
+      "notes": "Lazy-loaded by inference/identification.py"
+    },
+    {
+      "name": "resnet101",
+      "display_name": "ResNet-101 (ArcFace + GeM)",
+      "version": "1.0.0",
+      "architecture": "CetaceanIdentificationModel",
+      "weights_path": "models/resnet101.pth",
+      "weights_url": "https://huggingface.co/baltsat/Whales-Identification/resolve/main/resnet101.pth",
+      "sha256": null,
+      "trained_at": null,
+      "metrics_snapshot": null,
+      "notes": "Backup backbone, switch via models_config.yaml::active_model"
+    }
+  ]
+}

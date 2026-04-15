@@ -1,11 +1,12 @@
-# whales-identification
+# EcoMarineAI — идентификация морских млекопитающих
 
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.11-blue.svg)
 ![CI/CD](https://github.com/0x0000dead/whales-identification/actions/workflows/ci.yml/badge.svg)
+![Metrics](https://github.com/0x0000dead/whales-identification/actions/workflows/metrics.yml/badge.svg)
 ![Docs](https://github.com/0x0000dead/whales-identification/actions/workflows/deploy-docs.yml/badge.svg)
 
-Библиотека для идентификации морских млекопитающих со снимков аэрофотосъемки
+Библиотека для идентификации морских млекопитающих (китов и дельфинов) со снимков аэрофотосъёмки. Включает CLIP zero-shot **антифрод-фильтр**: система отвергает любые изображения, которые не являются фотографиями китов/дельфинов, с целевой Specificity ≥ 90%.
 
 ## Цель выполнения проекта:
 
@@ -232,6 +233,49 @@ VITE_BACKEND=http://YOUR_SERVER_IP:8000 docker compose up --build
 
 ![img](data/sample.png)
 
+## CLI для биологов
+
+Кроме веб-интерфейса есть CLI-утилита `whales-cli`, не требующая опыта разработки:
+
+```bash
+# Установка
+poetry -C whales_be_service install
+poetry -C whales_be_service run python -m whales_identify --help
+
+# Идентифицировать одно фото
+python -m whales_identify predict /path/to/whale.jpg
+
+# Обработать каталог фото с CSV-отчётом
+python -m whales_identify batch /path/to/dir/ --csv report.csv
+
+# Только проверить «это морское млекопитающее или нет»
+python -m whales_identify verify /path/to/image.png
+```
+
+## Антифрод-фильтр (Specificity > 90%)
+
+Каждое изображение проходит через CLIP zero-shot гейт (OpenCLIP ViT-B/32 LAION-2B):
+
+```
+image → CLIP gate → identification (если кит/дельфин) → response
+                ↓
+            rejected:true, rejection_reason="not_a_marine_mammal"
+```
+
+Не-китовые изображения возвращаются с `200 OK` и полем `rejected: true` (это успешная классификация, а не HTTP-ошибка). Порог CLIP калибруется через `make calibrate-clip` на встроенном test split (`data/test_split/`) так, чтобы достичь TNR ≥ 90% при TPR ≥ 85%. Результат лежит в `whales_be_service/src/whales_be_service/configs/anti_fraud_threshold.yaml` и читается на старте сервиса.
+
+## Метрики
+
+Все ML-метрики (precision, recall, F1, sensitivity, specificity, top-1, latency p50/p95/p99) вычисляются скриптом `scripts/compute_metrics.py` на реальных данных. Хардкод-метрик в `models_config.yaml` больше нет.
+
+```bash
+make compute-metrics            # пересчитать все метрики
+cat reports/METRICS.md          # human-readable
+cat reports/metrics_latest.json # для CI
+```
+
+CI workflow `metrics.yml` падает, если TNR/TPR/top1 проседают больше чем на 2 п.п. от `reports/metrics_baseline.json`.
+
 ## Настройка для локальной разработки
 
 ### Автоматическая проверка и форматирование кода (Pre-commit Hooks)
@@ -295,7 +339,7 @@ VITE_BACKEND=http://YOUR_SERVER_IP:8000 docker compose up --build
 
 **⚠️ ВАЖНО:** Коммерческое использование моделей **запрещено** из-за следующих ограничений:
 
-1. **Тренировочные данные HappyWhale:** CC-BY-NC-4.0 (некоммерческое использование)
+1. **Тренировочные данные сообщества (морские млекопитающие):** CC-BY-NC-4.0 (некоммерческое использование)
 2. **Данные Минприроды РФ:** Только для исследовательских целей
 3. **Предобученные модели (ImageNet):** Некоммерческое использование
 
@@ -310,7 +354,7 @@ VITE_BACKEND=http://YOUR_SERVER_IP:8000 docker compose up --build
 
 Датасеты используют комбинацию лицензий — см. [LICENSE_DATA.md](LICENSE_DATA.md):
 
-- **HappyWhale:** CC-BY-NC-4.0 (Creative Commons Attribution-NonCommercial)
+- **Happy Whale:** CC-BY-NC-4.0 (Creative Commons Attribution-NonCommercial)
 - **Минприроды РФ:** Правительственные данные для исследований
 
 ### Зависимости проекта
@@ -336,7 +380,7 @@ VITE_BACKEND=http://YOUR_SERVER_IP:8000 docker compose up --build
 
 Для получения коммерческих прав свяжитесь с:
 
-- **HappyWhale:** support@happywhale.com
+- **Happy Whale:** support@happywhale.com
 - **Минприроды РФ:** minprirody@mnr.gov.ru, +7 (499) 657-57-00
 - **Команда:** Baltsat K.I., Tarasov A.A., Vandanov S.A., Serov A.I.
 

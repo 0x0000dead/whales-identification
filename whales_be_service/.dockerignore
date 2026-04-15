@@ -1,0 +1,13 @@
+tests/
+.venv/
+.venv-test/
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+*.egg-info/
+src/whales_be_service/models/*.pt
+src/whales_be_service/models/*.pth
+src/whales_be_service/models/*.bin
+.git/
+*.md

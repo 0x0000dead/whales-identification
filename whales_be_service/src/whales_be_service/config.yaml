@@ -1,3 +1,11 @@
+anti_fraud:
+  model_name: "ViT-B-32"
+  pretrained: "laion2b_s34b_b79k"
+  # Optional override; when omitted, configs/anti_fraud_threshold.yaml is used,
+  # falling back to a built-in default of 0.55.
+  # threshold: 0.55
+  min_confidence: 0.05
+
 id_to_name:
   cadddb1636b9: "melon_headed_whale_1"
   1a71fbb72250: "humpback_whale_1"

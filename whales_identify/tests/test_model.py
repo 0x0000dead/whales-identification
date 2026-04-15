@@ -1,7 +1,7 @@
-import torch
 import pytest
+import torch
 
-from whales_identify.model import GeM, ArcMarginProduct, HappyWhaleModel
+from whales_identify.model import ArcMarginProduct, CetaceanIdentificationModel, GeM
 
 
 class TestGeM:
@@ -48,10 +48,10 @@ class TestArcMarginProduct:
         assert arc.weight.requires_grad
 
 
-class TestHappyWhaleModel:
+class TestCetaceanIdentificationModel:
     @pytest.fixture
     def small_model(self):
-        return HappyWhaleModel(
+        return CetaceanIdentificationModel(
             model_name="efficientnet_b0",
             embedding_size=64,
             num_classes=10,
@@ -78,3 +78,25 @@ class TestHappyWhaleModel:
     def test_model_has_arcface(self, small_model):
         assert hasattr(small_model, "fc")
         assert isinstance(small_model.fc, ArcMarginProduct)
+
+
+def test_legacy_alias_deprecation_warning():
+    """The old HappyWhaleModel name still resolves but warns."""
+    import warnings
+
+    from whales_identify.model import HappyWhaleModel
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        m = HappyWhaleModel(
+            model_name="efficientnet_b0",
+            embedding_size=32,
+            num_classes=5,
+            s=30.0,
+            m=0.5,
+            ls_eps=0.0,
+            easy_margin=False,
+        )
+        deprecation = [w for w in caught if issubclass(w.category, DeprecationWarning)]
+        assert deprecation, "HappyWhaleModel must emit a DeprecationWarning"
+        assert isinstance(m, CetaceanIdentificationModel)

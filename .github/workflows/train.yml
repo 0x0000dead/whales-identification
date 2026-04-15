@@ -1,0 +1,51 @@
+name: Train (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      train_csv:
+        description: "Path to the training CSV (with file_path,individual_id columns)"
+        required: true
+        default: "data/datasets/data.csv"
+      img_dir:
+        description: "Directory holding training images"
+        required: true
+        default: "data/cetacean/train"
+      epochs:
+        description: "Number of epochs (overrides config.py)"
+        required: false
+        default: "4"
+
+jobs:
+  train:
+    name: Run cetacean identification training
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch torchvision timm albumentations pandas tqdm pillow
+
+      - name: Run training
+        run: |
+          python -m whales_identify.train \
+            --train_csv "${{ github.event.inputs.train_csv }}" \
+            --img_dir "${{ github.event.inputs.img_dir }}" \
+            --checkpoint_dir checkpoints/
+
+      - name: Upload checkpoints
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkpoints
+          path: checkpoints/

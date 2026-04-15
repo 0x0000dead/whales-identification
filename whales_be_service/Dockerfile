@@ -7,6 +7,7 @@ RUN apt-get update \
       libssl-dev \
       libffi-dev \
       python3-dev \
+      curl \
  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build
@@ -20,7 +21,7 @@ RUN poetry config virtualenvs.create false \
 # -------- runtime stage --------
 FROM python:3.11.6-slim
 
-# Runtime-only system dependencies (OpenCV, etc.)
+# Runtime-only system dependencies (OpenCV, libGL for rembg, etc.)
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       libgl1 \
@@ -29,6 +30,8 @@ RUN apt-get update \
       libxext6 \
       libxrender-dev \
       libgomp1 \
+      curl \
+      ca-certificates \
  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -40,13 +43,35 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 # Copy source code
 COPY src ./src
 
+# --- ML assets the service needs at runtime ---
+# These were missing from the previous image, which is why "real" inference
+# never worked in Docker. Both paths are referenced by inference/identification.py
+# and inference/anti_fraud.py.
+ARG MODEL_DOWNLOAD_URL=""
+ARG HF_REPO="baltsat/Whales-Identification"
+ARG HF_MODEL_FILE="resnet101.pth"
+
+# Resources directory contains database.csv (individual_id → species mapping).
+# Anti-fraud configs are also under src/whales_be_service/configs/.
+RUN mkdir -p src/whales_be_service/resources \
+ && mkdir -p src/whales_be_service/models \
+ && mkdir -p src/whales_be_service/configs
+
+# If a direct download URL is supplied at build time, fetch it; otherwise leave
+# the model directory empty and let the service start with the gate-only path
+# (the API will return cetacean classifications without individual ID).
+RUN if [ -n "$MODEL_DOWNLOAD_URL" ]; then \
+      curl -fsSL "$MODEL_DOWNLOAD_URL" -o src/whales_be_service/models/model-e15.pt; \
+    fi
+
 # Create non-root user
 RUN groupadd -r appuser && useradd -r -g appuser -d /app appuser \
  && chown -R appuser:appuser /app
 USER appuser
 
 ENV PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app/src
+    PYTHONPATH=/app/src \
+    ALLOWED_ORIGINS="*"
 
 EXPOSE 8000
 

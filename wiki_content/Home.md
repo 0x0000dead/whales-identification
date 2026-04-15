@@ -120,7 +120,7 @@ docker compose up --build
 
 ❌ **Коммерческое использование запрещено** из-за:
 
-- HappyWhale data (CC-BY-NC-4.0)
+- Happy Whale (CC-BY-NC-4.0)
 - Данные Минприроды РФ (research-only)
 - ImageNet pretrained weights (non-commercial)
 
