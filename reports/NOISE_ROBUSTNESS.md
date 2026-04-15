@@ -6,10 +6,10 @@ that accuracy drop by ≤ 20% under such conditions.
 
 | Variant | Accepted / Total | Accept rate | Mean score | Drop vs clean | ≤ 20% target |
 |---|---|---|---|---|:---:|
-| `clean` | 29/30 | 0.9667 | 0.9580 | +0.0 % | ✓ |
-| `gaussian_sigma25` | 27/30 | 0.9000 | 0.8655 | +6.9 % | ✓ |
-| `jpeg_q20` | 29/30 | 0.9667 | 0.9300 | +0.0 % | ✓ |
-| `blur_r4` | 27/30 | 0.9000 | 0.8832 | +6.9 % | ✓ |
+| `clean` | 95/100 | 0.9500 | 0.9445 | +0.0 % | ✓ |
+| `gaussian_sigma25` | 95/100 | 0.9500 | 0.9178 | +0.0 % | ✓ |
+| `jpeg_q20` | 96/100 | 0.9600 | 0.9425 | -1.1 % | ✓ |
+| `blur_r4` | 96/100 | 0.9600 | 0.9500 | -1.1 % | ✓ |
 
 ## Variant recipes
 - `clean`: untouched RGB image

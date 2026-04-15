@@ -7,16 +7,16 @@ N images drawn from `data/test_split/positives/`.
 
 | N images | Total (s) | Per image (ms) |
 |---------:|----------:|---------------:|
-| 5 | 2.5497 | 510 |
-| 10 | 5.1292 | 513 |
-| 20 | 10.3924 | 520 |
-| 30 | 14.8035 | 493 |
+| 10 | 3.991 | 399 |
+| 25 | 10.9934 | 440 |
+| 50 | 23.0819 | 462 |
+| 100 | 47.2903 | 473 |
 
 ## Linear regression
 
-- slope: **0.493 s/image** (marginal cost)
-- intercept: 0.2081 s (one-off warmup)
-- R²: **0.9982** (1.0 = perfect linear fit)
+- slope: **0.482 s/image** (marginal cost)
+- intercept: -0.9513 s (one-off warmup)
+- R²: **1.0** (1.0 = perfect linear fit)
 
 If R² ≥ 0.99 the pipeline has linear time complexity, as required
 by the ТЗ (Параметр 3 — Масштабируемость системы).

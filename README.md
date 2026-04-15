@@ -10,16 +10,18 @@
 
 ![Pipeline](DOCS/pipeline_diagram.png)
 
-**Измеренные метрики** (60 изображений — 30 китов из Happy Whale + 30 сцен без китов из Intel Image Dataset):
+**Измеренные метрики** (202 изображения — 100 китов из Happy Whale + 102 сцены без китов из Intel Image Dataset):
 
 | Метрика | Значение | Целевое значение ТЗ |
 |---|---|---|
-| TPR / Sensitivity | **0.967** | ≥ 0.85 ✓ |
-| TNR / Specificity | **0.933** | ≥ 0.90 ✓ |
-| Precision | **0.936** | ≥ 0.80 ✓ |
-| F1 | **0.951** | ≥ 0.60 ✓ |
-| ROC-AUC | **0.992** | — |
-| Latency p95 | **540 ms** | ≤ 8000 ms ✓ |
+| TPR / Sensitivity | **0.950** | > 0.85 ✓ |
+| TNR / Specificity | **0.902** | > 0.90 ✓ |
+| Precision | **0.905** | ≥ 0.80 ✓ |
+| F1 | **0.927** | > 0.60 ✓ |
+| ROC-AUC | **0.984** | — |
+| Latency p95 | **519 ms** | ≤ 8000 ms ✓ |
+| Linear scalability | **R² = 1.000** | linear ✓ |
+| Noise robustness drop | **0.0%** | ≤ 20 % ✓ |
 
 Все числа вычислены скриптом `scripts/compute_metrics.py` на реальных изображениях — никаких хардкодов в `models_config.yaml`.
 
@@ -103,7 +105,7 @@ python -m whales_identify verify /path/to/image.png
 ### Лицензирование
 
 - **[LICENSE](LICENSE)** - MIT License для исходного кода
-- **[LICENSE_MODELS.md](LICENSE_MODELS.md)** - Apache 2.0 для обученных моделей (с ограничениями)
+- **[LICENSE_MODELS.md](LICENSE_MODELS.md)** - CC-BY-NC-4.0 для обученных моделей (наследуется от Happy Whale)
 - **[LICENSE_DATA.md](LICENSE_DATA.md)** - CC-BY-NC-4.0 для датасетов
 - **[LICENSES_ANALYSIS.md](LICENSES_ANALYSIS.md)** - Анализ 159 зависимостей (99.4% совместимость)
 
@@ -405,7 +407,7 @@ CI workflow `metrics.yml` падает, если TNR/TPR/top1 проседают
 
 ### Обученные модели
 
-Обученные модели распространяются под лицензией **Apache 2.0 с ограничениями на коммерческое использование** — см. [LICENSE_MODELS.md](LICENSE_MODELS.md).
+Обученные модели распространяются под лицензией **CC-BY-NC-4.0** — см. [LICENSE_MODELS.md](LICENSE_MODELS.md). Эта лицензия наследуется от upstream датасета Happy Whale и запрещает коммерческое использование моделей без прямого разрешения правообладателя данных.
 
 **⚠️ ВАЖНО:** Коммерческое использование моделей **запрещено** из-за следующих ограничений:
 

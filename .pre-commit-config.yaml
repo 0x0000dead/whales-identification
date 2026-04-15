@@ -79,13 +79,14 @@ repos:
       - id: nbqa-flake8
         args: [--max-line-length=88, --extend-ignore=E203,W503,E402]
 
-  # YAML formatting
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v4.0.0-alpha.8
+  # YAML / Markdown / JSON formatting (mirrors-prettier was archived; we use
+  # the official rbubley/mirrors-prettier fork maintained after the archive).
+  - repo: https://github.com/rbubley/mirrors-prettier
+    rev: v3.3.3
     hooks:
       - id: prettier
         types_or: [yaml, markdown, json]
-        exclude: poetry.lock
+        exclude: poetry.lock|reports/.*\.json
 
   # Docstring coverage — at least 60% across the inference subpackage
   - repo: https://github.com/econchick/interrogate

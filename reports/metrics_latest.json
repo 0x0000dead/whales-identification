@@ -1,32 +1,40 @@
 {
-  "generated_at": "2026-04-15T12:17:31.237686+00:00",
+  "generated_at": "2026-04-15T13:15:39.392866+00:00",
   "manifest_path": "data/test_split/manifest.csv",
-  "sample_size": 60,
-  "model_version": "vit_l32-v1",
+  "sample_size": 202,
+  "model_version": "effb4-arcface-v1",
   "anti_fraud": {
-    "n_positive": 30,
-    "n_negative": 30,
-    "tp": 29,
-    "fp": 2,
-    "tn": 28,
-    "fn": 1,
-    "tpr": 0.9667,
-    "tnr": 0.9333,
-    "precision": 0.9355,
-    "f1": 0.9508,
-    "roc_auc": 0.9922
+    "n_positive": 100,
+    "n_negative": 102,
+    "tp": 95,
+    "fp": 10,
+    "tn": 92,
+    "fn": 5,
+    "tpr": 0.95,
+    "tnr": 0.902,
+    "precision": 0.9048,
+    "f1": 0.9268,
+    "roc_auc": 0.984
   },
   "identification": {
-    "n_samples": 30,
-    "top1_accuracy": 0.1667,
-    "top5_accuracy": 0.0,
-    "n_unique_individuals": 30
+    "n_samples": 100,
+    "top1_accuracy": 0.22,
+    "top5_accuracy": 0.25,
+    "n_unique_individuals": 93
+  },
+  "clarity": {
+    "mean": 4485.01,
+    "min": 4.96,
+    "max": 40416.64,
+    "tz_threshold": 4260.76,
+    "n_above_threshold": 77,
+    "n_below_threshold": 125
   },
   "performance": {
-    "n_samples": 60,
-    "latency_p50_ms": 487.97,
-    "latency_p95_ms": 522.54,
-    "latency_p99_ms": 629.75,
-    "latency_mean_ms": 278.02
+    "n_samples": 202,
+    "latency_p50_ms": 484.15,
+    "latency_p95_ms": 519.42,
+    "latency_p99_ms": 597.24,
+    "latency_mean_ms": 277.33
   }
 }

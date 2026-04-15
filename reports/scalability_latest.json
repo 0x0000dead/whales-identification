@@ -1,29 +1,29 @@
 {
   "points": [
     {
-      "n": 5,
-      "total_s": 2.5497,
-      "per_image_s": 0.5099
-    },
-    {
       "n": 10,
-      "total_s": 5.1292,
-      "per_image_s": 0.5129
+      "total_s": 3.991,
+      "per_image_s": 0.3991
     },
     {
-      "n": 20,
-      "total_s": 10.3924,
-      "per_image_s": 0.5196
+      "n": 25,
+      "total_s": 10.9934,
+      "per_image_s": 0.4397
     },
     {
-      "n": 30,
-      "total_s": 14.8035,
-      "per_image_s": 0.4934
+      "n": 50,
+      "total_s": 23.0819,
+      "per_image_s": 0.4616
+    },
+    {
+      "n": 100,
+      "total_s": 47.2903,
+      "per_image_s": 0.4729
     }
   ],
   "regression": {
-    "slope_s_per_image": 0.493,
-    "intercept_s": 0.2081,
-    "r_squared": 0.9982
+    "slope_s_per_image": 0.482,
+    "intercept_s": -0.9513,
+    "r_squared": 1.0
   }
 }

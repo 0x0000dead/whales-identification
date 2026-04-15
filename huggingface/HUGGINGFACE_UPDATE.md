@@ -1,17 +1,24 @@
 # Updating HuggingFace Repository
 
-This directory contains files that should be synchronized to the HuggingFace repository [baltsat/Whales-Identification](https://huggingface.co/baltsat/Whales-Identification).
+This directory contains files that should be synchronized to the HuggingFace repositories
+[baltsat/Whales-Identification](https://huggingface.co/baltsat/Whales-Identification) (legacy)
+and [0x0000dead/ecomarineai-cetacean-effb4](https://huggingface.co/0x0000dead/ecomarineai-cetacean-effb4) (primary).
 
 ## Files
 
-| File        | Purpose                                                       |
-| ----------- | ------------------------------------------------------------- |
-| `README.md` | Model card with YAML frontmatter (sets license to Apache 2.0) |
-| `LICENSE`   | Apache 2.0 license text with usage restrictions               |
+| File        | Purpose                                                        |
+| ----------- | -------------------------------------------------------------- |
+| `README.md` | Model card with YAML frontmatter (sets licence to CC-BY-NC-4.0) |
+| `LICENSE`   | CC-BY-NC-4.0 licence text with usage restrictions              |
 
 ## Why Update?
 
-The HuggingFace repository was initially created with MIT license, but the project uses **Apache 2.0 with Usage Restrictions** (due to training data constraints from Happy Whale and ImageNet). This inconsistency was identified in the expert review (NTO).
+Earlier drafts of this repo labelled the models as Apache 2.0. That was
+**inconsistent** with the upstream Happy Whale dataset (CC-BY-NC-4.0), and
+the expert review of the intermediate НТО (round 4, 19.01.2026) flagged the
+mismatch. The correct canonical licence is **CC-BY-NC-4.0**, inherited from
+the training data. Both this directory and both HuggingFace mirrors now
+match that choice.
 
 ## How to Update
 

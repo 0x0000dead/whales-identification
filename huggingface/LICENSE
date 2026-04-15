@@ -1,32 +1,32 @@
-Apache License 2.0 with Usage Restrictions
+Creative Commons Attribution-NonCommercial 4.0 International (CC-BY-NC-4.0)
 
 Copyright (c) 2024 Baltsat Konstantin, Tarasov Artem, Vandanov Sergey, Serov Alexandr
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use these models except in compliance with the License.
-You may obtain a copy of the License at
+The trained model weights in this repository are licensed under
+Creative Commons Attribution-NonCommercial 4.0 International.
 
-    http://www.apache.org/licenses/LICENSE-2.0
+    Full legal text: https://creativecommons.org/licenses/by-nc/4.0/legalcode
+    SPDX identifier: CC-BY-NC-4.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+A model is a derivative work of its training data. Because the upstream
+Happy Whale dataset used during training is CC-BY-NC-4.0, the trained model
+weights inherit that licence. We cannot relax the upstream non-commercial
+restriction.
 
 ---
 
 IMPORTANT USAGE RESTRICTIONS
 
 The trained models in this repository were developed using datasets that
-include data licensed under CC-BY-NC-4.0 (Creative Commons Attribution-
-NonCommercial 4.0 International) and ImageNet (non-commercial research only).
+include data licensed under CC-BY-NC-4.0 (Happy Whale) and ImageNet
+(non-commercial research only, via pretrained backbones such as ResNet /
+EfficientNet / Vision Transformer).
 
 As a result:
 
 1. The trained models may NOT be used for commercial purposes without
-   explicit permission from the original data providers (the marine mammal community and
-   Ministry of Natural Resources of the Russian Federation).
+   explicit permission from the original data providers (Happy Whale and
+   the Ministry of Natural Resources of the Russian Federation).
 
 2. This restriction applies specifically to the trained model weights
    (.pt, .pth, .onnx files) and any derivatives thereof.

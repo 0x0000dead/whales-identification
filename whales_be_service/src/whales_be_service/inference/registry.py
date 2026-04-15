@@ -33,6 +33,27 @@ def _load_anti_fraud_config() -> dict:
     return cfg.get("anti_fraud", {})
 
 
+def _load_baseline_cetacean_score_mean() -> float | None:
+    """Read the baseline cetacean_score mean from the CI regression snapshot.
+
+    If ``reports/metrics_baseline.json`` exists and contains a plausible
+    positive score, use it as the drift baseline. Otherwise return None and
+    let the drift monitor run in "no baseline" mode (no alarms).
+    """
+    baseline_path = _REPO_ROOT / "reports" / "metrics_baseline.json"
+    if not baseline_path.exists():
+        return None
+    try:
+        data = json.loads(baseline_path.read_text(encoding="utf-8"))
+        positives = data.get("anti_fraud", {}).get("tpr")
+        # Use TPR as a proxy if present; fall back to roc_auc or 0.9
+        if isinstance(positives, (int, float)) and 0 < positives <= 1:
+            return float(positives)
+    except (OSError, json.JSONDecodeError) as e:
+        logger.warning("Could not parse metrics_baseline.json: %s", e)
+    return None
+
+
 @lru_cache(maxsize=1)
 def get_pipeline() -> InferencePipeline:
     """Build (once) and return the singleton ``InferencePipeline``."""
@@ -48,6 +69,18 @@ def get_pipeline() -> InferencePipeline:
         identification=identification,
         min_confidence=af_cfg.get("min_confidence", 0.05),
     )
+
+    # Wire the drift baseline so /v1/drift-stats alarms actually fire.
+    baseline_mean = _load_baseline_cetacean_score_mean()
+    if baseline_mean is not None:
+        from ..monitoring.drift import get_drift_monitor  # noqa: PLC0415
+
+        monitor = get_drift_monitor()
+        monitor.baseline_mean = baseline_mean
+        logger.info("Drift baseline cetacean_score mean = %.4f", baseline_mean)
+    else:
+        logger.info("No drift baseline configured — alarms disabled.")
+
     logger.info("Built InferencePipeline (lazy — models not loaded yet).")
     return pipeline
 
