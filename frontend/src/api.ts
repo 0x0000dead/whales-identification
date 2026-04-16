@@ -1,7 +1,9 @@
 // src/api.ts
 //
 // Backend URL resolution order:
-//   1. Build-time override via `VITE_BACKEND=...` (recommended for production).
+//   1. Build-time override via `VITE_BACKEND=...` env var (recommended for production).
+//      Vite's `define` in vite.config.ts replaces __VITE_BACKEND__ at compile time —
+//      no import.meta at runtime, so Jest can import this file without SyntaxError.
 //   2. Runtime derivation from `window.location.hostname`: if the page is
 //      served from any host, point the API at the same host on port 8000.
 //      This lets the same Docker image work when opened from 127.0.0.1,
@@ -12,7 +14,10 @@
 // hardcoded http://localhost:8000 default broke the UI for any viewer
 // browsing from a non-localhost address.
 function resolveBase(): string {
-  const override = import.meta.env.VITE_BACKEND;
+  // __VITE_BACKEND__ is replaced at Vite build time (vite.config.ts define).
+  // In Jest it is set via jest.config.cjs globals. No import.meta required.
+  const override =
+    typeof __VITE_BACKEND__ !== 'undefined' ? __VITE_BACKEND__ : '';
   if (override && override !== 'undefined') {
     return override;
   }
@@ -26,6 +31,12 @@ const BASE = resolveBase();
 
 export type RejectionReason = 'not_a_marine_mammal' | 'low_confidence' | 'corrupted_image' | null;
 
+export interface Candidate {
+  class_animal: string;
+  id_animal: string;
+  probability: number;
+}
+
 export interface Detection {
   image_ind: string;
   bbox: [number, number, number, number];
@@ -38,6 +49,7 @@ export interface Detection {
   rejected?: boolean;
   rejection_reason?: RejectionReason;
   model_version?: string;
+  candidates?: Candidate[];
 }
 
 function networkError(e: unknown): Error {
