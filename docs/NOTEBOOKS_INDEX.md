@@ -71,7 +71,7 @@
 ```
 Anti-fraud gate:  TPR=0.9500  TNR=0.9020  Precision=0.9050  F1=0.9270
 Идентификация:    top-1=0.22  top-5=0.25  (13 837 классов, ArcFace s=30 m=0.5)
-Латентность:      p50=174ms   p95=299ms   p99=417ms  (бюджет ТЗ: 8000ms)
+Латентность:      p50=484ms   p95=519ms   p99=597ms  (бюджет ТЗ: 8000ms)
 ```
 
 ### КП 2.4 — ONNX экспорт для кросс-платформенного инференса
@@ -80,7 +80,7 @@ Anti-fraud gate:  TPR=0.9500  TNR=0.9020  Precision=0.9050  F1=0.9270
 |----------|-----------------|----------|
 | `research/notebooks/07_onnx_inference_compare.ipynb` | [07_onnx.ipynb](https://github.com/0x0000dead/whales-identification/blob/main/research/notebooks/07_onnx_inference_compare.ipynb) | Экспорт ViT → ONNX, сравнение скорости PyTorch vs ONNX Runtime |
 
-> **Примечание:** Ноутбук использует legacy ViT модель (`efficientnet_b4_512_fold0.ckpt`). Скачать с Yandex Disk: https://disk.yandex.ru/d/GshqU9o6nNz7ZA
+> **Примечание:** Ноутбук использует legacy ViT модель (`model-e15.pt`). Скачать с Yandex Disk: https://disk.yandex.ru/d/GshqU9o6nNz7ZA
 
 ### КП 2.5 — Сравнительная таблица всех архитектур ИНС
 
