@@ -69,10 +69,24 @@ class StubPipeline:
             rejection_reason=None,
             model_version=self.model_version,
             candidates=[
-                Candidate(class_animal="abc456def789", id_animal="killer_whale", probability=0.55),
-                Candidate(class_animal="cafe0987ba54", id_animal="bottlenose_dolphin", probability=0.28),
-                Candidate(class_animal="dead01234567", id_animal="fin_whale", probability=0.09),
-                Candidate(class_animal="beef89abcdef", id_animal="blue_whale", probability=0.04),
+                Candidate(
+                    class_animal="abc456def789",
+                    id_animal="killer_whale",
+                    probability=0.55,
+                ),
+                Candidate(
+                    class_animal="cafe0987ba54",
+                    id_animal="bottlenose_dolphin",
+                    probability=0.28,
+                ),
+                Candidate(
+                    class_animal="dead01234567", id_animal="fin_whale", probability=0.09
+                ),
+                Candidate(
+                    class_animal="beef89abcdef",
+                    id_animal="blue_whale",
+                    probability=0.04,
+                ),
             ],
         )
 
