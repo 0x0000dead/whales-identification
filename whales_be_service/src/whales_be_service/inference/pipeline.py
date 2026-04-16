@@ -119,9 +119,11 @@ class InferencePipeline:
                 model_version=self.model_version,
             )
 
-        # Stage 2: identification
+        # Stage 2: identification — top-5 for candidates, top-1 for gating
+        from ..response_models import Candidate  # noqa: PLC0415
+
         try:
-            ident = self.identification.predict(pil_img)
+            topk = self.identification.predict_topk(pil_img, k=5)
         except FileNotFoundError as e:
             logger.warning(
                 "Identification model unavailable; returning gate-only result: %s", e
@@ -140,20 +142,30 @@ class InferencePipeline:
                 model_version=self.model_version,
             )
 
+        # top-1 drives gating; remaining entries become alternative candidates.
+        # bbox is always the full image (no separate object detector).
+        top1_class, top1_species, top1_prob = topk[0]
+        candidates = [
+            Candidate(class_animal=c, id_animal=s, probability=p)
+            for c, s, p in topk[1:]
+        ]
+        bbox = [0, 0, pil_img.width, pil_img.height]
+
         # Stage 3: confidence threshold gating
-        if ident.probability < self.min_confidence:
+        if top1_prob < self.min_confidence:
             return Detection(
                 image_ind=filename,
-                bbox=ident.bbox,
-                class_animal=ident.class_id,
-                id_animal=ident.species,
-                probability=ident.probability,
+                bbox=bbox,
+                class_animal=top1_class,
+                id_animal=top1_species,
+                probability=top1_prob,
                 mask=None,
                 is_cetacean=True,
                 cetacean_score=round(gate.positive_score, 4),
                 rejected=True,
                 rejection_reason=RejectionReason.LOW_CONFIDENCE.value,
                 model_version=self.model_version,
+                candidates=candidates,
             )
 
         # Stage 4: optional background mask
@@ -166,14 +178,15 @@ class InferencePipeline:
 
         return Detection(
             image_ind=filename,
-            bbox=ident.bbox,
-            class_animal=ident.class_id,
-            id_animal=ident.species,
-            probability=ident.probability,
+            bbox=bbox,
+            class_animal=top1_class,
+            id_animal=top1_species,
+            probability=top1_prob,
             mask=mask_b64,
             is_cetacean=True,
             cetacean_score=round(gate.positive_score, 4),
             rejected=False,
             rejection_reason=None,
             model_version=self.model_version,
+            candidates=candidates,
         )

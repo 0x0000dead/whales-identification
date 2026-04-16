@@ -160,3 +160,46 @@ def test_metrics_endpoint():
     assert "predictions_total" in body
     assert "rejections_total" in body
     assert "cetacean_score_avg" in body
+
+
+def test_predict_single_accepted_has_candidates():
+    """Accepted prediction must include 'candidates' list with Candidate objects."""
+    files = {"file": ("whale.png", create_test_image_bytes(), "image/png")}
+    resp = client.post("/v1/predict-single", files=files)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "candidates" in data, "Detection schema must include 'candidates' field"
+    candidates = data["candidates"]
+    assert isinstance(candidates, list)
+    assert len(candidates) > 0, "At least one alternative candidate expected from stub"
+    for c in candidates:
+        assert "class_animal" in c
+        assert "id_animal" in c
+        assert "probability" in c
+        assert isinstance(c["probability"], float)
+        assert 0.0 <= c["probability"] <= 1.0
+
+
+def test_predict_single_rejected_candidates_empty():
+    """Anti-fraud rejected detection must still include the 'candidates' field (empty list)."""
+    files = {"file": ("text.png", _create_red_image_bytes(), "image/png")}
+    resp = client.post("/v1/predict-single", files=files)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "candidates" in data
+    assert data["candidates"] == []
+
+
+def test_predict_batch_results_have_candidates():
+    """All batch result items must include 'candidates' field."""
+    img = create_test_image_bytes()
+    zip_buf = io.BytesIO()
+    with zipfile.ZipFile(zip_buf, mode="w") as zf:
+        zf.writestr("whale1.png", img)
+        zf.writestr("whale2.png", img)
+    zip_buf.seek(0)
+    files = {"archive": ("batch.zip", zip_buf.read(), "application/zip")}
+    resp = client.post("/v1/predict-batch", files=files)
+    assert resp.status_code == 200
+    for item in resp.json():
+        assert "candidates" in item, f"Missing candidates in {item['image_ind']}"

@@ -10,13 +10,21 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
 
 
+class Candidate(BaseModel):
+    """One alternative identification candidate (rank 2–5)."""
+
+    class_animal: str
+    id_animal: str
+    probability: float
+
+
 class Detection(BaseModel):
     model_config = ConfigDict(protected_namespaces=())
     """Single-image prediction result.
 
     Backward-compat note: the original schema only had the first six fields.
-    The five new fields (``is_cetacean`` ... ``model_version``) are added with
-    sensible defaults so legacy clients continue to deserialize.
+    New fields carry sensible defaults so legacy clients continue to deserialize.
+    ``candidates`` lists top-2…5 alternative identifications when available.
     """
 
     image_ind: str
@@ -33,6 +41,7 @@ class Detection(BaseModel):
         Literal["not_a_marine_mammal", "low_confidence", "corrupted_image"] | None
     ) = None
     model_version: str = "effb4-arcface-v1"
+    candidates: list[Candidate] = Field(default_factory=list)
 
 
 # --- Webhook schemas ------------------------------------------------------

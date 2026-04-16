@@ -54,6 +54,8 @@ class StubPipeline:
                 model_version=self.model_version,
             )
 
+        from whales_be_service.response_models import Candidate
+
         return Detection(
             image_ind=filename,
             bbox=[0, 0, pil_img.width, pil_img.height],
@@ -66,6 +68,12 @@ class StubPipeline:
             rejected=False,
             rejection_reason=None,
             model_version=self.model_version,
+            candidates=[
+                Candidate(class_animal="abc456def789", id_animal="killer_whale", probability=0.55),
+                Candidate(class_animal="cafe0987ba54", id_animal="bottlenose_dolphin", probability=0.28),
+                Candidate(class_animal="dead01234567", id_animal="fin_whale", probability=0.09),
+                Candidate(class_animal="beef89abcdef", id_animal="blue_whale", probability=0.04),
+            ],
         )
 
     def warmup(self) -> None:  # pragma: no cover
