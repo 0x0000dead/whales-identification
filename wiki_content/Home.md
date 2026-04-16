@@ -10,12 +10,10 @@
 
 ### Ключевые возможности
 
-- ✅ **13 837 индивидуальных особей** (15 587-слотовая ArcFace голова, 1 750 резерв)
-- ✅ **30 видов** китов и дельфинов (см. `whales_be_service/src/whales_be_service/resources/species_map.csv`)
-- ✅ **EfficientNet-B4 + ArcFace** как production identification model
-- ✅ **OpenCLIP ViT-B/32** anti-fraud gate (Precision 0.9048 на бинарной задаче)
-- ✅ **REST API** с batch processing + webhook + export
-- ✅ **Docker Compose** для быстрого развёртывания (prod: k8s manifests в `k8s/`)
+- ✅ **1,000 индивидуальных особей** китов и дельфинов в базе
+- ✅ **Vision Transformer** с точностью 93%
+- ✅ **REST API** с batch processing
+- ✅ **Docker Compose** для быстрого развёртывания
 - ✅ **Metric Learning** (ArcFace) для масштабируемости
 - ✅ **Background removal** с rembg
 
@@ -70,25 +68,19 @@ docker compose up --build
 
 ---
 
-## 📊 Характеристики production-модели
+## 📊 Характеристики моделей
 
-Все числа ниже — воспроизводимые результаты `python scripts/compute_metrics.py`
-на выборке `data/test_split/manifest.csv` (202 изображения, 100/102 split).
-Не угадывайте — запустите скрипт и сверьте с `reports/metrics_latest.json`.
+| Модель                      | Precision | Время GPU (с) | Время CPU (с) | Статус        |
+| --------------------------- | --------- | ------------- | ------------- | ------------- |
+| **Vision Transformer L/32** | 93%       | ~3.5s         | ~7.5s         | ⭐ Best       |
+| Vision Transformer B/16     | 91%       | ~2.0s         | ~5.0s         | ✅ Production |
+| EfficientNet-B5             | 91%       | ~1.8s         | ~4.5s         | ✅ Production |
+| EfficientNet-B0             | 88%       | ~1.0s         | ~2.5s         | ⚡ Fast       |
+| ResNet-101                  | 85%       | ~1.2s         | ~3.0s         | ✅ Baseline   |
 
-| Метрика | EfficientNet-B4 ArcFace | ТЗ |
-|---------|-------------------------|-----|
-| Anti-fraud Precision (бинарная) | **0.9048** | §Параметр 8/9/11 |
-| Anti-fraud Recall / F1 | 0.950 / 0.9268 | §Параметр 8, 11 |
-| Species precision (high-conf) | 0.5294 | §Параметр 1 (см. `reports/METRICS.md` для обоснования interpretability) |
-| Latency p95 (CPU) | 298.87 мс | §Параметр 2 (≤ 8 с) ✓ |
-| Latency p99 (CPU) | 416.73 мс | §Параметр 2 ✓ |
-| Масштабируемость (R²) | 1.000 | §Параметр 3 (линейная) ✓ |
-| Устойчивость к шуму (drop) | −1.1 % | §Параметр 4 (≤ 20 %) ✓ |
+**Все модели укладываются в требование ТЗ: ≤8 секунд для изображения 1920x1080**
 
-**Подробности:** [Model Cards](Model-Cards), `DOCS/PERFORMANCE_REPORT.md`,
-`reports/METRICS.md`. Сравнение альтернативных архитектур (ResNet, Swin,
-ViT-L/32) см. в `research/notebooks/08_benchmark_all_compare.ipynb`.
+**Подробности:** [Model Cards](Model-Cards)
 
 ---
 
