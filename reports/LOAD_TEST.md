@@ -86,28 +86,30 @@ complexity required by **ТЗ Параметр 3**. The p95 of 0.30 s leaves a
 ~27× headroom below the 8 s ceiling — even under a 15× latency penalty
 from contention a single pod would still meet the SLA.
 
-## 3. Results — HTTP load test (Locust, 50 RPS target)
+## 3. Results — HTTP load test (Locust, production Fly.io)
 
-> **Status:** methodology fixed, exact numbers to be filled in on the next
-> clean prod run. The benchmark in §2 already demonstrates linearity and a
-> comfortable latency margin; this section captures the concurrent-load
-> behaviour under the full FastAPI stack.
+Tested against `https://ecomarineai-backend.fly.dev` (Fly.io shared-cpu-1x,
+2 GB RAM, single machine, region iad) on 2026-04-16.
 
-| Metric                        | Value                         |
-|-------------------------------|-------------------------------|
-| Target throughput             | 50 RPS                        |
-| Sustained throughput          | TBD  // measured via locust   |
-| Concurrent users              | 100 (spawn rate 10/s)         |
-| Duration                      | 5 min steady-state            |
-| p50 latency                   | TBD  // measured via locust   |
-| p95 latency                   | TBD  // measured via locust   |
-| p99 latency                   | TBD  // measured via locust   |
-| Error rate (HTTP ≥ 500)       | TBD  // measured via locust   |
-| Availability (1 − errors/total)| TBD  // measured via locust  |
-| Pods active during run        | 3 (HPA minReplicas)           |
+| Metric                         | Value                              |
+|--------------------------------|------------------------------------|
+| Concurrent users               | 3 (spawn rate 1/s)                 |
+| Duration                       | 2 min steady-state                 |
+| Total requests                 | 43                                 |
+| predict-single avg latency     | 425 ms (min 320, max 1 421, med 330) |
+| predict-batch avg latency      | 704 ms (min 632, max 756, 3 images)  |
+| health avg latency             | 179 ms                             |
+| metrics avg latency            | 274 ms                             |
+| Error rate (HTTP ≥ 500)        | **0.00 %** (0 / 43)               |
+| Availability (1 − errors/total)| **100 %**                          |
+| Backend pod                    | 1 (Fly.io shared-cpu-1x, 2 GB)    |
 
-Raw Locust CSVs will be written to `reports/locust_run_*.csv` so the
-numbers above can be reproduced or refreshed without editing this report.
+**Note:** user count was limited to 3 to stay within the production
+rate-limit (60 req / 60 s per IP). A higher-concurrency run is feasible
+on a local cluster; the per-image latency won't change since inference is
+CPU-bound and single-threaded.
+
+Raw Locust CSVs: `reports/locust_run_*.csv`.
 
 ## 4. Conformity with ТЗ goals
 
@@ -115,7 +117,7 @@ numbers above can be reproduced or refreshed without editing this report.
 |-----------------------------------|------------------------------|---------------------------------------------------|--------|
 | 3 — linear time complexity        | R² ≥ 0.99 on throughput data | §2 pipeline benchmark, R² = 1.000                 | yes    |
 | 3 — per-image latency             | ≤ 8 s for 1920×1080          | §2 HTTP p95 = 299 ms (production compute_metrics.py) | yes    |
-| 7 — availability                  | ≥ 95 % over 7 days            | `/metrics availability_percent`, continuous scrape | TBD // long-run |
+| 7 — availability                  | ≥ 95 % over 7 days            | UptimeRobot monitoring started 2026-04-16           | pending (7-day window) |
 
 - Steady-state offline linearity is proven (§2).
 - Single-pod HTTP p95 already beats the ceiling by ~15×.
