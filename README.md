@@ -1,4 +1,4 @@
-# EcoMarineAI — идентификация морских млекопитающих
+# EcoMarineAI — Идентификация морских млекопитающих
 
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.11-blue.svg)
@@ -6,478 +6,328 @@
 ![Metrics](https://github.com/0x0000dead/whales-identification/actions/workflows/metrics.yml/badge.svg)
 ![Docs](https://github.com/0x0000dead/whales-identification/actions/workflows/deploy-docs.yml/badge.svg)
 
-Библиотека для идентификации морских млекопитающих (китов и дельфинов) со снимков аэрофотосъёмки. Включает CLIP zero-shot **антифрод-фильтр**: система отвергает любые изображения, которые не являются фотографиями китов/дельфинов, с целевой Specificity ≥ 90%.
+Библиотека машинного обучения для автоматического детектирования и идентификации морских млекопитающих (китов и дельфинов) по снимкам аэрофотосъёмки. Система применяет метрическое обучение на основе ArcFace для идентификации 13 837 особей 30 видов и включает CLIP zero-shot антифрод-фильтр, отклоняющий изображения, не содержащие морских млекопитающих (целевая специфичность ≥ 90%).
 
-![Pipeline](DOCS/pipeline_diagram.png)
+---
 
-**Измеренные метрики** (202 изображения — 100 китов из Happy Whale + 102 сцены без китов из Intel Image Dataset):
+## Метрики качества
 
-| Метрика | Значение | Целевое значение ТЗ |
+Измерено на 202 изображениях: 100 снимков китов (Happy Whale) + 102 сцены без морских млекопитающих (Intel Image Dataset). Метрики вычисляются скриптом `scripts/compute_metrics.py`.
+
+| Метрика | Значение | Целевое значение по ТЗ |
 |---|---|---|
-| TPR / Sensitivity | **0.950** | > 0.85 ✓ |
-| TNR / Specificity | **0.902** | > 0.90 ✓ |
-| Precision | **0.905** | ≥ 0.80 ✓ |
-| F1 | **0.927** | > 0.60 ✓ |
+| TPR / Чувствительность | **0.950** | > 0.85 |
+| TNR / Специфичность | **0.902** | > 0.90 |
+| Precision | **0.905** | ≥ 0.80 |
+| F1 | **0.927** | > 0.60 |
 | ROC-AUC | **0.984** | — |
-| Latency p95 | **519 ms** | ≤ 8000 ms ✓ |
-| Linear scalability | **R² = 1.000** | linear ✓ |
-| Noise robustness drop | **0.0%** | ≤ 20 % ✓ |
-
-Все числа вычислены скриптом `scripts/compute_metrics.py` на реальных изображениях — никаких хардкодов в `models_config.yaml`.
-
-![Real API](DOCS/real_api_responses.png)
-
----
-
-## 🚀 Quickstart «для бабушки» (5 минут, даже без Python-опыта)
-
-Всё что нужно — Docker Desktop ([скачать](https://www.docker.com/products/docker-desktop/)) и команда `docker compose up`.
-
-### Вариант A — одна команда, без правок
+| Задержка p95 | **519 мс** | ≤ 8000 мс |
+| Линейная масштабируемость | **R² = 1.000** | линейная |
+| Снижение точности при зашумлении | **0.0%** | ≤ 20% |
 
 ```bash
-git clone https://github.com/0x0000dead/whales-identification
-cd whales-identification
-docker compose up --build
-```
-
-Открываете в браузере **http://localhost:8080** — там UI: загружаете фото → получаете ответ.
-
-### Что вы увидите, когда всё заработает
-
-1. **Фото кита →** зелёная карточка «Морское млекопитающее обнаружено» с видом и уверенностью.
-2. **Фото здания / текста / котика →** красная карточка «Это не похоже на морское млекопитающее».
-3. **Swagger UI (для айтишников)** на http://localhost:8000/docs.
-
-### Если что-то пошло не так — три типовых проблемы
-
-| Ошибка | Решение |
-|---|---|
-| `docker: command not found` | Поставьте Docker Desktop и перезайдите в терминал |
-| `port 8000/8080 already in use` | `docker compose down` и повторите, или измените порты в `docker-compose.yml` |
-| Frontend говорит «Failed to fetch» | Укажите IP вашего сервера: `VITE_BACKEND=http://192.168.1.100:8000 docker compose up --build` |
-
-### Без Docker (если очень нужно)
-
-```bash
-cd whales-identification
-./scripts/download_models.sh                # ~400 MB с HF
-cd whales_be_service && poetry install
-poetry run python -m uvicorn whales_be_service.main:app --host 0.0.0.0 --port 8000
-```
-
-### Для биолога (CLI без UI)
-
-```bash
-# Одна фотография — человеко-читаемый ответ
-python -m whales_identify predict /path/to/whale.jpg
-# Каталог фото → CSV отчёт
-python -m whales_identify batch /path/to/folder/ --csv report.csv
-# Только проверить «это кит или нет?»
-python -m whales_identify verify /path/to/image.png
+make compute-metrics   # пересчитать метрики
+cat reports/METRICS.md # читаемый отчёт
 ```
 
 ---
 
+## Архитектура системы
 
-## Цель выполнения проекта:
+![Inference Pipeline](docs/pipeline_diagram.png)
 
-Разработка библиотеки искусственного интеллекта для автоматического детектирования и идентификации крупных морских млекопитающих по данным аэрофотосъемки.
+Входное изображение проходит через CLIP-фильтр (OpenCLIP ViT-B/32), который отклоняет нецелевые снимки. Принятые изображения передаются в EfficientNet-B4 с головой ArcFace (15 587 слотов, 13 837 активных) для идентификации конкретной особи. API возвращает вид, уникальный ID животного и топ-5 альтернативных кандидатов.
 
-## 📚 Документация и ресурсы
+---
 
-### Официальная документация
+## Веб-интерфейс
 
-- **[📚 GitHub Wiki](https://github.com/0x0000dead/whales-identification/wiki)** - Детальные гайды и руководства:
-  - [Installation Guide](https://github.com/0x0000dead/whales-identification/wiki/Installation) - Установка и настройка
-  - [API Reference](https://github.com/0x0000dead/whales-identification/wiki/API-Reference) - REST API endpoints
-  - [Architecture](https://github.com/0x0000dead/whales-identification/wiki/Architecture) - Архитектура проекта
-  - [Model Cards](https://github.com/0x0000dead/whales-identification/wiki/Model-Cards) - Описание моделей
-  - [Testing Guide](https://github.com/0x0000dead/whales-identification/wiki/Testing) - Тестирование
-  - [FAQ](https://github.com/0x0000dead/whales-identification/wiki/FAQ) - Часто задаваемые вопросы
+Веб-приложение доступно на `http://localhost:8080` после запуска стека.
 
-### Технические гайды
+### Одиночный анализ
 
-- **[Pre-commit Hooks Guide](docs/PRE_COMMIT_GUIDE.md)** - Настройка и использование 20 pre-commit hooks
-- **[CI/CD Pipeline](.github/workflows/ci.yml)** - GitHub Actions workflow (6 стадий)
-- **[Contributing Guidelines](https://github.com/0x0000dead/whales-identification/wiki/Contributing)** - Как участвовать в разработке
+Загрузите снимок морского млекопитающего — система определит вид, идентификатор особи, уверенность модели и альтернативные варианты.
 
-### Лицензирование
+![Главный экран](docs/screenshots/ui_upload.png)
 
-- **[LICENSE](LICENSE)** - MIT License для исходного кода
-- **[LICENSE_MODELS.md](LICENSE_MODELS.md)** - CC-BY-NC-4.0 для обученных моделей (наследуется от Happy Whale)
-- **[LICENSE_DATA.md](LICENSE_DATA.md)** - CC-BY-NC-4.0 для датасетов
-- **[LICENSES_ANALYSIS.md](LICENSES_ANALYSIS.md)** - Анализ 159 зависимостей (99.4% совместимость)
+![Результат идентификации](docs/screenshots/ui_detection_result.png)
 
-### CI/CD и автоматизация
+### Отклонение антифродом
 
-- **[GitHub Actions Workflows](https://github.com/0x0000dead/whales-identification/actions)**
-  - [CI/CD Pipeline](https://github.com/0x0000dead/whales-identification/actions/workflows/ci.yml) - Lint, test, security, docker
-  - [Deploy Docs](https://github.com/0x0000dead/whales-identification/actions/workflows/deploy-docs.yml) - Автоматический деплой документации
+Если снимок не содержит морского млекопитающего, система возвращает объяснение и рекомендации.
 
-### Модели и артефакты
+![Карточка отклонения](docs/screenshots/ui_rejection.png)
 
-- **[Hugging Face Repository](https://huggingface.co/baltsat/Whales-Identification)** - Обученные модели
-- **[Yandex Disk](https://disk.yandex.ru/d/GshqU9o6nNz7ZA)** - Альтернативное хранилище моделей
+### Пакетная обработка
 
-## Структура репозитория
+Загрузите ZIP-архив с несколькими снимками. Результат включает сводную статистику, гистограмму по видам и детальную таблицу.
 
-### Исследования, эксперименты, сравнение
+![Пакетная обработка](docs/screenshots/ui_batch_results.png)
 
-- `research/notebooks/*` - набор исследовательских ipynb ноутбуков с сравнением различных методов идентификации
-- `research/notebooks/README.md` - вывод о результатах и границах применимости в результате проведенных сравнений.
-- `research/notebooks/02_ViT_train_effiecientnet.ipynb` - обучение модели идентификации с использованием Metric Learning подхода на основе трансформерной архитектуры ViT.
-- `research/notebooks/02_ViT_inference_efficientnet.ipynb` - оценка результатов модели с использованием Metric Learning подхода на основе трансформерной архитектуры ViT.
-- `research/notebooks/03_efficientnet_experiments.ipynb` - сравнение Metric Learning подходов на основе CNN EfficientnetB0, EfficientnetB3, EfficientnetB5 архитектур.
-- `research/notebooks/04_resnet_classification_experiments.ipynb` - сравнение CNN classification подходов на основе CNN Resnet54, Resnet101 архитектур
-- `research/notebooks/05_swinT_experiments.ipynb` - оценка результатов модели с использованием Metric Learning подхода на основе трансформерной архитектуры SwinTransformers.
-- `research/notebooks/06_benchmark_binary.ipynb` - сравнение всех перспективных моделей на одном наборе данных. Сравнение при этом проводится на флаг нахождения любой породы морских млекопитающих на снимке (1 - млекопитающее есть / 0 - морские млекопитающего нет).
-- `research/notebooks/06_benchmark_multiclass.ipynb` - сравнение всех перспективных моделей на одном наборе данных. Сравнение при этом проводится на мультиклассификацию
-- `research/notebooks/07_onnx_inference_compare.ipynb` - сравнение ускорения за счет использования ONNX фреймворка.
+---
 
-### Загрузка моделей для исследования и демонстраций
+## Быстрый запуск
 
-Модели, используемые в исследованиях (`research/notebooks`) и демонстрационных приложениях (`research/demo-ui`, `research/demo-ui-mask`), можно скачать по одной из следующих ссылок (ввиду ограничения объема на бесплатный git lfs):
+### Вариант 1: Docker Compose (рекомендуется)
 
-- [Яндекс Диск](https://disk.yandex.ru/d/GshqU9o6nNz7ZA)
-- [Hugging Face](https://huggingface.co/baltsat/Whales-Identification/tree/main)
-
-Примечание: Модели из директории `models/` (куда их загружает скрипт `scripts/download_models.sh`) добавлены в `.gitignore`. Для разработки вы можете загрузить их с Hugging Face (например, используя `huggingface-cli download ...` как в скрипте, или вручную) в соответствующую директорию.
-
-- `research/demo-ui/*` - демо веб-приложение с выбранным наилучшим решением для наглядной оценки качества его работы, с возможностью загрузить изображение для анализа. Более подробная информация в разделе `./demo-ui/README.md`.
-- `research/demo-ui-mask/*` - демо веб-приложение иного подхода, позволяющее улучшить качество работы алгоритма, за счет использования бинарной маски с изображением млекопитающего. Более подробная информация в разделе `./demo-ui/README.md`.
-
-## Описание
-
-Эта библиотека предоставляет инструменты для обучения и тестирования моделей, способных идентифицировать виды китов и дельфинов на основе аэрофотоснимков. Она включает в себя функциональность для работы с изображениями, аугментации данных, настройки моделей и подготовки датасетов.
-
-## Установка
-
-### Предварительные требования
-
-1. **Установите huggingface-cli** (требуется для загрузки моделей):
-
-```bash
-pip install huggingface_hub==0.20.3
-```
-
-2. **Загрузите модели** (обязательный шаг):
+Требуется [Docker Desktop](https://www.docker.com/products/docker-desktop/).
 
 ```bash
 git clone https://github.com/0x0000dead/whales-identification
 cd whales-identification
-# Скрипт создаст директорию models/ и загрузит модели
-./scripts/download_models.sh
-```
-
-### Варианты запуска
-
-#### Вариант 1: Docker Compose (рекомендуется) - Полноценное приложение с Frontend и Backend
-
-```bash
 docker compose up --build
 ```
 
 После запуска:
 
-- **Backend API** доступен на http://localhost:8000/docs (Swagger UI)
-- **Frontend UI** доступен на http://localhost:8080
+- **Веб-интерфейс** — http://localhost:8080
+- **Swagger UI (REST API)** — http://localhost:8000/docs
 
-**Примечание:** Первый запуск может занять несколько минут для сборки образов.
-
-**Доступ из сети (с другого устройства):**
+**Доступ из другого устройства в сети:**
 
 ```bash
-# Для доступа к frontend с другого устройства в сети, укажите IP вашего сервера:
 VITE_BACKEND=http://192.168.1.100:8000 docker compose up --build
 ```
 
-Переменная `VITE_BACKEND` настраивает адрес backend API для frontend. По умолчанию в Docker используется `http://backend:8000` для внутренней связи контейнеров.
+Переменная `VITE_BACKEND` указывает фронтенду адрес бэкенда. По умолчанию в Docker используется `http://backend:8000`.
 
-#### Вариант 2: Streamlit Demo (только демонстрация)
-
-Для запуска демонстрационного приложения с лучшей моделью (Vision Transformer):
+### Вариант 2: Локальная разработка (без Docker)
 
 ```bash
-cd research/demo-ui/
-pip install poetry
-poetry install
-poetry run streamlit run streamlit_app.py --server.port=8501 --server.address=0.0.0.0
-```
-
-Приложение будет доступно на http://localhost:8501
-
-### Troubleshooting (Решение типичных проблем)
-
-#### Проблема: `ImportError: libGL.so.1: cannot open shared object file`
-
-**Решение:** Установите системные зависимости OpenCV:
-
-```bash
-# Ubuntu/Debian
-sudo apt-get update
-sudo apt-get install -y libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev libgomp1
-
-# macOS (обычно не требуется)
-brew install opencv
-```
-
-#### Проблема: `huggingface-cli: command not found`
-
-**Решение:** Установите huggingface CLI:
-
-```bash
+# Загрузка весов модели (~400 МБ с Hugging Face)
 pip install huggingface_hub==0.20.3
-```
+./scripts/download_models.sh
 
-#### Проблема: `Poetry could not find a pyproject.toml file`
-
-**Решение:** Убедитесь, что вы находитесь в правильной директории:
-
-```bash
-# Для backend
+# Бэкенд
 cd whales_be_service
 poetry install
+poetry run python -m uvicorn whales_be_service.main:app \
+  --host 0.0.0.0 --port 8000 --reload
 
-# Для demo
+# Фронтенд (в отдельном терминале)
+cd frontend
+npm install
+VITE_BACKEND=http://localhost:8000 npm run dev   # http://localhost:5173
+```
+
+### Вариант 3: Streamlit-демо
+
+```bash
 cd research/demo-ui
 poetry install
+poetry run streamlit run streamlit_app.py --server.port=8501
 ```
 
-#### Проблема: `No such file or directory: models/`
-
-**Решение:** Запустите скрипт загрузки моделей:
-
-```bash
-# Убедитесь, что вы в корне проекта
-./scripts/download_models.sh
-```
-
-#### Проблема: Docker контейнеры не запускаются
-
-**Решение 1:** Проверьте, что Docker daemon запущен:
-
-```bash
-docker ps
-```
-
-**Решение 2:** Очистите старые контейнеры и образы:
-
-```bash
-docker compose down
-docker system prune -a
-docker compose up --build
-```
-
-#### Проблема: Порты заняты (8000, 8080, 8501)
-
-**Решение:** Измените порты в docker-compose.yml или остановите процессы:
-
-```bash
-# Найти процесс на порту
-lsof -i :8000
-# Остановить процесс
-kill -9 <PID>
-```
-
-#### Проблема: Медленная работа inference
-
-**Решение:**
-
-- Убедитесь, что используете GPU (если доступен)
-- Используйте ONNX оптимизированные модели (см. `research/notebooks/07_onnx_inference_compare.ipynb`)
-- Уменьшите размер batch для batch processing
-
-#### Проблема: Frontend не может подключиться к backend (Network Error)
-
-**Решение:** Установите переменную `VITE_BACKEND` с правильным адресом backend:
-
-```bash
-# Для локальной разработки
-cd frontend
-VITE_BACKEND=http://localhost:8000 npm run dev
-
-# Для Docker Compose (доступ из сети)
-VITE_BACKEND=http://YOUR_SERVER_IP:8000 docker compose up --build
-```
-
-### Пример датасета
-
-![img](data/sample.png)
-
-## CLI для биологов
-
-Кроме веб-интерфейса есть CLI-утилита `whales-cli`, не требующая опыта разработки:
-
-```bash
-# Установка
-poetry -C whales_be_service install
-poetry -C whales_be_service run python -m whales_identify --help
-
-# Идентифицировать одно фото
-python -m whales_identify predict /path/to/whale.jpg
-
-# Обработать каталог фото с CSV-отчётом
-python -m whales_identify batch /path/to/dir/ --csv report.csv
-
-# Только проверить «это морское млекопитающее или нет»
-python -m whales_identify verify /path/to/image.png
-```
-
-## Антифрод-фильтр (Specificity > 90%)
-
-Каждое изображение проходит через CLIP zero-shot гейт (OpenCLIP ViT-B/32 LAION-2B):
-
-```
-image → CLIP gate → identification (если кит/дельфин) → response
-                ↓
-            rejected:true, rejection_reason="not_a_marine_mammal"
-```
-
-Не-китовые изображения возвращаются с `200 OK` и полем `rejected: true` (это успешная классификация, а не HTTP-ошибка). Порог CLIP калибруется через `make calibrate-clip` на встроенном test split (`data/test_split/`) так, чтобы достичь TNR ≥ 90% при TPR ≥ 85%. Результат лежит в `whales_be_service/src/whales_be_service/configs/anti_fraud_threshold.yaml` и читается на старте сервиса.
-
-## Метрики
-
-Все ML-метрики (precision, recall, F1, sensitivity, specificity, top-1, latency p50/p95/p99) вычисляются скриптом `scripts/compute_metrics.py` на реальных данных. Хардкод-метрик в `models_config.yaml` больше нет.
-
-```bash
-make compute-metrics            # пересчитать все метрики
-cat reports/METRICS.md          # human-readable
-cat reports/metrics_latest.json # для CI
-```
-
-CI workflow `metrics.yml` падает, если TNR/TPR/top1 проседают больше чем на 2 п.п. от `reports/metrics_baseline.json`.
-
-## Настройка для локальной разработки
-
-### Автоматическая проверка и форматирование кода (Pre-commit Hooks)
-
-Для поддержания качества кода и единого стиля мы используем `pre-commit` хуки, которые автоматически проверяют и форматируют ваш код перед каждым коммитом. Используются `black` для форматирования и `flake8` для линтинга.
-
-**Установка хуков:**
-
-1.  Убедитесь, что у вас установлены все зависимости проекта, включая dev-зависимости:
-    ```bash
-    poetry install --all-extras
-    ```
-2.  Активируйте pre-commit хуки в вашем локальном репозитории:
-    ```bash
-    poetry run pre-commit install
-    ```
-
-После выполнения этих шагов, `black` и `flake8` будут автоматически запускаться для измененных `.py` файлов каждый раз, когда вы выполняете команду `git commit`. Если `black` вносит изменения для форматирования, вам может потребоваться снова добавить измененные файлы в коммит (`git add .`). Если `flake8` находит ошибки, коммит будет прерван до их исправления.
-
-## Рабочий процесс (Workflow)
-
-1.  Для каждой новой функции или исправления ошибки создавайте новую ветку от ветки `main`.
-2.  Давайте веткам описательные имена (например, `feature/new-auth` или `fix/login-bug`).
-3.  Делайте коммиты в свою ветку. Пишите четкие и краткие сообщения коммитов.
-4.  Отправляйте свою ветку в удаленный репозиторий.
-5.  Открывайте Merge Request (MR) в ветку `main`.
-6.  Убедитесь, что ваши изменения проходят все автоматические проверки в CI/CD пайплайне (линтеры, тесты и т.д.).
-7.  Как минимум один другой член команды должен рассмотреть и одобрить MR.
-8.  После одобрения и успешного CI, сливайте MR в `main`.
-9.  Удаляйте ветку функции после слияния.
-10. Ветка `main` всегда должна быть стабильной и готовой к развертыванию.
-
-### Результаты сравнения
-
-| Критерий                               | CNN (ResNet-54)                          | CNN (ResNet-101)                         | Metric Learning (EfficientNet-B0)        | Metric Learning (EfficientNet-B5)            | ViT-B/16                                 | ViT-L/32                                 | Swin-T                                   |
-| -------------------------------------- | ---------------------------------------- | ---------------------------------------- | ---------------------------------------- | -------------------------------------------- | ---------------------------------------- | ---------------------------------------- | ---------------------------------------- |
-| **Точность (Precision)**               | 82%                                      | 85%                                      | 88%                                      | 91%                                          | 91%                                      | 93%                                      | 90%                                      |
-| **Скорость обработки (средняя)**       | ~0.8 секунды                             | ~1.2 секунды                             | ~1.0 секунда                             | ~1.8 секунды                                 | ~2.0 секунды                             | ~3.5 секунды                             | ~2.2 секунды                             |
-| **Масштабируемость**                   | Хорошая, линейная сложность              | Средняя, увеличенные ресурсы             | Высокая, линейная сложность              | Средняя, ресурсоемкая                        | Средняя, увеличивается с данными         | Низкая, требует значительных ресурсов    | Высокая, линейная сложность              |
-| **Универсальность и адаптивность**     | Средняя                                  | Высокая                                  | Высокая, устойчива к изменениям          | Очень высокая, устойчива к изменениям        | Очень высокая                            | Очень высокая                            | Высокая                                  |
-| **Интерфейс и удобство использования** | Простой интерфейс                        | Более сложный интерфейс                  | Требует настройки эмбеддингов            | Требует более сложной настройки эмбеддингов  | Требует оптимизации для пользователей    | Требует высокой оптимизации              | Простой интерфейс                        |
-| **Интеграция с другими системами**     | Легко интегрируется                      | Поддерживает интеграцию                  | Совместим с базами данных                | Совместим, но требует дополнительных модулей | Требует модулей для интеграции           | Требует модулей и оптимизации            | Легко интегрируется                      |
-| **Надежность и стабильность**          | 94% доступности                          | 92% доступности                          | 95% доступности                          | 93% доступности                              | 93% доступности                          | 90% доступности                          | 94% доступности                          |
-| **Чувствительность (Sensitivity)**     | 78%                                      | 82%                                      | 85%                                      | 88%                                          | 89%                                      | 91%                                      | 90%                                      |
-| **Специфичность (Specificity)**        | 88%                                      | 90%                                      | 92%                                      | 94%                                          | 91%                                      | 92%                                      | 91%                                      |
-| **Полнота (Recall)**                   | 76%                                      | 80%                                      | 85%                                      | 88%                                          | 89%                                      | 91%                                      | 90%                                      |
-| **F1-мера**                            | 0.79                                     | 0.82                                     | 0.86                                     | 0.89                                         | 0.90                                     | 0.92                                     | 0.91                                     |
-| **Требования к датасету**              | ~60,000 тренировочных и ~20,000 тестовых | ~60,000 тренировочных и ~20,000 тестовых | ~60,000 тренировочных и ~20,000 тестовых | ~60,000 тренировочных и ~20,000 тестовых     | ~60,000 тренировочных и ~20,000 тестовых | ~60,000 тренировочных и ~20,000 тестовых | ~60,000 тренировочных и ~20,000 тестовых |
-
-## Лицензирование
-
-### Исходный код
-
-Исходный код проекта распространяется под лицензией **MIT** — см. [LICENSE](LICENSE).
-
-**Авторы:** Baltsat Konstantin, Tarasov Artem, Vandanov Sergey, Serov Alexandr (2024)
-
-### Обученные модели
-
-Обученные модели распространяются под лицензией **CC-BY-NC-4.0** — см. [LICENSE_MODELS.md](LICENSE_MODELS.md). Эта лицензия наследуется от upstream датасета Happy Whale и запрещает коммерческое использование моделей без прямого разрешения правообладателя данных.
-
-**⚠️ ВАЖНО:** Коммерческое использование моделей **запрещено** из-за следующих ограничений:
-
-1. **Тренировочные данные сообщества (морские млекопитающие):** CC-BY-NC-4.0 (некоммерческое использование)
-2. **Данные Минприроды РФ:** Только для исследовательских целей
-3. **Предобученные модели (ImageNet):** Некоммерческое использование
-
-Модели разрешены для использования в:
-
-- ✅ Академических исследованиях
-- ✅ Образовательных целях
-- ✅ Некоммерческих природоохранных проектах
-- ✅ Правительственном мониторинге
-
-### Датасеты
-
-Датасеты используют комбинацию лицензий — см. [LICENSE_DATA.md](LICENSE_DATA.md):
-
-- **Happy Whale:** CC-BY-NC-4.0 (Creative Commons Attribution-NonCommercial)
-- **Минприроды РФ:** Правительственные данные для исследований
-
-### Зависимости проекта
-
-Полный анализ лицензий всех зависимостей (Python + npm) — см. [LICENSES_ANALYSIS.md](LICENSES_ANALYSIS.md).
-
-**Краткий вывод:** Все 159 зависимостей совместимы с MIT лицензией (Apache 2.0, BSD, MIT). GPL зависимости изолированы как dev-only.
-
-### Предобученные модели (Transfer Learning)
-
-Наши модели используют следующие предобученные основы:
-
-| Модель             | Источник            | Лицензия кода | Лицензия весов                |
-| ------------------ | ------------------- | ------------- | ----------------------------- |
-| ResNet-50/101      | torchvision/PyTorch | BSD-3-Clause  | ImageNet (некоммерческое)     |
-| EfficientNet-B0/B5 | TIMM/Google         | Apache 2.0    | ImageNet (некоммерческое)     |
-| Vision Transformer | Google Research     | Apache 2.0    | ImageNet-21k (некоммерческое) |
-| Swin Transformer   | Microsoft           | Apache 2.0    | ImageNet-22k (некоммерческое) |
-
-**ImageNet ограничения:** Все предобученные модели обучены на ImageNet, который имеет некоммерческую лицензию для исследований. Это дополнительно ограничивает коммерческое использование.
-
-### Обращение за коммерческой лицензией
-
-Для получения коммерческих прав свяжитесь с:
-
-- **Happy Whale:** support@happywhale.com
-- **Минприроды РФ:** minprirody@mnr.gov.ru, +7 (499) 657-57-00
-- **Команда:** Baltsat K.I., Tarasov A.A., Vandanov S.A., Serov A.I.
+Приложение доступно на http://localhost:8501.
 
 ---
 
-- [ ] Завершенный проект открытых библиотек, размещенный в открытом доступе в информационно-телекоммуникационной сети «Интернет» и предоставляемый любым лицам на условиях безвозмездной бессрочной открытой лицензии.
+## API
 
-## Перечень Работ, выполняемых в рамках проекта, распределение Работ между членами проектной команды.
+### Одиночная идентификация
 
-Этап 1.
+```bash
+curl -X POST http://localhost:8000/v1/predict-single \
+  -F "file=@/path/to/whale.jpg"
+```
 
-- [ ] (Балцат К.И.) Настройка репозитория для автоматической проверки и одобрения изменений в коде для расширения функциональности.
-- [ ] (Балцат К.И.) Тестирование пилотных прототипов алгоритмов детекции объектов и обработки изображений.
-- [ ] (Балцат К.И.) Исследование и уточнение функциональных требований к решению через проведение интервью с экспертами в области морской биологии.
-- [ ] (Балцат К.И., Тарасов А.А.) Разработка прототипов алгоритмов детекции объектов и обработки изображений.
+Пример ответа:
 
-- [ ] (Тарасов А.А.) Обработка данных: сбор, обогащение и аугментация данных.
-- [ ] (Тарасов А.А.) Разработка алгоритмов машинного обучения для автоматизированной обработки данных (Data Stream).
+```json
+{
+  "image_ind": "whale.jpg",
+  "bbox": [128, 64, 896, 512],
+  "class_animal": "1a71fbb72250",
+  "id_animal": "humpback_whale",
+  "probability": 0.847,
+  "is_cetacean": true,
+  "cetacean_score": 0.993,
+  "rejected": false,
+  "rejection_reason": null,
+  "model_version": "effb4-arcface-v2",
+  "candidates": [
+    {"class_animal": "abc456def789", "id_animal": "humpback_whale", "probability": 0.543},
+    {"class_animal": "cafe0987ba54", "id_animal": "fin_whale", "probability": 0.271}
+  ]
+}
+```
 
-- [ ] (Ванданов С.А.) Обучение нейронной сети на начальном этапе с сохранением промежуточных весов.
-- [ ] (Ванданов С.А.) Исследование, сравнение и выбор алгоритмов компьютерного зрения.
-- [ ] (Ванданов С.А.) Прототипирование алгоритмов машинного обучения для идентификации по снимкам млекопитающих.
-- [ ] (Ванданов С.А., Серов А.И.) Разработка общей архитектуры системы нейронных сетей (ML System Design).
+Поле `rejected: true` означает успешную классификацию (не ошибку сервера). `rejection_reason` принимает значения `not_a_marine_mammal` или `low_confidence`.
 
-- [ ] (Серов А.И.) Системный анализ ПО: выявление и оптимизация проблемных мест системы нейронных сетей.
-- [ ] (Серов А.И.) Разработка алгоритма многоклассовой классификации объектов по снимкам.
-- [ ] (Серов А.И.) Проведение код-ревью разработанных прототипов.
-- [ ] (Серов А.И.) Тестирование и сравнение архитектур алгоритмов многоклассовой классификации.
+### Пакетная обработка
+
+```bash
+zip archive.zip image_001.jpg image_002.jpg image_003.jpg
+curl -X POST http://localhost:8000/v1/predict-batch \
+  -F "archive=@archive.zip"
+```
+
+Ответ: массив объектов `Detection`, по одному на каждое изображение в архиве.
+
+Полная документация: http://localhost:8000/docs
+
+### Примеры реальных ответов API
+
+![Real API responses](docs/real_api_responses.png)
+
+---
+
+## CLI-утилита
+
+Интерфейс командной строки для работы без веб-браузера.
+
+```bash
+# Установка
+cd whales_be_service && poetry install
+
+# Идентифицировать один снимок
+python -m whales_identify predict /path/to/whale.jpg
+
+# Обработать каталог и сохранить результаты в CSV
+python -m whales_identify batch /path/to/dir/ --csv report.csv
+
+# Проверить только антифрод-фильтр (да/нет)
+python -m whales_identify verify /path/to/image.png
+
+# Вывод в JSON
+python -m whales_identify predict /path/to/whale.jpg --json
+```
+
+---
+
+## Антифрод-фильтр
+
+Каждое изображение проходит через CLIP zero-shot фильтр перед идентификационной моделью.
+
+```
+Входное изображение
+       ↓
+  CLIP-фильтр (OpenCLIP ViT-B/32 LAION-2B)
+       ├── gate passed → EfficientNet-B4 ArcFace → результат идентификации
+       └── gate failed → rejected: true, reason: "not_a_marine_mammal"
+```
+
+Пороговое значение CLIP калибруется командой `make calibrate-clip` на тестовой выборке (`data/test_split/`), добиваясь TNR ≥ 90% при TPR ≥ 85%. Результат хранится в `whales_be_service/src/whales_be_service/configs/anti_fraud_threshold.yaml`.
+
+![ROC-кривая антифрод-фильтра](docs/anti_fraud_roc.png)
+
+---
+
+## Структура репозитория
+
+```
+whales_identify/          # Основная библиотека ML (обучение, модели, датасет)
+whales_be_service/        # FastAPI REST API бэкенд
+  └── src/whales_be_service/
+      ├── main.py             # Приложение FastAPI, CORS
+      ├── routers.py          # Маршруты API
+      ├── response_models.py  # Pydantic-схемы и логика вывода
+      └── inference/          # Pipeline, антифрод, идентификатор
+frontend/                 # React 18 + TypeScript веб-приложение
+research/
+  ├── notebooks/          # Jupyter-ноутбуки: эксперименты и сравнение архитектур
+  ├── demo-ui/            # Streamlit-демо (лучшая модель — ViT)
+  └── demo-ui-mask/       # Альтернативное демо с бинарной маской
+data/                     # Тестовая выборка, аннотации, образцы
+scripts/                  # Загрузка моделей, вычисление метрик, калибровка
+docs/                     # Техническая документация и скриншоты
+models/                   # Веса моделей (не хранятся в git)
+reports/                  # Отчёты о метриках (METRICS.md, metrics_latest.json)
+```
+
+---
+
+## Исследовательские ноутбуки
+
+| Ноутбук | Описание |
+|---|---|
+| `02_ViT_train_efficientnet.ipynb` | Обучение метрической модели (ViT/EfficientNet, ArcFace) |
+| `03_efficientnet_experiments.ipynb` | Сравнение EfficientNet-B0, B3, B5 |
+| `04_resnet_classification_experiments.ipynb` | Классификация ResNet-54, ResNet-101 |
+| `05_swinT_experiments.ipynb` | Эксперименты со Swin Transformer |
+| `06_benchmark_binary.ipynb` | Бинарная классификация всех архитектур |
+| `06_benchmark_multiclass.ipynb` | Мультиклассовая классификация всех архитектур |
+| `07_onnx_inference_compare.ipynb` | Ускорение через ONNX |
+| `08_benchmark_all_compare.ipynb` | Сводное сравнение архитектур |
+
+Полный индекс с описанием и ссылками: [docs/NOTEBOOKS_INDEX.md](docs/NOTEBOOKS_INDEX.md).
+
+---
+
+## Разработка
+
+### Установка зависимостей
+
+```bash
+make install              # Python + npm зависимости
+make pre-commit-install   # хуки pre-commit (ruff, mypy, bandit)
+make download-models      # веса моделей с Hugging Face
+```
+
+### Команды
+
+```bash
+make test           # pytest (без медленных и интеграционных тестов)
+make test-cov       # тесты с отчётом о покрытии
+make lint           # ruff lint + format check
+make format         # авто-форматирование ruff
+make up             # запустить полный стек в Docker
+make smoke          # сквозной smoke-тест
+```
+
+### Ветвление и код-ревью
+
+1. Создайте ветку от `main`: `git checkout -b feature/<описание>`
+2. Сделайте коммиты с описательными сообщениями
+3. Откройте Pull Request в `main`
+4. Дождитесь прохождения CI (lint, test, security, docker)
+5. Получите одобрение от минимум одного участника команды
+6. Слейте PR и удалите ветку
+
+### Устранение типичных проблем
+
+| Проблема | Решение |
+|---|---|
+| `docker: command not found` | Установите [Docker Desktop](https://www.docker.com/products/docker-desktop/) и перезапустите терминал |
+| Порты 8000 или 8080 заняты | `docker compose down`, затем измените порты в `docker-compose.yml` |
+| Frontend: «Failed to fetch» | Укажите адрес сервера: `VITE_BACKEND=http://<ip>:8000 docker compose up --build` |
+| `No such file or directory: models/` | Выполните `./scripts/download_models.sh` |
+| `ImportError: libGL.so.1` | Ubuntu/Debian: `sudo apt-get install -y libgl1-mesa-glx libglib2.0-0` |
+| `huggingface-cli: command not found` | `pip install huggingface_hub==0.20.3` |
+| `Poetry could not find a pyproject.toml` | Перейдите в `whales_be_service/` перед запуском `poetry install` |
+
+Дополнительные решения: [GitHub Wiki — FAQ](https://github.com/0x0000dead/whales-identification/wiki/FAQ).
+
+---
+
+## Документация
+
+| Ресурс | Описание |
+|---|---|
+| [GitHub Wiki](https://github.com/0x0000dead/whales-identification/wiki) | Установка, API Reference, Architecture, Model Cards, Testing |
+| [MODEL_CARD.md](MODEL_CARD.md) | Метрики, ограничения, характеристики модели |
+| [API_CHANGELOG.md](API_CHANGELOG.md) | История изменений REST API |
+| [docs/ML_ARCHITECTURE.md](docs/ML_ARCHITECTURE.md) | Сравнение архитектур: ResNet → ViT |
+| [docs/NOTEBOOKS_INDEX.md](docs/NOTEBOOKS_INDEX.md) | Индекс исследовательских ноутбуков |
+| [docs/DATASET_CONTRIBUTION.md](docs/DATASET_CONTRIBUTION.md) | Состав и лицензирование датасетов |
+
+### Модели и артефакты
+
+- [Hugging Face Repository](https://huggingface.co/baltsat/Whales-Identification) — обученные веса
+- [Yandex Disk](https://disk.yandex.ru/d/GshqU9o6nNz7ZA) — резервное хранилище
+
+---
+
+## Лицензирование
+
+| Артефакт | Лицензия | Файл |
+|---|---|---|
+| Исходный код | MIT | [LICENSE](LICENSE) |
+| Обученные модели | CC-BY-NC-4.0 (некоммерческое использование) | [LICENSE_MODELS.md](LICENSE_MODELS.md) |
+| Датасеты | CC-BY-NC-4.0 (наследуется от Happy Whale) | [LICENSE_DATA.md](LICENSE_DATA.md) |
+
+Ограничение на коммерческое использование моделей обусловлено лицензией upstream-датасета Happy Whale и условиями предобученных ImageNet-весов. Использование разрешено в академических исследованиях, образовательных целях и некоммерческих природоохранных проектах.
+
+Полный анализ совместимости 159 зависимостей: [LICENSES_ANALYSIS.md](LICENSES_ANALYSIS.md).
+
+**Авторы:** Baltsat Konstantin, Tarasov Artem, Vandanov Sergey, Serov Alexandr (2024–2026)
