@@ -315,7 +315,7 @@ export default function App() {
             </div>
             <div>
               <p className="text-white font-semibold text-sm leading-none">EcoMarineAI</p>
-              <p className="text-cyan-300 text-[10px] leading-none mt-0.5">Идентификация китообразных</p>
+              <p className="text-cyan-300 text-[10px] leading-none mt-0.5">Идентификация морских млекопитающих</p>
             </div>
           </div>
 
@@ -602,7 +602,7 @@ export default function App() {
       <footer style={{background:'#0f2744'}} className="mt-8 py-4 text-center">
         <p className="text-[11px] text-cyan-900" style={{color:'#4a7fa5'}}>
           EcoMarineAI · EfficientNet-B4 ArcFace · 13 837 особей · 30 видов ·
-          ФСИ Грант 2024–2025
+          При поддержке Фонда содействия инновациям · 2026
         </p>
       </footer>
 
