@@ -5,9 +5,6 @@ services:
     runtime: docker
     dockerfilePath: ./whales_be_service/Dockerfile
     dockerContext: ./whales_be_service
-    # Use "starter" ($7/mo) to avoid spin-down; free tier causes 5-min cold starts.
-    # For the 7-day availability measurement required by ТЗ §Параметр 7, spin-down
-    # will cause failures each time the instance restarts from idle.
     plan: starter
     healthCheckPath: /health
     envVars:
@@ -15,20 +12,19 @@ services:
         value: 0x0000dead/ecomarineai-cetacean-effb4
       - key: ALLOWED_ORIGINS
         value: https://ecomarineai-frontend.onrender.com
-    # Persistent disk keeps model weights between deploys and restarts.
-    # Without this, every cold-start re-downloads ~400 MB from HuggingFace.
     disk:
       name: model-cache
       mountPath: /app/src/whales_be_service/models
       sizeGB: 2
 
-  # Frontend React (nginx)
+  # Frontend React — native static site (Vite build, no Docker needed)
   - type: web
     name: ecomarineai-frontend
-    runtime: docker
-    dockerfilePath: ./frontend/Dockerfile
-    dockerContext: ./frontend
+    runtime: static
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    rootDir: frontend
     plan: free
-    buildArgs:
+    envVars:
       - key: VITE_BACKEND
         value: https://ecomarineai-backend.onrender.com
