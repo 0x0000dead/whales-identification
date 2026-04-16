@@ -1,0 +1,54 @@
+# fly.toml — EcoMarineAI backend deploy config for Fly.io
+# Usage:
+#   cd whales_be_service
+#   flyctl launch --no-deploy   # first time only — creates the app
+#   flyctl volumes create ecomarine_models --region ams --size 2  # persistent model cache
+#   flyctl deploy               # deploy from project root
+
+app = "ecomarineai-backend"
+primary_region = "ams"
+
+[build]
+  dockerfile = "whales_be_service/Dockerfile"
+  build-target = ""
+
+[env]
+  HF_REPO = "0x0000dead/ecomarineai-cetacean-effb4"
+  ALLOWED_ORIGINS = "*"
+
+[mounts]
+  source = "ecomarine_models"
+  destination = "/app/src/whales_be_service/models"
+
+[[services]]
+  internal_port = 8000
+  protocol = "tcp"
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+    force_https = true
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
+  [services.concurrency]
+    type = "requests"
+    hard_limit = 25
+    soft_limit = 20
+
+  [[services.http_checks]]
+    interval = "30s"
+    timeout = "10s"
+    grace_period = "300s"
+    path = "/health"
+    method = "GET"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 2048

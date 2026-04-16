@@ -198,7 +198,7 @@ record = {
 }
 ```
 
-A `darwin_core_sink.py` is on the roadmap for Q3 2026 — see [ROADMAP.md](ROADMAP.md).
+The `integrations/gbif_sink.py` module implements GBIF DarwinCore push out of the box. For iNaturalist see `integrations/inat_sink.py`; for HappyWhale community matching see `integrations/happywhale_sink/`.
 
 ---
 

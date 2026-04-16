@@ -5,13 +5,22 @@ services:
     runtime: docker
     dockerfilePath: ./whales_be_service/Dockerfile
     dockerContext: ./whales_be_service
-    plan: free
+    # Use "starter" ($7/mo) to avoid spin-down; free tier causes 5-min cold starts.
+    # For the 7-day availability measurement required by ТЗ §Параметр 7, spin-down
+    # will cause failures each time the instance restarts from idle.
+    plan: starter
     healthCheckPath: /health
     envVars:
+      - key: HF_REPO
+        value: 0x0000dead/ecomarineai-cetacean-effb4
       - key: ALLOWED_ORIGINS
         value: https://ecomarineai-frontend.onrender.com
-      - key: MODEL_DOWNLOAD_URL
-        value: https://huggingface.co/baltsat/Whales-Identification/resolve/main/
+    # Persistent disk keeps model weights between deploys and restarts.
+    # Without this, every cold-start re-downloads ~400 MB from HuggingFace.
+    disk:
+      name: model-cache
+      mountPath: /app/src/whales_be_service/models
+      sizeGB: 2
 
   # Frontend React (nginx)
   - type: web
