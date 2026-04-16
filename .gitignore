@@ -1,12 +1,9 @@
 /TASK
 
-# FSI grant documents live in docs_fsie/ and ARE committed — they are
-# required deliverables for Stage 3 (Заключительный НТО + 4 руководства).
-# The only exception are the final .docx conversions (if any), which are
-# produced from the source .md files and kept locally before upload to FSI.
-docs_fsie/*.docx
-docs_fsie/*.rtf
-docs_fsie/*.pdf
+# FSI grant documents and internal work artifacts — stored locally only,
+# NOT committed to git. These are uploaded to ФСИ portal separately.
+docs_fsie/
+work/stage3/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
