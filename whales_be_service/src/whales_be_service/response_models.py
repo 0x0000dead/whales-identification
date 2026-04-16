@@ -7,10 +7,11 @@ imported without pulling in torch.
 
 from typing import Literal
 
-from pydantic import BaseModel, Field, HttpUrl, field_validator
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
 
 
 class Detection(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
     """Single-image prediction result.
 
     Backward-compat note: the original schema only had the first six fields.
@@ -74,6 +75,8 @@ class WebhookListResponse(BaseModel):
 
 
 class ExportRecord(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
+
     created_at: str
     image_ind: str
     class_animal: str

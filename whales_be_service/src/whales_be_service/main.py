@@ -359,6 +359,13 @@ async def drift_stats() -> dict:
 
 app.include_router(v1)
 
+# Stage 3 §3.8 — webhook + export endpoints (imports trigger router registration
+# and monkey-patches _record_prediction to feed PredictionHistoryStore).
+from . import routers as _stage3_routers  # noqa: E402, PLC0415, F401
+
+app.include_router(_stage3_routers.webhook_router)
+app.include_router(_stage3_routers.export_router)
+
 
 # --- Backward-compatible root endpoints (delegate to v1) ---
 
