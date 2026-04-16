@@ -61,16 +61,50 @@ RUN chmod +x /docker-entrypoint.sh
 # downloads into.
 RUN groupadd -r appuser && useradd -r -g appuser -d /app appuser \
  && chown -R appuser:appuser /app
-USER appuser
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app/src \
     ALLOWED_ORIGINS="*" \
-    HF_REPO="0x0000dead/ecomarineai-cetacean-effb4"
+    HF_REPO="0x0000dead/ecomarineai-cetacean-effb4" \
+    TORCH_HOME=/app/.cache/torch \
+    HF_HOME=/app/.cache/huggingface
+
+RUN mkdir -p /app/.cache && chown -R appuser:appuser /app/.cache
+USER appuser
+
+# Pre-download CLIP weights at build time (file download only — no torch ops,
+# safe under QEMU amd64 emulation on ARM).  open_clip.create_model_and_transforms()
+# finds the cached file in HF_HOME at container startup and skips the 350 MB download.
+RUN python3 -c "\
+from huggingface_hub import hf_hub_download; \
+p = hf_hub_download( \
+    'laion/CLIP-ViT-B-32-laion2B-s34B-b79K', \
+    'open_clip_pytorch_model.bin' \
+); \
+print('CLIP pre-cached OK ->', p)"
+
+# Bake ML inference artefacts into the image so docker-entrypoint.sh
+# need_download() finds them on first boot and skips the HF download entirely.
+# Result: cold-start time drops from ~10 min (network) to ~45 s (disk load).
+RUN python3 -c "\
+from huggingface_hub import hf_hub_download; \
+REPO = '0x0000dead/ecomarineai-cetacean-effb4'; \
+files = [ \
+    ('efficientnet_b4_512_fold0.ckpt', '/app/src/whales_be_service/models'), \
+    ('encoder_classes.npy',            '/app/src/whales_be_service/models'), \
+    ('species_map.csv',                '/app/src/whales_be_service/resources'), \
+    ('anti_fraud_threshold.yaml',      '/app/src/whales_be_service/configs'), \
+    ('metrics_baseline.json',          '/app/reports'), \
+]; \
+[hf_hub_download(REPO, f, local_dir=d, local_dir_use_symlinks=False) \
+ or print('  OK', f) for f, d in files]; \
+print('ML artefacts baked OK')"
 
 EXPOSE 8000
 
-HEALTHCHECK --interval=30s --timeout=30s --start-period=300s --retries=3 \
+# Models are baked into the image — no first-boot download.
+# 90 s is enough for disk-based CLIP + EfficientNet load (~45 s observed).
+HEALTHCHECK --interval=30s --timeout=30s --start-period=30s --retries=5 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
 
 ENTRYPOINT ["/docker-entrypoint.sh"]

@@ -45,7 +45,7 @@ This roadmap maps the state of the repo onto the three **этапа** of the Ф�
 | 3.6 Комплексная архитектура CV                          | ✓       | CLIP gate + EffB4 ArcFace + confidence gating |
 | 3.7 Контейнеризация + file запуска                      | ✓       | `Dockerfile`, `docker-compose.yml`, `docker-entrypoint.sh` (auto-download from HF) |
 | 3.8 Интеграция с внешними сервисами                     | ✓       | `integrations/sqlite_sink.py`, `integrations/postgres_sink.py`, CSV export via CLI, HF Hub mirror |
-| 3.X Мобильная версия UI (добавлено по замечанию ФСИ)    | partial | Tailwind responsive — done; PWA wrapper planned Q3 |
+| 3.X Мобильная версия UI (добавлено по замечанию ФСИ)    | partial | Tailwind responsive — done; PWA wrapper in backlog |
 
 ## Beyond the grant — потенциал глобального помощника
 

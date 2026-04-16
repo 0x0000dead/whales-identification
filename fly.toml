@@ -1,24 +1,21 @@
 # fly.toml — EcoMarineAI backend deploy config for Fly.io
 # Usage:
-#   cd whales_be_service
 #   flyctl launch --no-deploy   # first time only — creates the app
-#   flyctl volumes create ecomarine_models --region ams --size 2  # persistent model cache
 #   flyctl deploy               # deploy from project root
+# Note: ML artefacts (CLIP + EfficientNet) are baked into the Docker image.
+# No volumes needed — no first-boot download.
 
 app = "ecomarineai-backend"
 primary_region = "ams"
 
 [build]
   dockerfile = "whales_be_service/Dockerfile"
+  context = "whales_be_service"
   build-target = ""
 
 [env]
   HF_REPO = "0x0000dead/ecomarineai-cetacean-effb4"
   ALLOWED_ORIGINS = "*"
-
-[mounts]
-  source = "ecomarine_models"
-  destination = "/app/src/whales_be_service/models"
 
 [[services]]
   internal_port = 8000
@@ -44,7 +41,7 @@ primary_region = "ams"
   [[services.http_checks]]
     interval = "30s"
     timeout = "10s"
-    grace_period = "300s"
+    grace_period = "30s"
     path = "/health"
     method = "GET"
 
