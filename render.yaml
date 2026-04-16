@@ -1,25 +1,6 @@
 services:
-  # Backend FastAPI (EcoMarineAI API)
-  - type: web
-    name: ecomarineai-backend
-    runtime: docker
-    dockerfilePath: ./whales_be_service/Dockerfile
-    dockerContext: ./whales_be_service
-    plan: starter
-    healthCheckPath: /health
-    envVars:
-      - key: PORT
-        value: "8000"
-      - key: HF_REPO
-        value: 0x0000dead/ecomarineai-cetacean-effb4
-      - key: ALLOWED_ORIGINS
-        value: https://ecomarineai-frontend.onrender.com
-    disk:
-      name: model-cache
-      mountPath: /app/src/whales_be_service/models
-      sizeGB: 2
-
-  # Frontend React — native static site (Vite build, no Docker needed)
+  # Frontend React — native static site (Vite build)
+  # Backend is deployed on Fly.io: https://ecomarineai-backend.fly.dev
   - type: web
     name: ecomarineai-frontend
     runtime: static
@@ -28,4 +9,4 @@ services:
     rootDir: frontend
     envVars:
       - key: VITE_BACKEND
-        value: https://ecomarineai-backend.onrender.com
+        value: https://ecomarineai-backend.fly.dev
