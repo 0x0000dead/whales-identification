@@ -238,7 +238,7 @@ from whales_be_service.whale_infer import WhaleInference
 def whale_inference():
     """Fixture to create WhaleInference instance"""
     return WhaleInference(
-        model_path="models/model-e15.pt",
+        model_path="`models/efficientnet_b4_512_fold0.ckpt`",
         config_path="whales_be_service/config.yaml"
     )
 
@@ -690,7 +690,7 @@ def client():
 def whale_inference():
     """WhaleInference instance"""
     return WhaleInference(
-        model_path="models/model-e15.pt",
+        model_path="`models/efficientnet_b4_512_fold0.ckpt`",
         config_path="whales_be_service/config.yaml"
     )
 

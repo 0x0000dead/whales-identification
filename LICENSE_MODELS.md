@@ -128,24 +128,30 @@ All pretrained weights subject to ImageNet non-commercial terms (https://www.ima
 
 The following trained models are subject to this license:
 
-| Model Name            | Architecture            | Version         | File Location                 |
-| --------------------- | ----------------------- | --------------- | ----------------------------- |
-| `model-e15.pt`        | Vision Transformer L/32 | v1.0 (epoch 15) | `models/model-e15.pt`         |
-| `resnet101.pth`       | ResNet-101              | v1.0            | `models/resnet101.pth`        |
-| `efficientnet-b5.pth` | EfficientNet-B5         | v1.0            | `models/efficientnet-b5.pth`  |
-| Other models          | Various                 | -               | `models/*.pt`, `models/*.pth` |
+| Model Name                         | Architecture                                        | Version                 | Status       | File Location                                                             |
+| ---------------------------------- | --------------------------------------------------- | ----------------------- | ------------ | ------------------------------------------------------------------------- |
+| `efficientnet_b4_512_fold0.ckpt`   | EfficientNet-B4 (ArcFace head, 13 837 / 15 587 slots) | effb4-arcface-v1      | **Production** | `whales_be_service/src/whales_be_service/models/efficientnet_b4_512_fold0.ckpt` |
+| `encoder_classes.npy`              | Label encoder for ArcFace head                      | effb4-arcface-v1        | Production   | `whales_be_service/src/whales_be_service/models/encoder_classes.npy`      |
+| `resnet101.pth`                    | ResNet-101 (ArcFace, fallback backbone)             | v1.0                    | Fallback     | `whales_be_service/src/whales_be_service/models/resnet101.pth`            |
+| `model-e15.pt`                     | Vision Transformer L/32 (legacy Stage 1)            | v1.0 (epoch 15)         | **Deprecated** | `models/model-e15.pt` (not auto-downloaded; Yandex Disk only)           |
+| Other experimental models          | Various                                             | -                       | Research     | `models/*.pt`, `models/*.pth`                                             |
 
 **Note:** ONNX-optimized models (`.onnx` files) are also subject to the same license terms.
+
+The anti-fraud gate uses **OpenCLIP ViT-B/32 LAION-2B pretrained weights**, which are released under their own upstream licence (MIT / permissive). The EcoMarineAI calibrated threshold file (`anti_fraud_threshold.yaml`) is an artefact of this project and inherits CC-BY-NC-4.0 from the training data.
 
 ---
 
 ## Model Storage and Distribution
 
-The models are distributed through:
+The production models are distributed through:
 
-- **HuggingFace Hub:** [baltsat/Whales-Identification](https://huggingface.co/baltsat/Whales-Identification)
-- **Yandex Disk:** [Public folder](https://disk.yandex.ru/d/GshqU9o6nNz7ZA)
+- **HuggingFace Hub (primary):** [0x0000dead/ecomarineai-cetacean-effb4](https://huggingface.co/0x0000dead/ecomarineai-cetacean-effb4)
+- **HuggingFace Hub (legacy):** [baltsat/Whales-Identification](https://huggingface.co/baltsat/Whales-Identification) — old ResNet-101 + legacy ViT checkpoints
+- **Yandex Disk (legacy):** [Public folder](https://disk.yandex.ru/d/GshqU9o6nNz7ZA) — Stage 1 ViT-L/32 reproducibility reference only
 - **GitHub Releases:** (for stable versions only)
+
+Download via `./scripts/download_models.sh` — the script automatically verifies SHA256 checksums against `models/checksums.sha256` and retries up to 3 times on network errors.
 
 Models are **NOT** stored directly in the GitHub repository due to size constraints (`.gitignore` exclusion).
 

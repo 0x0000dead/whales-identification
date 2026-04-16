@@ -28,7 +28,10 @@ def test_anti_fraud_metrics_meet_tz_targets():
     if not manifest.exists():
         pytest.skip("data/test_split/manifest.csv not populated")
 
-    report = compute_metrics.run(manifest=manifest, sample_size=50)
+    # Use the full manifest — sample_size=50 would grab only the first 50
+    # rows (all positives), leaving zero negatives and producing TNR=0. The
+    # ТЗ Specificity check requires both classes to be present.
+    report = compute_metrics.run(manifest=manifest, sample_size=None)
     assert report.anti_fraud.tnr >= 0.90, f"TNR {report.anti_fraud.tnr} < 0.90"
     assert report.anti_fraud.tpr >= 0.85, f"TPR {report.anti_fraud.tpr} < 0.85"
 
@@ -45,6 +48,9 @@ def test_identification_top1_above_baseline():
     if not manifest.exists():
         pytest.skip("data/test_split/manifest.csv not populated")
 
-    report = compute_metrics.run(manifest=manifest, sample_size=50)
+    # Use the full manifest — sample_size=50 would grab only the first 50
+    # rows (all positives), leaving zero negatives and producing TNR=0. The
+    # ТЗ Specificity check requires both classes to be present.
+    report = compute_metrics.run(manifest=manifest, sample_size=None)
     # Conservative bar — bumped to 0.5+ once full eval set is wired in.
     assert report.identification.top1_accuracy >= 0.0

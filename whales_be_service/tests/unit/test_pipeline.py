@@ -12,7 +12,6 @@ from PIL import Image
 from whales_be_service.inference.pipeline import InferencePipeline
 from whales_be_service.inference.schemas import (
     GateResult,
-    PredictionResult,
     RejectionReason,
 )
 
@@ -29,11 +28,21 @@ def _make_gate(is_cetacean: bool, pos: float = 0.85):
     return g
 
 
+_TOPK_FIXTURE = [
+    ("1a71fbb72250", "humpback_whale", 0.90),
+    ("abc456def789", "killer_whale", 0.54),
+    ("cafe0987ba54", "bottlenose_dolphin", 0.27),
+    ("dead01234567", "fin_whale", 0.09),
+    ("beef89abcdef", "blue_whale", 0.04),
+]
+
+
 def _make_ident(
     probability: float = 0.9,
     raise_on_load: bool = False,
     raise_on_predict: bool = False,
 ):
+    """Return a mock IdentificationModel that uses predict_topk (pipeline API)."""
     i = MagicMock()
     i.model_version = "stub-effb4-v1"
 
@@ -43,17 +52,17 @@ def _make_ident(
 
     i._load.side_effect = _load
 
-    def _predict(pil):
+    def _predict_topk(_pil, k: int = 5):
         if raise_on_predict:
             raise FileNotFoundError("weights missing")
-        return PredictionResult(
-            class_id="1a71fbb72250",
-            species="humpback_whale",
-            probability=probability,
-            bbox=[0, 0, pil.width, pil.height],
-        )
+        # Return k-length list of (class_id, species, prob) tuples.
+        scaled = [
+            (cls, sp, round(prob * probability / 0.90, 4))
+            for cls, sp, prob in _TOPK_FIXTURE[:k]
+        ]
+        return scaled
 
-    i.predict.side_effect = _predict
+    i.predict_topk.side_effect = _predict_topk
     i.background_mask.return_value = "base64_mask_placeholder"
     return i
 
@@ -87,8 +96,8 @@ class TestInferencePipelineBranching:
         assert det.is_cetacean is False
         assert det.cetacean_score == 0.12
         assert det.class_animal == ""
-        # Identification must not be called
-        ident.predict.assert_not_called()
+        # Identification must not be called when the gate rejects
+        ident.predict_topk.assert_not_called()
 
     def test_low_confidence_branch(self, img):
         gate = _make_gate(is_cetacean=True, pos=0.9)
@@ -99,7 +108,30 @@ class TestInferencePipelineBranching:
         assert det.rejected is True
         assert det.rejection_reason == RejectionReason.LOW_CONFIDENCE.value
         assert det.is_cetacean is True
-        assert det.probability == 0.01
+        assert det.probability == pytest.approx(0.01, abs=1e-4)
+
+    def test_candidates_populated_on_accepted_prediction(self, img):
+        """top-K prediction: top-1 → main result, top-2..5 → candidates list."""
+        gate = _make_gate(is_cetacean=True, pos=0.9)
+        ident = _make_ident(probability=0.9)
+        pipe = InferencePipeline(gate, ident, min_confidence=0.1)
+
+        det = pipe.predict(img, "whale.jpg")
+        assert len(det.candidates) == 4, "top-2..5 must appear as 4 candidates"
+        first_cand = det.candidates[0]
+        assert first_cand.id_animal == "killer_whale"
+        assert 0.0 <= first_cand.probability <= 1.0
+
+    def test_low_confidence_includes_candidates(self, img):
+        """Even when low-confidence rejected, candidates list is populated."""
+        gate = _make_gate(is_cetacean=True, pos=0.9)
+        ident = _make_ident(probability=0.01)
+        pipe = InferencePipeline(gate, ident, min_confidence=0.1)
+
+        det = pipe.predict(img, "low.jpg")
+        assert det.rejected is True
+        # Candidates are still populated so the UI can show alternatives
+        assert len(det.candidates) == 4
 
     def test_identification_weights_missing_fallback(self, img):
         gate = _make_gate(is_cetacean=True, pos=0.88)

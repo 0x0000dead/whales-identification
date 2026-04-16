@@ -40,7 +40,7 @@ The frontend build bakes the backend URL in at build time, so re-build when the 
 | Variable             | Default                                           | Purpose                                      |
 |----------------------|---------------------------------------------------|----------------------------------------------|
 | `HF_REPO`            | `0x0000dead/ecomarineai-cetacean-effb4`          | Model source for docker-entrypoint.sh        |
-| `MODEL_DOWNLOAD_URL` | unset                                             | Legacy: direct URL override for model-e15.pt |
+| `MODEL_DOWNLOAD_URL` | unset                                             | Legacy: direct URL override for efficientnet_b4_512_fold0.ckpt |
 | `ALLOWED_ORIGINS`    | `http://localhost:5173,http://localhost:8080,...` | CORS whitelist                               |
 | `VITE_BACKEND`       | `http://localhost:8000`                           | Frontend → backend URL (build-time)          |
 

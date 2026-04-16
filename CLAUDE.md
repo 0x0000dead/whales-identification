@@ -26,7 +26,7 @@ whales_be_service/        # FastAPI REST API backend
   │   ├── routers.py      # API routes
   │   ├── response_models.py  # Pydantic models + inference
   │   ├── whale_infer.py  # Model loading and inference wrapper
-  │   └── config.yaml     # 15,587 whale ID → species mappings
+  │   └── config.yaml     # 13,837 active whale IDs (head: 15,587 slots) → species mappings
   ├── tests/              # pytest test suite
   └── pyproject.toml      # Poetry dependencies
 frontend/                 # React UI for single/batch processing
@@ -71,7 +71,7 @@ FormData POST → Backend (FastAPI)
     ↓
 Image preprocessing (OpenCV → 448×448 → normalize)
     ↓
-Model inference (VisionTransformer → 15,587 class logits)
+Model inference (EfficientNet-B4 ArcFace → 15,587-slot head, 13,837 active)
     ↓
 Postprocessing (top-1 ID → species lookup → background removal)
     ↓
@@ -208,7 +208,7 @@ poetry run streamlit run streamlit_app.py --server.port=8501
 
 - Input: 448×448 RGB images
 - Normalization: ImageNet stats (mean=[0.485,0.456,0.406])
-- Output: 15,587 individual whale IDs → species names via config.yaml
+- Output: 13,837 active individual whale IDs (15,587-slot ArcFace head with 1,750 reserved slots) → species names via `species_map.csv` (30 species)
 - Background removal: rembg library, returns base64 PNG mask
 
 ## Important Technical Details
@@ -219,7 +219,7 @@ The project uses **metric learning** (ArcMarginProduct) rather than simple class
 
 - Learning embeddings that cluster similar whale individuals
 - Better generalization to new/unseen whales
-- Scalability to 15,587+ unique individuals
+- Scalability to 13,837 active individuals (with room in the 15,587-slot head for future expansion)
 
 ### API Response Structure
 

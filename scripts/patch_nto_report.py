@@ -17,11 +17,12 @@ patch_nto_report.py — патчинг НТО 2-го этапа (ФСИ).
 
 import shutil
 from pathlib import Path
+
 from docx import Document
-from docx.shared import Pt, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
+from docx.shared import Inches, Pt
 
 # ---------------------------------------------------------------------------
 # Пути
@@ -94,7 +95,7 @@ def patch_nto():
     ]
 
     total_changes = 0
-    for i, para in enumerate(doc.paragraphs):
+    for _i, para in enumerate(doc.paragraphs):
         for old, new in REPLACEMENTS:
             # Попробуем простую замену в тексте параграфа
             if old in para.text:
@@ -312,7 +313,7 @@ def create_spravka():
 
     # Заголовок таблицы
     hdr_cells = table.rows[0].cells
-    for i, (cell, header) in enumerate(zip(hdr_cells, headers)):
+    for i, (cell, header) in enumerate(zip(hdr_cells, headers, strict=False)):
         cell.text = header
         set_cell_shading(cell, "D9E2F3")
         run = cell.paragraphs[0].runs[0]

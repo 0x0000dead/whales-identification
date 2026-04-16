@@ -1,7 +1,9 @@
 /TASK
 
-# FSI grant documents — stored locally only, not committed to git
+# FSI grant documents and internal work artifacts — stored locally only,
+# NOT committed to git. These are uploaded to ФСИ portal separately.
 docs_fsie/
+work/stage3/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -212,3 +214,4 @@ whales_be_service/src/whales_be_service/resources/database.csv
 logs/security/
 
 ./TASK
+work/stage3/extracted_docs/*

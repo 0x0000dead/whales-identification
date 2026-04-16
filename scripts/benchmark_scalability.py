@@ -25,6 +25,7 @@ OUT_MD = REPO_ROOT / "reports" / "SCALABILITY.md"
 
 def _load_images(manifest: Path, limit: int):
     import csv
+
     from PIL import Image
 
     rows = []

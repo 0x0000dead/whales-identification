@@ -216,7 +216,7 @@ DETECTION_EXAMPLE = {
     "cetacean_score": 0.87,
     "rejected": False,
     "rejection_reason": None,
-    "model_version": "vit_l32-v1",
+    "model_version": "effb4-arcface-v1",
 }
 
 REJECTION_EXAMPLE = {
@@ -230,7 +230,7 @@ REJECTION_EXAMPLE = {
     "cetacean_score": 0.12,
     "rejected": True,
     "rejection_reason": "not_a_marine_mammal",
-    "model_version": "vit_l32-v1",
+    "model_version": "effb4-arcface-v1",
 }
 
 
@@ -358,6 +358,13 @@ async def drift_stats() -> dict:
 
 
 app.include_router(v1)
+
+# Stage 3 §3.8 — webhook + export endpoints (imports trigger router registration
+# and monkey-patches _record_prediction to feed PredictionHistoryStore).
+from . import routers as _stage3_routers  # noqa: E402, PLC0415, F401
+
+app.include_router(_stage3_routers.webhook_router)
+app.include_router(_stage3_routers.export_router)
 
 
 # --- Backward-compatible root endpoints (delegate to v1) ---

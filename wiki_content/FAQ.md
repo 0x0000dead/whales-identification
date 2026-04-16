@@ -113,7 +113,7 @@ docker compose up
    ```
 
    - URL: https://huggingface.co/baltsat/Whales-Identification/tree/main
-   - File: `model-e15.pt` (2.1 GB)
+   - File: `efficientnet_b4_512_fold0.ckpt` (2.1 GB)
 
 2. **Yandex Disk (Alternative):**
    - URL: https://disk.yandex.ru/d/GshqU9o6nNz7ZA
@@ -122,7 +122,7 @@ docker compose up
 **Verify download:**
 
 ```bash
-ls -lh models/model-e15.pt
+ls -lh `models/efficientnet_b4_512_fold0.ckpt`
 # Should show ~2.1 GB file
 ```
 
@@ -142,10 +142,10 @@ ls models/
 ./scripts/download_models.sh
 
 # 3. Verify model exists
-ls -lh models/model-e15.pt
+ls -lh `models/efficientnet_b4_512_fold0.ckpt`
 
 # 4. Check path in whale_infer.py
-# Should be: models/model-e15.pt
+# Should be: `models/efficientnet_b4_512_fold0.ckpt`
 ```
 
 **Why it happens:** The API expects models in the `models/` directory, but they are not committed to git (`.gitignore`).

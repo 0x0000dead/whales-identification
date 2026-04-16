@@ -57,7 +57,7 @@ System architecture and technical design of the Whales Identification project.
 ┌─────────────────────────────────▼─────────────────────────────────┐
 │                      Storage Layer                                 │
 ├────────────────────────────────────────────────────────────────────┤
-│  models/model-e15.pt  │  whales_be_service/config.yaml           │
+│  `models/efficientnet_b4_512_fold0.ckpt`  │  whales_be_service/config.yaml           │
 │  (2.1 GB checkpoint)  │  (ID → Species mapping, 1,000 whales)    │
 └────────────────────────────────────────────────────────────────────┘
 ```
@@ -452,7 +452,7 @@ class ArcMarginProduct(nn.Module):
 
 ```
 1. Load Model
-   ├─ torch.load("models/model-e15.pt")
+   ├─ torch.load("`models/efficientnet_b4_512_fold0.ckpt`")
    ├─ model.load_state_dict(checkpoint['model_state_dict'])
    └─ model.eval()
 
@@ -546,7 +546,7 @@ services:
     volumes:
       - ./models:/app/models
     environment:
-      - MODEL_PATH=/app/models/model-e15.pt
+      - MODEL_PATH=/app/`models/efficientnet_b4_512_fold0.ckpt`
       - CONFIG_PATH=/app/whales_be_service/config.yaml
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
