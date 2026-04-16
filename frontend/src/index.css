@@ -1,32 +1,81 @@
 @import "tailwindcss";
 
+:root {
+  --ocean-950: #020617;
+  --ocean-900: #0c1a2e;
+  --ocean-800: #0f2744;
+  --ocean-700: #1a3a5c;
+  --ocean-600: #0077b6;
+  --ocean-500: #0096c7;
+  --ocean-400: #00b4d8;
+  --ocean-300: #48cae4;
+  --ocean-200: #90e0ef;
+  --ocean-100: #caf0f8;
+  --ocean-50:  #f0faff;
+}
+
+* { box-sizing: border-box; }
+
 body {
-    font-family: system-ui, sans-serif;
-    margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  margin: 0;
+  background: #f0f4f8;
+  color: #1e293b;
+  -webkit-font-smoothing: antialiased;
 }
 
-button, input, select, textarea {
-    cursor: pointer;
+.font-mono {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
 }
 
-@layer utilities {
-    .animate-fade-in {
-        animation: fadeIn 0.3s ease-in-out;
-    }
+/* Shimmer loading animation */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 400px 100%;
+  animation: shimmer 1.4s infinite;
+}
 
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
+/* Fade in from bottom */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.slide-up {
+  animation: slideUp 0.35s ease-out both;
+}
 
-    .backdrop-blur-md {
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-    }
+/* Pulse ring for status dot */
+@keyframes pulseRing {
+  0%   { transform: scale(1); opacity: 0.8; }
+  50%  { transform: scale(1.4); opacity: 0; }
+  100% { transform: scale(1); opacity: 0; }
+}
+.pulse-ring::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  animation: pulseRing 1.5s infinite;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #f1f5f9; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* Drag-over highlight */
+.drop-active {
+  border-color: var(--ocean-500) !important;
+  background: var(--ocean-50) !important;
+}
+
+/* Confidence bar transition */
+.conf-bar {
+  transition: width 0.6s cubic-bezier(.4,0,.2,1);
 }
