@@ -7,6 +7,7 @@ FastAPI lifespan context.
 
 from __future__ import annotations
 
+import asyncio
 import io
 import logging
 import os
@@ -34,9 +35,20 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     set_deterministic_mode()  # fix global PRNG once at startup (not per-instance)
     pipeline = get_pipeline()
-    pipeline.warmup()
     app.state.pipeline = pipeline
-    logger.info("EcoMarineAI service ready.")
+    # Run model loading in a background thread so uvicorn binds immediately.
+    # Fly.io health checks pass within seconds; models finish loading in ~2 min.
+    loop = asyncio.get_running_loop()
+    warmup_future = loop.run_in_executor(None, pipeline.warmup)
+
+    def _on_warmup_done(fut: asyncio.Future) -> None:
+        if fut.exception():
+            logger.error("Background warmup failed: %s", fut.exception())
+        else:
+            logger.info("Background warmup complete — models hot.")
+
+    warmup_future.add_done_callback(_on_warmup_done)
+    logger.info("EcoMarineAI service ready (background warmup started).")
     yield
 
 
