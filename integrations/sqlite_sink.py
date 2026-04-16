@@ -17,7 +17,7 @@ from __future__ import annotations
 import argparse
 import sqlite3
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -62,7 +62,7 @@ def _insert(conn: sqlite3.Connection, det) -> None:
             bbox_x1, bbox_y1, bbox_x2, bbox_y2, model_version)
            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
         (
-            datetime.now(timezone.utc).isoformat(),
+            datetime.now(UTC).isoformat(),
             det.image_ind,
             int(det.rejected),
             det.rejection_reason,

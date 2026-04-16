@@ -40,33 +40,33 @@ huggingface-cli login
 huggingface-cli login
 
 # Upload README.md (this sets the license metadata)
-huggingface-cli upload baltsat/Whales-Identification \
+huggingface-cli upload 0x0000dead/ecomarineai-cetacean-effb4 \
     huggingface/README.md README.md \
     --repo-type model \
-    --commit-message "Update model card with Apache 2.0 license"
+    --commit-message "Update model card with CC-BY-NC-4.0 license"
 
 # Upload LICENSE file
-huggingface-cli upload baltsat/Whales-Identification \
+huggingface-cli upload 0x0000dead/ecomarineai-cetacean-effb4 \
     huggingface/LICENSE LICENSE \
     --repo-type model \
-    --commit-message "Add Apache 2.0 license file"
+    --commit-message "Add CC-BY-NC-4.0 license file"
 ```
 
 ### Option 3: Manual Upload via Web UI
 
-1. Go to https://huggingface.co/baltsat/Whales-Identification
+1. Go to https://huggingface.co/0x0000dead/ecomarineai-cetacean-effb4
 2. Click "Files and versions" tab
 3. Click "Add file" → "Upload files"
 4. Upload `README.md` and `LICENSE` from this directory
-5. Commit with message: "Update model card with Apache 2.0 license"
+5. Commit with message: "Update model card with CC-BY-NC-4.0 license"
 
 ## Verification
 
-After updating, verify the license shows "Apache 2.0":
+After updating, verify the license shows "cc-by-nc-4.0":
 
-1. Visit https://huggingface.co/baltsat/Whales-Identification
+1. Visit https://huggingface.co/0x0000dead/ecomarineai-cetacean-effb4
 2. Check the license badge in the repository header
-3. It should show "apache-2.0" instead of "mit"
+3. It should show "cc-by-nc-4.0"
 
 ## YAML Frontmatter
 
@@ -74,8 +74,8 @@ The `README.md` contains YAML frontmatter that HuggingFace uses to set metadata:
 
 ```yaml
 ---
-license: apache-2.0
-license_name: Apache 2.0 with Usage Restrictions
+license: cc-by-nc-4.0
+license_name: Creative Commons Attribution-NonCommercial 4.0 International
 license_link: LICENSE
 library_name: pytorch
 pipeline_tag: image-classification
@@ -88,7 +88,7 @@ tags:
 ---
 ```
 
-The key field is `license: apache-2.0` which updates the repository license.
+The key field is `license: cc-by-nc-4.0` which updates the repository license. **Do not change this to `apache-2.0`** — Экспертиза 2.0 §1.1 explicitly prohibited Apache 2.0 for the model weights since they are derived from CC-BY-NC-4.0 Happy Whale data.
 
 ## Keeping in Sync
 

@@ -50,7 +50,7 @@ class IdentificationModel:
         ckpt_path: Path = _DEFAULT_CKPT,
         img_size: int = _DEFAULT_IMG_SIZE,
         patch_size: int = _DEFAULT_PATCH,
-        model_version: str = "vit_l32-v1",
+        model_version: str = "effb4-arcface-v1",
         fallback_ckpt: Path = _FALLBACK_CKPT,
         effb4_ckpt: Path = _EFFB4_CKPT,
         effb4_classes: Path = _EFFB4_CLASSES,

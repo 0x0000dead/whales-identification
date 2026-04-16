@@ -745,7 +745,7 @@ git commit -m "chore: add package_name dependency"
 By contributing, you agree that your contributions will be licensed under the same license as the project:
 
 - **Code:** MIT License
-- **Models:** Apache 2.0 (with restrictions)
+- **Models:** CC-BY-NC-4.0
 - **Data:** CC-BY-NC-4.0
 
 See [LICENSE](https://github.com/0x0000dead/whales-identification/blob/main/LICENSE), [LICENSE_MODELS.md](https://github.com/0x0000dead/whales-identification/blob/main/LICENSE_MODELS.md), and [LICENSE_DATA.md](https://github.com/0x0000dead/whales-identification/blob/main/LICENSE_DATA.md).

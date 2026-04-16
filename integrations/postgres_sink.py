@@ -12,13 +12,24 @@ production-grade RDBMS. It uses the stdlib-adjacent ``psycopg`` driver::
         --dsn 'postgresql://user:pass@localhost:5432/ecomarine'
 
     psql -c "SELECT id_animal, count(*) FROM detections GROUP BY id_animal;"
+
+Schema management
+-----------------
+The inline ``SCHEMA`` constant is kept for zero-dependency CLI usage. For
+production deployments use the Alembic migrations under
+``integrations/alembic/`` — they create the complementary ``predictions``
+table that the webhook / export layer also writes to::
+
+    cd integrations && \\
+    DATABASE_URL=postgresql://user:pass@host:5432/db \\
+    alembic -c alembic.ini upgrade head
 """
 
 from __future__ import annotations
 
 import argparse
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -94,7 +105,7 @@ def run(directory: Path, dsn: str) -> int:
                         probability, bbox, model_version)
                        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
                     (
-                        datetime.now(timezone.utc),
+                        datetime.now(UTC),
                         det.image_ind,
                         det.rejected,
                         det.rejection_reason,

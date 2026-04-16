@@ -24,40 +24,32 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Cache Poetry dependencies
-        uses: actions/cache@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          path: |
-            ~/.cache/pypoetry
-            ~/.cache/pip
-          key: ${{ runner.os }}-poetry-${{ hashFiles('whales_be_service/poetry.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-poetry-
-
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          version: "latest"
+          enable-cache: true
+          cache-dependency-glob: "whales_be_service/requirements*.txt"
 
       - name: Install dependencies
         working-directory: whales_be_service
         run: |
-          poetry install
+          uv pip install --system -r requirements.txt -r requirements-dev.txt
 
       - name: Run Ruff (lint check)
         working-directory: whales_be_service
         run: |
-          poetry run ruff check .
+          ruff check .
 
       - name: Run Ruff (format check)
         working-directory: whales_be_service
         run: |
-          poetry run ruff format --check .
+          ruff format --check .
 
       - name: Run Mypy (type checking)
         working-directory: whales_be_service
         run: |
-          poetry run mypy src/
+          mypy src/
         continue-on-error: true  # Mypy errors shouldn't block initially
 
   # Stage 2: Security Scanning
@@ -104,21 +96,17 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Cache Poetry dependencies
-        uses: actions/cache@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          path: ~/.cache/pypoetry
-          key: ${{ runner.os }}-poetry-${{ hashFiles('whales_be_service/poetry.lock') }}
-
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          version: "latest"
+          enable-cache: true
+          cache-dependency-glob: "whales_be_service/requirements*.txt"
 
       - name: Install dependencies
         working-directory: whales_be_service
         run: |
-          poetry install
+          uv pip install --system -r requirements.txt -r requirements-dev.txt
 
       - name: Install system dependencies (OpenCV)
         run: |
@@ -128,12 +116,12 @@ jobs:
       - name: Run pytest
         working-directory: whales_be_service
         run: |
-          poetry run pytest --maxfail=1 --disable-warnings -v -m "not slow and not integration"
+          pytest --maxfail=1 --disable-warnings -v -m "not slow and not integration"
 
       - name: Run pytest with coverage
         working-directory: whales_be_service
         run: |
-          poetry run pytest --cov=src --cov-report=xml --cov-report=term -m "not slow and not integration"
+          pytest --cov=src --cov-report=xml --cov-report=term -m "not slow and not integration"
         continue-on-error: true  # Coverage shouldn't block
 
       - name: Upload coverage to Codecov

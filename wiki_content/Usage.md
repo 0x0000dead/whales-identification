@@ -324,7 +324,7 @@ import torch
 from PIL import Image
 
 # Load model
-model = CetaceanIdentificationModel.load_from_checkpoint("models/model-e15.pt")
+model = CetaceanIdentificationModel.load_from_checkpoint("`models/efficientnet_b4_512_fold0.ckpt`")
 model.eval()
 
 # Load image
@@ -347,7 +347,7 @@ from whales_be_service.whale_infer import WhaleInference
 
 # Initialize inference engine
 inferencer = WhaleInference(
-    model_path="models/model-e15.pt",
+    model_path="`models/efficientnet_b4_512_fold0.ckpt`",
     config_path="whales_be_service/config.yaml"
 )
 

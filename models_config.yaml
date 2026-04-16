@@ -3,13 +3,29 @@
 # Metrics are NOT listed here on purpose: they are computed by
 # scripts/compute_metrics.py and stored in reports/metrics_latest.json.
 
-active_model: "vit_l32"
+active_model: "effb4_arcface"
 
 models:
+  effb4_arcface:
+    name: "EfficientNet-B4 ArcFace (production)"
+    architecture: "EfficientNetArcFace"
+    checkpoint: "whales_be_service/src/whales_be_service/models/efficientnet_b4_512_fold0.ckpt"
+    encoder_classes: "whales_be_service/src/whales_be_service/models/encoder_classes.npy"
+    species_map: "whales_be_service/src/whales_be_service/resources/species_map.csv"
+    params:
+      model_name: "tf_efficientnet_b4_ns"
+      embedding_size: 512
+      num_classes: 13837
+      s: 30.0
+      m: 0.50
+    input_size: 512
+
   vit_l32:
-    name: "Vision Transformer L/32"
+    name: "Vision Transformer L/32 (legacy, deprecated)"
     architecture: "VisionTransformer"
     checkpoint: "models/model-e15.pt"
+    deprecated: true
+    deprecated_reason: "Checkpoint не публикуется в HF; модель заменена на effb4_arcface. Запись оставлена для воспроизведения экспериментов Stage 1."
     params:
       embed_dim: 784
       hidden_dim: 1568
@@ -93,6 +109,24 @@ models:
       ls_eps: 0.0
       easy_margin: false
     input_size: 448
+
+  # Ensemble (§3.6 Комплексная CV-архитектура). Opt-in: set
+  # `active_model: ensemble` to enable the multi-stage pipeline instead of
+  # single-model inference. Individual stages can be toggled via
+  # `active_stages` without editing code.
+  ensemble:
+    name: "CLIP gate + EfficientNet-B4 ArcFace (+ YOLOv8 bbox)"
+    architecture: "EnsemblePipeline"
+    mode: ensemble
+    stages: [clip_gate, effb4_arcface, yolov8_bbox]
+    # yolov8_bbox is disabled by default until the weights ship on HF.
+    # Once available, flip to [clip_gate, effb4_arcface, yolov8_bbox].
+    active_stages: [clip_gate, effb4_arcface]
+    min_confidence: 0.05
+    stage_backends:
+      clip_gate: "anti_fraud.AntiFraudGate"
+      effb4_arcface: "identification.IdentificationModel"
+      yolov8_bbox: "ensemble.YoloV8BboxStub"  # replaced once real weights land
 
 preprocessing:
   normalization:

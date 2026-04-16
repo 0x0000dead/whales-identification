@@ -1,5 +1,6 @@
-import requests
 import os
+
+import requests
 
 # API ключи и базовые URL
 WEATHER_API_KEY = os.getenv('WEATHER_API_KEY')
