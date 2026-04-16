@@ -4,6 +4,7 @@ primary_region = "ams"
 
 [build]
   dockerfile = "frontend/Dockerfile"
+  context = "frontend"
   [build.args]
     VITE_BACKEND = "https://ecomarineai-backend.fly.dev"
 
