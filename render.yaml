@@ -8,6 +8,8 @@ services:
     plan: starter
     healthCheckPath: /health
     envVars:
+      - key: PORT
+        value: "8000"
       - key: HF_REPO
         value: 0x0000dead/ecomarineai-cetacean-effb4
       - key: ALLOWED_ORIGINS
