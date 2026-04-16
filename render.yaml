@@ -24,7 +24,6 @@ services:
     buildCommand: npm ci && npm run build
     staticPublishPath: dist
     rootDir: frontend
-    plan: free
     envVars:
       - key: VITE_BACKEND
         value: https://ecomarineai-backend.onrender.com
