@@ -12,12 +12,19 @@ services:
     restart: unless-stopped
     environment:
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:8080,http://127.0.0.1:5173,http://127.0.0.1:8080}
+    # Named volumes keep model files between container restarts.
+    # First boot downloads ~2 GB from HuggingFace; subsequent starts are instant.
+    volumes:
+      - ecomarine_models:/app/src/whales_be_service/models
+      - ecomarine_resources:/app/src/whales_be_service/resources
+      - ecomarine_configs:/app/src/whales_be_service/configs
+      - ecomarine_reports:/app/reports
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 15s
+      start_period: 300s  # allow up to 5 min for first-boot model download
     networks:
       - whale-net
 
@@ -48,3 +55,10 @@ services:
 networks:
   whale-net:
     driver: bridge
+
+# Persistent volumes — survive `docker compose down`, removed only by `docker compose down -v`
+volumes:
+  ecomarine_models:
+  ecomarine_resources:
+  ecomarine_configs:
+  ecomarine_reports:
