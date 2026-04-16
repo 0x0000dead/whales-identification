@@ -40,18 +40,44 @@ export interface Detection {
   model_version?: string;
 }
 
+function networkError(e: unknown): Error {
+  if (e instanceof TypeError && String(e.message).includes('fetch')) {
+    return new Error('Сервер анализа недоступен. Убедитесь, что backend запущен и откройте страницу заново.');
+  }
+  return e instanceof Error ? e : new Error(String(e));
+}
+
+export async function checkHealth(): Promise<boolean> {
+  try {
+    const res = await fetch(`${BASE}/health`, { signal: AbortSignal.timeout(3000) });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 export async function predictSingle(file: File): Promise<Detection> {
   const form = new FormData();
   form.append('file', file);
-  const res = await fetch(`${BASE}/v1/predict-single`, { method: 'POST', body: form });
-  if (!res.ok) throw new Error(await res.text());
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}/v1/predict-single`, { method: 'POST', body: form });
+  } catch (e) {
+    throw networkError(e);
+  }
+  if (!res.ok) throw new Error(`Ошибка сервера (${res.status}): ${await res.text()}`);
   return res.json();
 }
 
 export async function predictBatch(zipFile: File): Promise<Detection[]> {
   const form = new FormData();
   form.append('archive', zipFile);
-  const res = await fetch(`${BASE}/v1/predict-batch`, { method: 'POST', body: form });
-  if (!res.ok) throw new Error(await res.text());
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}/v1/predict-batch`, { method: 'POST', body: form });
+  } catch (e) {
+    throw networkError(e);
+  }
+  if (!res.ok) throw new Error(`Ошибка сервера (${res.status}): ${await res.text()}`);
   return res.json();
 }

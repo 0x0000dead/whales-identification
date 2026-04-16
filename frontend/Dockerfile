@@ -5,9 +5,13 @@ WORKDIR /app
 ARG VITE_BACKEND=http://localhost:8000
 ENV VITE_BACKEND=${VITE_BACKEND}
 
+# Allow overriding npm registry for restricted-network environments.
+# Pass --build-arg NPM_REGISTRY=https://registry.npmmirror.com if npmjs.org is blocked.
+ARG NPM_REGISTRY=https://registry.npmjs.org
+
 COPY package*.json tsconfig.json vite.config.ts index.html ./
 
-RUN npm install
+RUN npm config set registry ${NPM_REGISTRY} && npm install
 
 COPY src ./src
 

@@ -28,6 +28,7 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_BACKEND: "${VITE_BACKEND:-http://localhost:8000}"
+        NPM_REGISTRY: "${NPM_REGISTRY:-https://registry.npmjs.org}"
     container_name: ecomarine-fe
     ports:
       - "8080:80"

@@ -12,11 +12,11 @@ RUN apt-get update \
 
 WORKDIR /build
 
-RUN pip install --no-cache-dir poetry==1.8.5
+# Install uv — fast Python package manager (~10x faster than pip/poetry)
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-COPY pyproject.toml poetry.lock ./
-RUN poetry config virtualenvs.create false \
- && poetry install --no-dev --no-root --no-interaction --no-ansi
+COPY requirements.txt ./
+RUN uv pip install --system --no-cache -r requirements.txt
 
 # -------- runtime stage --------
 FROM python:3.11.6-slim
