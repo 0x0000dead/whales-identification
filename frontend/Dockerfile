@@ -9,11 +9,9 @@ COPY package*.json tsconfig.json vite.config.ts index.html ./
 
 RUN npm install
 
-ENV PATH /app/node_modules/.bin:$PATH
-
 COPY src ./src
 
-RUN npm run build
+RUN node_modules/.bin/vite build
 
 # -------- run stage --------
 FROM nginx:alpine
