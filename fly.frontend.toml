@@ -1,0 +1,36 @@
+# fly.frontend.toml — EcoMarineAI frontend deploy config for Fly.io
+app = "ecomarineai-frontend"
+primary_region = "ams"
+
+[build]
+  dockerfile = "frontend/Dockerfile"
+  [build.args]
+    VITE_BACKEND = "https://ecomarineai-backend.fly.dev"
+
+[[services]]
+  internal_port = 80
+  protocol = "tcp"
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+    force_https = true
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
+  [[services.http_checks]]
+    interval = "60s"
+    timeout = "10s"
+    grace_period = "30s"
+    path = "/"
+    method = "GET"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
