@@ -11,7 +11,7 @@ import csv
 import io
 import json
 import zipfile
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
@@ -200,7 +200,7 @@ def test_export_json_since_filter():
         "/v1/predict-single",
         files={"file": ("ok.png", _png(), "image/png")},
     )
-    future = (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()
+    future = (datetime.now(UTC) + timedelta(hours=1)).isoformat()
     resp = client.get(f"/v1/export?format=json&since={future}")
     assert resp.status_code == 200
     body = resp.json()
