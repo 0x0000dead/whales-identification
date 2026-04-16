@@ -100,10 +100,19 @@ files = [ \
  or print('  OK', f) for f, d in files]; \
 print('ML artefacts baked OK')"
 
+# Pre-download rembg U2-Net model (~176 MB) so the first /predict-single
+# with generate_mask=True does not block the worker for minutes.
+RUN mkdir -p /app/.u2net && python3 -c "\
+import urllib.request, os; \
+url = 'https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net.onnx'; \
+dst = '/app/.u2net/u2net.onnx'; \
+urllib.request.urlretrieve(url, dst); \
+print('rembg u2net.onnx OK ->', os.path.getsize(dst), 'bytes')"
+
 EXPOSE 8000
 
 # Models are baked into the image — no first-boot download.
-# 90 s is enough for disk-based CLIP + EfficientNet load (~45 s observed).
+# 30 s is enough for disk-based CLIP + EfficientNet load with background warmup.
 HEALTHCHECK --interval=30s --timeout=30s --start-period=30s --retries=5 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
 
