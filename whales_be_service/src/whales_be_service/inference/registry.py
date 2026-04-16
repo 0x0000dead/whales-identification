@@ -100,7 +100,9 @@ def get_pipeline() -> PipelineLike:
     # clear error instead.
     model_block = (models_cfg.get("models") or {}).get(active_model) or {}
     if model_block.get("deprecated", False):
-        reason = model_block.get("deprecated_reason", "marked deprecated in models_config.yaml")
+        reason = model_block.get(
+            "deprecated_reason", "marked deprecated in models_config.yaml"
+        )
         raise RuntimeError(
             f"active_model='{active_model}' is deprecated and cannot be loaded: {reason}. "
             f"Set active_model to 'effb4_arcface' (production) or 'ensemble'."
