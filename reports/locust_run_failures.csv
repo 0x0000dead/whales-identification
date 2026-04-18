@@ -1,0 +1,5 @@
+Method,Name,Error,Occurrences
+POST,/v1/predict-batch,HTTPError('429 Client Error: Too Many Requests for url: /v1/predict-batch'),5
+POST,/v1/predict-single,HTTPError('429 Client Error: Too Many Requests for url: /v1/predict-single'),21
+GET,/metrics,HTTPError('429 Client Error: Too Many Requests for url: /metrics'),4
+GET,/health,HTTPError('429 Client Error: Too Many Requests for url: /health'),4
