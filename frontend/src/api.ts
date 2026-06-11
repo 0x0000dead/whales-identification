@@ -1,7 +1,8 @@
 // src/api.ts
 //
 // Backend URL resolution order:
-//   1. Build-time override via `VITE_BACKEND=...` env var (recommended for production).
+//   1. Build-time override via `VITE_BACKEND=...` env var (for reverse-proxy
+//      or non-standard port setups).
 //      Vite's `define` in vite.config.ts replaces __VITE_BACKEND__ at compile time —
 //      no import.meta at runtime, so Jest can import this file without SyntaxError.
 //   2. Runtime derivation from `window.location.hostname`: if the page is
@@ -10,9 +11,8 @@
 //      192.168.x.y, a LAN hostname, or behind a reverse proxy.
 //   3. Only if neither are available (SSR, tests) fall back to localhost.
 //
-// Why this matters: Экспертиза 2.0 §1.2.4 raised a repeated issue where a
-// hardcoded http://localhost:8000 default broke the UI for any viewer
-// browsing from a non-localhost address.
+// Why this matters: a hardcoded http://localhost:8000 default breaks the UI
+// for any viewer browsing from a non-localhost address.
 function resolveBase(): string {
   // __VITE_BACKEND__ is replaced at Vite build time (vite.config.ts define).
   // In Jest it is set via jest.config.cjs globals. No import.meta required.

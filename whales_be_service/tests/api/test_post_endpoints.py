@@ -27,7 +27,10 @@ def _create_red_image_bytes():
 def test_health_check():
     resp = client.get("/health")
     assert resp.status_code == 200
-    assert resp.json() == {"status": "ok"}
+    data = resp.json()
+    assert data["status"] == "ok"
+    # device lets operators verify GPU passthrough; cpu on CI, cuda:0 with GPU
+    assert data["device"] == "cpu" or data["device"].startswith("cuda")
 
 
 def test_predict_single_accepted():

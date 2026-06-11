@@ -62,7 +62,10 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_BACKEND: "${VITE_BACKEND:-http://backend:8000}"
+        # Empty by default: the frontend resolves the backend at runtime as
+        # http(s)://<host the UI is opened from>:8000. Set explicitly when the
+        # API lives behind a reverse proxy / on a different host.
+        VITE_BACKEND: "${VITE_BACKEND:-}"
     container_name: ecomarine-fe-prod
     ports:
       - "8080:80"
