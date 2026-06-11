@@ -124,3 +124,27 @@ def test_cli_verify_accepted(stub_pipeline, temp_image, capsys):
     out = capsys.readouterr().out
     assert rc == 0
     assert "ACCEPTED" in out
+
+
+def test_module_invocation_from_service_dir():
+    """Regression: ``python -m whales_identify`` must work from any cwd.
+
+    The README tells users to ``cd whales_be_service && poetry install`` and
+    then run ``python -m whales_identify predict ...`` — this exercises that
+    exact scenario (the package must be importable as an installed
+    distribution, not via the repo root being on sys.path).
+    """
+    import subprocess
+
+    repo_root = Path(__file__).resolve().parents[2]
+    service_dir = repo_root / "whales_be_service"
+
+    proc = subprocess.run(
+        [sys.executable, "-m", "whales_identify", "--help"],
+        cwd=service_dir,
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    assert proc.returncode == 0, proc.stderr
+    assert "predict" in proc.stdout
