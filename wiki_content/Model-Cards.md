@@ -25,13 +25,20 @@ Detailed specifications, performance metrics, and usage guidelines for all model
 
 | Model                       | Precision@1 | GPU Time | CPU Time  | Parameters | Model Size | Status           |
 | --------------------------- | ----------- | -------- | --------- | ---------- | ---------- | ---------------- |
-| **Vision Transformer L/32** | **93%**     | ~3.5s    | ~7.5s     | 307M       | 1.2 GB     | ⭐ Best Accuracy |
-| Vision Transformer B/16     | 91%         | ~2.0s    | ~5.0s     | 86M        | 340 MB     | ✅ Production    |
-| EfficientNet-B5             | 91%         | ~1.8s    | ~4.5s     | 30M        | 120 MB     | ✅ Production    |
+| **EfficientNet-B4 ArcFace** (+ CLIP gate) | TPR 0.95 / TNR 0.902 (gate) | ~1.5s | ~3.5s | 19M | ~200 MB | ✅ Production |
+| **Vision Transformer L/32** | **93%**     | ~3.5s    | ~7.5s     | 307M       | 1.2 GB     | ⭐ Best research accuracy |
+| Vision Transformer B/16     | 91%         | ~2.0s    | ~5.0s     | 86M        | 340 MB     | 🔬 Research      |
+| EfficientNet-B5             | 91%         | ~1.8s    | ~4.5s     | 30M        | 120 MB     | 🔬 Research      |
 | **EfficientNet-B0**         | 88%         | ~1.0s    | **~2.5s** | 5.3M       | 21 MB      | ⚡ Fastest       |
 | ResNet-101                  | 85%         | ~1.2s    | ~3.0s     | 44M        | 170 MB     | ✅ Baseline      |
 | ResNet-54                   | 82%         | ~0.8s    | ~2.0s     | 25M        | 100 MB     | ⚡ Fastest CNN   |
 | Swin Transformer            | 90%         | ~2.2s    | ~5.5s     | 88M        | 350 MB     | 🔬 Research      |
+
+> **Production model:** the deployed API uses **EfficientNet-B4 ArcFace**
+> (`effb4-arcface-v1`, 13 837 active individual IDs in a 15 587-slot ArcFace
+> head, [0x0000dead/ecomarineai-cetacean-effb4](https://huggingface.co/0x0000dead/ecomarineai-cetacean-effb4))
+> with a **CLIP ViT-B-32 anti-fraud gate** (threshold 0.52, TPR = 0.95,
+> TNR = 0.902). The other models are research checkpoints kept for comparison.
 
 **Hardware:** GPU measurements on single NVIDIA Tesla V100, CPU on Intel Xeon Gold 6154, batch size 1
 
@@ -75,7 +82,7 @@ Precision│      EfficientNet-B5 ●
 | **Depth**            | 24 layers                                               |
 | **Attention Heads**  | 16                                                      |
 | **Parameters**       | 307M                                                    |
-| **Model File**       | model-e15.pt (2.1 GB with optimizer state)              |
+| **Model File**       | model-e15.pt (2.1 GB with optimizer state) — **Deprecated**: legacy research checkpoint, available from Yandex Disk only (not auto-downloaded) |
 | **Training Dataset** | Open marine mammal sources + Ministry RF (~60,000 train + ~20,000 test) |
 | **Classes**          | 1,000 individual whales and dolphins                    |
 
@@ -151,7 +158,7 @@ Hyperparameters:
 Training Time: ~48 hours on 4x V100 GPUs
 Final Loss: 0.234 (train), 0.412 (val)
 Best Epoch: 15
-Checkpoint: models/model-e15.pt
+Checkpoint: model-e15.pt (deprecated; Yandex Disk only)
 ```
 
 ---
@@ -162,7 +169,7 @@ Checkpoint: models/model-e15.pt
 
 **Architecture:** Vision Transformer Base with 16×16 patch size
 **Backbone:** `timm.vit_base_patch16_224`
-**Status:** Production-ready, currently deployed in API
+**Status:** Research checkpoint (the deployed production model is EfficientNet-B4 ArcFace, see above)
 
 ### Specifications
 

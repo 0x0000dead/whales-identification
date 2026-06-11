@@ -1,0 +1,43 @@
+name: Sync Wiki
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "wiki_content/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Clone wiki
+        run: |
+          git clone "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.wiki.git" wiki
+
+      - name: Copy pages
+        run: |
+          for page in wiki_content/*.md; do
+            name="$(basename "$page")"
+            [ "$name" = "README.md" ] && continue
+            cp "$page" "wiki/$name"
+          done
+
+      - name: Commit and push
+        run: |
+          cd wiki
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain)" ]; then
+            git add -A
+            git commit -m "docs: sync wiki from wiki_content/ (${GITHUB_SHA::7})"
+            git push
+          else
+            echo "Wiki already up to date."
+          fi

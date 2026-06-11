@@ -10,8 +10,8 @@
 
 ### Ключевые возможности
 
-- ✅ **1,000 индивидуальных особей** китов и дельфинов в базе
-- ✅ **Vision Transformer** с точностью 93%
+- ✅ **13 837 активных индивидуальных особей** китов и дельфинов (15 587 слотов ArcFace-головы)
+- ✅ **EfficientNet-B4 ArcFace** в production + **CLIP anti-fraud gate** (отсев не-китов)
 - ✅ **REST API** с batch processing
 - ✅ **Docker Compose** для быстрого развёртывания
 - ✅ **Metric Learning** (ArcFace) для масштабируемости
@@ -38,7 +38,9 @@
 ### Внешние ресурсы
 
 - **[GitHub Repository](https://github.com/0x0000dead/whales-identification)** - Исходный код
-- **[Hugging Face](https://huggingface.co/baltsat/Whales-Identification)** - Обученные модели
+- **[Документация (docs/)](https://github.com/0x0000dead/whales-identification/tree/main/docs)** - Документация с полным содержанием
+- **[Hugging Face (production)](https://huggingface.co/0x0000dead/ecomarineai-cetacean-effb4)** - Производственная модель EfficientNet-B4 ArcFace
+- **[Hugging Face (legacy)](https://huggingface.co/baltsat/Whales-Identification)** - Исторические чекпоинты
 - **[Yandex Disk](https://disk.yandex.ru/d/GshqU9o6nNz7ZA)** - Альтернативное хранилище моделей
 
 ---
@@ -50,15 +52,14 @@
 git clone https://github.com/0x0000dead/whales-identification.git
 cd whales-identification
 
-# 2. Установить Hugging Face CLI
-pip install huggingface_hub==0.20.3
-
-# 3. Загрузить модели
-./scripts/download_models.sh
-
-# 4. Запустить полный стек
+# 2. Запустить полный стек
 docker compose up --build
 ```
+
+> Модели запечены в Docker-образ; недостающие веса докачиваются автоматически
+> при первом старте — предварительно скачивать ничего не нужно. Для локальной
+> разработки без Docker: `pip install huggingface_hub==0.20.3 && ./scripts/download_models.sh`
+> (см. [Installation](Installation)).
 
 **Сервисы:**
 
@@ -72,11 +73,12 @@ docker compose up --build
 
 | Модель                      | Precision | Время GPU (с) | Время CPU (с) | Статус        |
 | --------------------------- | --------- | ------------- | ------------- | ------------- |
-| **Vision Transformer L/32** | 93%       | ~3.5s         | ~7.5s         | ⭐ Best       |
-| Vision Transformer B/16     | 91%       | ~2.0s         | ~5.0s         | ✅ Production |
-| EfficientNet-B5             | 91%       | ~1.8s         | ~4.5s         | ✅ Production |
+| **EfficientNet-B4 ArcFace** + CLIP gate | TPR 0.95 / TNR 0.902 (anti-fraud) | ~1.5s | ~3.5s | ✅ Production |
+| Vision Transformer L/32     | 93%       | ~3.5s         | ~7.5s         | ⭐ Best research accuracy |
+| Vision Transformer B/16     | 91%       | ~2.0s         | ~5.0s         | Research      |
+| EfficientNet-B5             | 91%       | ~1.8s         | ~4.5s         | Research      |
 | EfficientNet-B0             | 88%       | ~1.0s         | ~2.5s         | ⚡ Fast       |
-| ResNet-101                  | 85%       | ~1.2s         | ~3.0s         | ✅ Baseline   |
+| ResNet-101                  | 85%       | ~1.2s         | ~3.0s         | Baseline      |
 
 **Все модели укладываются в требование ТЗ: ≤8 секунд для изображения 1920x1080**
 
@@ -164,5 +166,5 @@ docker compose up --build
 
 ---
 
-**Последнее обновление:** 1 сентября 2025
+**Последнее обновление:** 11 июня 2026
 **Версия:** 0.1.0
