@@ -6,9 +6,9 @@
 # **CC-BY-NC-4.0** (Creative Commons Attribution-NonCommercial 4.0 International).
 #
 # IMPORTANT: the license MUST remain cc-by-nc-4.0. Earlier drafts used
-# Apache 2.0, which was flagged by Экспертиза 2.0 §1.1 as incompatible
-# with the upstream Happy Whale dataset licence. Do NOT revert to Apache 2.0
-# — the model weights inherit CC-BY-NC-4.0 from training data.
+# Apache 2.0, which is incompatible with the upstream Happy Whale dataset
+# licence. Do NOT revert to Apache 2.0 — the model weights inherit
+# CC-BY-NC-4.0 from training data.
 #
 # Prerequisites:
 #   1. Install huggingface_hub: pip install huggingface_hub==0.20.3

@@ -22,6 +22,8 @@
 ### Технические гайды
 
 - **[Pre-commit Hooks Guide](PRE_COMMIT_GUIDE.md)** - Настройка и использование pre-commit hooks
+- **[Roadmap](ROADMAP.md)** - Дорожная карта: работы этапов, мобильная версия UI, планы развития
+- **[Указатель ноутбуков](NOTEBOOKS_INDEX.md)** - Где какая метрика и эксперимент посчитаны
 - **[Architecture](https://github.com/0x0000dead/whales-identification/wiki/Architecture)** - Архитектура проекта
 - **[Model Cards](https://github.com/0x0000dead/whales-identification/wiki/Model-Cards)** - Описание моделей и метрик
 - **[Testing Guide](https://github.com/0x0000dead/whales-identification/wiki/Testing)** - Запуск тестов и coverage

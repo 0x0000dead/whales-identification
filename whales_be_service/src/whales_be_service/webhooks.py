@@ -38,7 +38,7 @@ class WebhookRegistry:
 
     Backs `/v1/webhook/register`, `/v1/webhook/{id}` and `/v1/webhooks`. A real
     production deployment should persist this in Redis or Postgres; for the
-    Stage 3 ФСИ demo the in-memory implementation is sufficient and explicit.
+    Stage 3 demo the in-memory implementation is sufficient and explicit.
     """
 
     def __init__(self) -> None:

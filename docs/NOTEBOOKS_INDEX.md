@@ -1,10 +1,20 @@
 # Указатель ноутбуков и артефактов по КП ТЗ
 
-Данный документ закрывает замечание ФСИ: «Требуются ссылки на конкретные ipynb-файлы для каждой работы КП (не ссылка на репозиторий в целом)».
+Карта соответствия: для каждой работы КП — конкретные ipynb-файлы и модули, где она выполнена.
 
 **Репозиторий:** https://github.com/0x0000dead/whales-identification  
 **Ветка:** `main`  
-**Дата актуализации:** 2026-04-15
+**Дата актуализации:** 2026-06-11
+
+---
+
+## Метрики ТЗ: где посчитаны
+
+| Метрика (ТЗ) | Значение | Где посчитана | Воспроизведение |
+|--------------|----------|---------------|-----------------|
+| Sensitivity / Specificity (бинарная задача, 7 архитектур) | Sens 84.75–93.10 %, Spec 88.12–95.00 % | [06_benchmark_binary.ipynb](https://github.com/0x0000dead/whales-identification/blob/main/research/notebooks/06_benchmark_binary.ipynb) | запуск ноутбука сверху вниз |
+| Sensitivity / Specificity / Recall / F1 (multiclass, 15 587 классов) | Sens 78–91 %, Spec 88–94 %, Recall 76–91 %, F1 0.79–0.92 | [06_benchmark_multiclass.ipynb](https://github.com/0x0000dead/whales-identification/blob/main/research/notebooks/06_benchmark_multiclass.ipynb) | запуск ноутбука сверху вниз |
+| Production-гейт: TPR (Sensitivity/Recall) = 0.95, TNR (Specificity) = 0.902, ROC-AUC 0.984, порог 0.52 | n = 202 (95 TP / 10 FP / 92 TN / 5 FN) | [reports/METRICS.md](https://github.com/0x0000dead/whales-identification/blob/main/reports/METRICS.md), [anti_fraud_threshold.yaml](https://github.com/0x0000dead/whales-identification/blob/main/whales_be_service/src/whales_be_service/configs/anti_fraud_threshold.yaml) | `make compute-metrics`, `make calibrate-clip` |
 
 ---
 
