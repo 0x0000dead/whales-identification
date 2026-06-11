@@ -140,6 +140,8 @@ celerybeat.pid
 
 # Environments
 .env
+.env.*
+.env.local
 .venv
 env/
 venv/
@@ -202,13 +204,16 @@ whales_be_service/src/whales_be_service/resources/database.csv
 .venv-full/
 .venv-test/
 
-# Auto Claude data directory
-.auto-claude/
+# Local development tooling and editor configs
+.claude/
+CLAUDE.md
+.mcp.json
+.playwright-mcp/
 
-# Auto Claude generated files
-.auto-claude-security.json
-.auto-claude-status
-.claude_settings.json
+# Local working files (not part of the project)
+local_test/
+docs_fsie.zip
+*.docx
 .worktrees/
 .security-key
 logs/security/
