@@ -69,7 +69,7 @@ curl -X POST \
   "class_animal": "a6e325d8e924",
   "id_animal": "bottlenose_dolphin",
   "probability": 0.0756,
-  "mask": null,
+  "mask": "iVBORw0KGgoAAAANS...",
   "is_cetacean": true,
   "cetacean_score": 0.9997,
   "rejected": false,
@@ -97,6 +97,24 @@ curl -X POST \
   "cetacean_score": 0.08,
   "rejected": true,
   "rejection_reason": "not_a_marine_mammal",
+  "model_version": "effb4-arcface-v1"
+}
+```
+
+### Response (200 — corrupted / undecodable image)
+
+```json
+{
+  "image_ind": "broken.jpg",
+  "bbox": [0, 0, 0, 0],
+  "class_animal": "",
+  "id_animal": "unknown",
+  "probability": 0.0,
+  "mask": null,
+  "is_cetacean": false,
+  "cetacean_score": 0.0,
+  "rejected": true,
+  "rejection_reason": "corrupted_image",
   "model_version": "effb4-arcface-v1"
 }
 ```

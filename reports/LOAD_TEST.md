@@ -117,7 +117,7 @@ Raw Locust CSVs: `reports/locust_run_*.csv`.
 |-----------------------------------|------------------------------|---------------------------------------------------|--------|
 | 3 — linear time complexity        | R² ≥ 0.99 on throughput data | §2 pipeline benchmark, R² = 1.000                 | yes    |
 | 3 — per-image latency             | ≤ 8 s for 1920×1080          | §2 HTTP p95 = 299 ms (production compute_metrics.py) | yes    |
-| 7 — availability                  | ≥ 95 % over 7 days            | UptimeRobot monitoring started 2026-04-16           | pending (7-day window) |
+| 7 — availability                  | ≥ 95 % over 7 days            | 7-day monitoring 23–29.03.2026 — 99.40 % (`reports/uptime_7day_summary.md`) | yes    |
 
 - Steady-state offline linearity is proven (§2).
 - Single-pod HTTP p95 already beats the ceiling by ~15×.
