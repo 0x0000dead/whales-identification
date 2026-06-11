@@ -35,7 +35,7 @@ This table maps **every numbered requirement in the ТЗ** to a concrete, review
 
 ---
 
-## Замечания экспертизы ФСИ (4 раунда) → что исправлено
+## История доработок по результатам независимых экспертиз
 
 ### Round 1 (26.11.2024)
 

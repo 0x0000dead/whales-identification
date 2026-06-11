@@ -83,6 +83,8 @@ cd whales-identification
 docker compose up --build
 ```
 
+> Модели запечены в образ; при первом старте недостающие веса докачиваются автоматически — предварительно скачивать ничего не нужно.
+
 После запуска:
 
 - **Веб-интерфейс** — http://localhost:8080
@@ -90,13 +92,17 @@ docker compose up --build
 
 **Доступ из другого устройства в сети:**
 
+Дополнительная настройка не требуется. По умолчанию переменная `VITE_BACKEND` пуста — фронтенд обращается к бэкенду по адресу `http://<хост, на котором открыт UI>:8000`, а dev-конфигурация Docker Compose задаёт `ALLOWED_ORIGINS=*`. Достаточно выполнить `docker compose up --build` и открыть `http://<IP-адрес машины>:8080` с любого устройства в сети.
+
+Переменная `VITE_BACKEND` нужна только для нестандартных схем — reverse-proxy или бэкенда на другом порту:
+
 ```bash
-VITE_BACKEND=http://192.168.1.100:8000 docker compose up --build
+VITE_BACKEND=https://api.example.com docker compose up --build
 ```
 
-Переменная `VITE_BACKEND` указывает фронтенду адрес бэкенда. По умолчанию в Docker используется `http://backend:8000`.
-
 ### Вариант 2: Локальная разработка (без Docker)
+
+**Prerequisites:** Python 3.11+, Poetry ≥ 1.5, Node.js ≥ 20.19 (для Vite).
 
 ```bash
 # Загрузка весов модели (~400 МБ с Hugging Face)
@@ -125,6 +131,16 @@ poetry run streamlit run streamlit_app.py --server.port=8501
 
 Приложение доступно на http://localhost:8501.
 
+### Запуск с GPU
+
+Требуется установленный [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html).
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.gpu.yml up --build
+```
+
+Проверка: поле `"device": "cuda:0"` в ответе `GET /health`. Подробности — в [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+
 ---
 
 ## API
@@ -145,11 +161,12 @@ curl -X POST http://localhost:8000/v1/predict-single \
   "class_animal": "1a71fbb72250",
   "id_animal": "humpback_whale",
   "probability": 0.847,
+  "mask": "iVBORw0KGgoAAAANS...",
   "is_cetacean": true,
   "cetacean_score": 0.993,
   "rejected": false,
   "rejection_reason": null,
-  "model_version": "effb4-arcface-v2",
+  "model_version": "effb4-arcface-v1",
   "candidates": [
     {"class_animal": "abc456def789", "id_animal": "humpback_whale", "probability": 0.543},
     {"class_animal": "cafe0987ba54", "id_animal": "fin_whale", "probability": 0.271}
@@ -157,7 +174,7 @@ curl -X POST http://localhost:8000/v1/predict-single \
 }
 ```
 
-Поле `rejected: true` означает успешную классификацию (не ошибку сервера). `rejection_reason` принимает значения `not_a_marine_mammal` или `low_confidence`.
+Поле `mask` — base64-кодированный PNG с удалённым фоном (в примере значение сокращено). Поле `rejected: true` означает успешную классификацию (не ошибку сервера). `rejection_reason` принимает значения `not_a_marine_mammal`, `low_confidence` или `corrupted_image`.
 
 ### Пакетная обработка
 
@@ -314,6 +331,7 @@ make smoke          # сквозной smoke-тест
 | [API_CHANGELOG.md](API_CHANGELOG.md) | История изменений REST API |
 | [docs/ML_ARCHITECTURE.md](docs/ML_ARCHITECTURE.md) | Сравнение архитектур: ResNet → ViT |
 | [docs/NOTEBOOKS_INDEX.md](docs/NOTEBOOKS_INDEX.md) | Индекс исследовательских ноутбуков |
+| [docs/ROADMAP.md](docs/ROADMAP.md) | Дорожная карта: работы этапов, мобильная версия UI, планы развития |
 | [docs/DATASET_CONTRIBUTION.md](docs/DATASET_CONTRIBUTION.md) | Состав и лицензирование датасетов |
 
 ### Модели и артефакты

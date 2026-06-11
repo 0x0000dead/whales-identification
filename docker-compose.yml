@@ -11,7 +11,10 @@ services:
       - "8000:8000"
     restart: unless-stopped
     environment:
-      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:8080,http://127.0.0.1:5173,http://127.0.0.1:8080}
+      # "*" — dev default: the UI must work when opened from any machine on
+      # the network, not just localhost. Narrow this to an explicit origin
+      # list for production deployments.
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
     # Named volumes keep model files between container restarts.
     # First boot downloads ~2 GB from HuggingFace; subsequent starts are instant.
     volumes:
@@ -34,7 +37,11 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_BACKEND: "${VITE_BACKEND:-http://localhost:8000}"
+        # Empty by default: the frontend then resolves the backend at runtime
+        # as http://<host the UI is opened from>:8000, so the stack works from
+        # any device on the network. Set VITE_BACKEND only for reverse-proxy
+        # setups or a non-standard backend port.
+        VITE_BACKEND: "${VITE_BACKEND:-}"
         NPM_REGISTRY: "${NPM_REGISTRY:-https://registry.npmjs.org}"
     container_name: ecomarine-fe
     ports:

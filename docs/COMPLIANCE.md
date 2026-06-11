@@ -52,7 +52,7 @@ The combined training corpus has two sources; the derivative model inherits the 
 
 All permissive, but each component's attribution requirement is preserved in [LICENSE_MODELS.md](../LICENSE_MODELS.md).
 
-## 4. Anthropic Hugging Face mirror
+## 4. Hugging Face mirror
 
 `0x0000dead/ecomarineai-cetacean-effb4` on HF carries the combined licence: **CC-BY-NC-4.0** (taking the strictest of the inputs). The HF model card lists all upstream sources in the `datasets` front-matter and in the `## Licensing` section.
 

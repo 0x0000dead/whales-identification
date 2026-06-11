@@ -29,11 +29,45 @@ Stop with `docker compose down`.
 
 ### LAN access from another device
 
+No configuration needed. With the defaults:
+
+- `VITE_BACKEND` is empty, so the frontend resolves the backend at runtime as
+  `http://<host the UI is opened from>:8000` — the same image works from
+  `127.0.0.1`, a LAN IP or a hostname without rebuilds;
+- the dev compose sets `ALLOWED_ORIGINS=*`, so the API accepts requests from
+  any origin (the API uses no cookies, so wildcard mode is safe; narrow the
+  list for production).
+
+Just run `docker compose up --build` and open `http://<machine-IP>:8080` from
+any device on the network. Set `VITE_BACKEND` only for reverse-proxy setups or
+a non-standard backend port (this is a build-time variable — re-build after
+changing it).
+
+### GPU acceleration (docker compose)
+
+Prerequisite — [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html):
+
 ```bash
-VITE_BACKEND=http://192.168.1.100:8000 docker compose up --build
+sudo nvidia-ctk runtime configure --runtime=docker
+sudo systemctl restart docker
+# verify the host setup:
+docker run --rm --gpus all nvidia/cuda:12.1.0-base-ubuntu22.04 nvidia-smi
 ```
 
-The frontend build bakes the backend URL in at build time, so re-build when the IP changes.
+Then start the stack with the GPU overlay:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.gpu.yml up --build
+```
+
+The backend image already contains CUDA-enabled torch wheels (cu121); once
+the device is passed through, inference automatically runs on `cuda:0`.
+Verify:
+
+```bash
+curl http://localhost:8000/health
+# {"status": "ok", "device": "cuda:0"}
+```
 
 ### Environment variables (local)
 
@@ -41,8 +75,8 @@ The frontend build bakes the backend URL in at build time, so re-build when the 
 |----------------------|---------------------------------------------------|----------------------------------------------|
 | `HF_REPO`            | `0x0000dead/ecomarineai-cetacean-effb4`          | Model source for docker-entrypoint.sh        |
 | `MODEL_DOWNLOAD_URL` | unset                                             | Legacy: direct URL override for efficientnet_b4_512_fold0.ckpt |
-| `ALLOWED_ORIGINS`    | `http://localhost:5173,http://localhost:8080,...` | CORS whitelist                               |
-| `VITE_BACKEND`       | `http://localhost:8000`                           | Frontend → backend URL (build-time)          |
+| `ALLOWED_ORIGINS`    | `*` (dev compose)                                 | CORS: `*` or comma-separated origin whitelist |
+| `VITE_BACKEND`       | empty (runtime same-host fallback)                | Frontend → backend URL override (build-time) |
 
 ---
 

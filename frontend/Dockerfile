@@ -2,7 +2,10 @@
 FROM node:20-slim AS build
 WORKDIR /app
 
-ARG VITE_BACKEND=http://localhost:8000
+# Empty default: the app falls back to http://<current host>:8000 at runtime
+# (see src/api.ts), which works from any device on the network. Set this only
+# for reverse-proxy setups or a non-standard backend port.
+ARG VITE_BACKEND=
 ENV VITE_BACKEND=${VITE_BACKEND}
 
 # Allow overriding npm registry for restricted-network environments.

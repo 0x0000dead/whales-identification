@@ -16,75 +16,27 @@ This directory contains all 9 pages for the GitHub Wiki.
 
 ## How to Upload to GitHub Wiki
 
-### Option 1: Via GitHub Web Interface (Recommended)
+`wiki_content/` is the **source of truth** for the GitHub Wiki. Two sync paths:
 
-1. **Enable Wiki:**
-   - Go to https://github.com/0x0000dead/whales-identification/settings
-   - Scroll to "Features"
-   - Check "Wikis"
+### Option 1: Automatic (CI)
 
-2. **Create Pages:**
-   - Navigate to https://github.com/0x0000dead/whales-identification/wiki
-   - Click "Create the first page"
-   - For each file in `wiki_content/`:
-     - Copy content from the `.md` file
-     - Paste into GitHub wiki editor
-     - Save with appropriate page name (without .md extension)
+The workflow [`.github/workflows/sync-wiki.yml`](../.github/workflows/sync-wiki.yml)
+runs on every push to `main` that touches `wiki_content/**` (and on manual
+`workflow_dispatch`). It clones the `.wiki.git` repository, copies every page
+except this README, and pushes when there is a diff.
 
-### Option 2: Via Git Clone (Advanced)
+> **Do not edit the wiki through the web interface** — changes will be
+> overwritten by the next sync. Edit `wiki_content/` and open a PR instead.
+
+### Option 2: Manual (script)
 
 ```bash
-# 1. Clone wiki repository
-git clone https://github.com/0x0000dead/whales-identification.wiki.git
-
-# 2. Copy all wiki pages
-cp wiki_content/*.md whales-identification.wiki/
-
-# 3. Commit and push
-cd whales-identification.wiki
-git add .
-git commit -m "docs: add complete wiki documentation (9 pages)"
-git push origin master
+./scripts/upload_wiki.sh
 ```
 
-### Option 3: Automated Script
-
-```bash
-#!/bin/bash
-# upload_wiki.sh
-
-REPO="0x0000dead/whales-identification"
-WIKI_DIR="wiki_content"
-
-# Clone wiki
-git clone "https://github.com/${REPO}.wiki.git" temp_wiki
-
-# Copy pages
-cp ${WIKI_DIR}/*.md temp_wiki/
-
-# Remove this README from wiki
-rm temp_wiki/README.md
-
-# Commit and push
-cd temp_wiki
-git add .
-git commit -m "docs: add complete wiki documentation"
-git push
-
-# Cleanup
-cd ..
-rm -rf temp_wiki
-
-echo "✅ Wiki uploaded successfully!"
-echo "Visit: https://github.com/${REPO}/wiki"
-```
-
-**Run:**
-
-```bash
-chmod +x upload_wiki.sh
-./upload_wiki.sh
-```
+Clones the wiki into a temp directory, copies the pages (excluding this
+README), commits and pushes when there is a diff. Reuse an existing clone via
+`WIKI_DIR=/path/to/clone ./scripts/upload_wiki.sh`.
 
 ## Page Naming Convention
 

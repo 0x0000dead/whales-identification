@@ -1,0 +1,23 @@
+# GPU overlay for docker-compose.yml.
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.gpu.yml up --build
+#
+# Prerequisite: NVIDIA Container Toolkit on the host
+#   https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
+#   sudo nvidia-ctk runtime configure --runtime=docker && sudo systemctl restart docker
+#   Verify: docker run --rm --gpus all nvidia/cuda:12.1.0-base-ubuntu22.04 nvidia-smi
+#
+# The backend image already ships CUDA-enabled torch wheels (cu121), so no
+# image changes are needed — once the device is visible, inference code picks
+# cuda:0 automatically. Verify with: curl http://localhost:8000/health
+# (expect "device": "cuda:0").
+services:
+  backend:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

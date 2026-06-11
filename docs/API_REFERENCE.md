@@ -8,7 +8,9 @@ OpenAPI schema is auto-served at `GET /docs` (Swagger UI) and `GET /redoc` (ReDo
 
 ## `GET /health`
 
-Liveness probe. Returns `{"status": "ok"}` iff the service process is up.
+Liveness probe. Returns `status: ok` iff the service process is up; `device`
+reports the inference device (`cuda:0` when the GPU is passed through, e.g.
+via `docker-compose.gpu.yml`, otherwise `cpu`).
 
 ```bash
 curl http://localhost:8000/health
@@ -16,7 +18,7 @@ curl http://localhost:8000/health
 
 Response:
 ```json
-{"status": "ok"}
+{"status": "ok", "device": "cpu"}
 ```
 
 ---
@@ -72,7 +74,12 @@ curl -X POST \
   "cetacean_score": 0.9997,
   "rejected": false,
   "rejection_reason": null,
-  "model_version": "effb4-arcface-v1"
+  "model_version": "effb4-arcface-v1",
+  "candidates": [
+    {"class_animal": "a6e325d8e924", "id_animal": "bottlenose_dolphin", "probability": 0.0756},
+    {"class_animal": "208b91b1ca2b", "id_animal": "bottlenose_dolphin", "probability": 0.0625},
+    {"class_animal": "e5b92928d76e", "id_animal": "bottlenose_dolphin", "probability": 0.0301}
+  ]
 }
 ```
 
@@ -193,6 +200,13 @@ class Detection(BaseModel):
         "not_a_marine_mammal", "low_confidence", "corrupted_image"
     ] | None = None
     model_version: str = "effb4-arcface-v1"
+    candidates: list[Candidate] = []                  # top-k alternatives
+
+
+class Candidate(BaseModel):
+    class_animal: str                                 # 12-hex individual_id
+    id_animal: str                                    # species name
+    probability: float                                # 0.0–1.0
 ```
 
 All new fields (`is_cetacean` onwards) have defaults, so the response is a strict superset of the v1.0 shape; old clients continue to parse new responses without changes.

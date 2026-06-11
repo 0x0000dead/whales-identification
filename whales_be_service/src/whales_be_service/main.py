@@ -17,6 +17,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from zipfile import BadZipFile, ZipFile
 
+import torch
 from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.routing import APIRouter
@@ -31,9 +32,24 @@ from .response_models import Detection
 logger = logging.getLogger(__name__)
 
 
+def _inference_device() -> str:
+    """Device the ML stack runs on.
+
+    Mirrors the selection logic in ``inference/identification.py`` and
+    ``inference/anti_fraud.py``: ``cuda:0`` when a GPU is visible to torch
+    (e.g. via the docker-compose.gpu.yml overlay), otherwise ``cpu``.
+    """
+    return "cuda:0" if torch.cuda.is_available() else "cpu"
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     set_deterministic_mode()  # fix global PRNG once at startup (not per-instance)
+    logger.info(
+        "Inference device: %s (CUDA available: %s)",
+        _inference_device(),
+        torch.cuda.is_available(),
+    )
     pipeline = get_pipeline()
     app.state.pipeline = pipeline
     # Run model loading in a background thread so uvicorn binds immediately.
@@ -66,18 +82,41 @@ _default_origins = (
     "http://localhost:5173,http://localhost:8080,"
     "http://127.0.0.1:5173,http://127.0.0.1:8080"
 )
-_allowed_origins = [
-    origin.strip()
-    for origin in os.environ.get("ALLOWED_ORIGINS", _default_origins).split(",")
-    if origin.strip()
-]
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=_allowed_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+
+
+def _setup_cors(target_app: FastAPI) -> None:
+    """Configure CORS from the ``ALLOWED_ORIGINS`` env var.
+
+    Two modes:
+
+    - ``ALLOWED_ORIGINS="*"`` — wildcard: any origin may call the API. This is
+      the docker-compose default so the UI works when opened from another
+      machine on the network (not just localhost). Per the CORS spec a
+      wildcard ``Access-Control-Allow-Origin`` must not be combined with
+      credentials, so ``allow_credentials`` is disabled in this mode (the API
+      uses no cookies or auth headers, so nothing is lost).
+    - Comma-separated origin list (default: localhost dev ports) — explicit
+      whitelist with credentials allowed.
+    """
+    raw_origins = os.environ.get("ALLOWED_ORIGINS", _default_origins).strip()
+    if raw_origins == "*":
+        allow_origins = ["*"]
+        allow_credentials = False
+    else:
+        allow_origins = [
+            origin.strip() for origin in raw_origins.split(",") if origin.strip()
+        ]
+        allow_credentials = True
+    target_app.add_middleware(
+        CORSMiddleware,
+        allow_origins=allow_origins,
+        allow_credentials=allow_credentials,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+
+_setup_cors(app)
 
 
 # --- Rate limiting (in-memory, per-IP) ---
@@ -164,7 +203,9 @@ def get_pipeline_dep(request: Request) -> InferencePipeline:
 
 @app.get("/health", summary="Health check endpoint")
 async def health() -> dict:
-    return {"status": "ok"}
+    # "device" lets operators verify GPU passthrough (docker-compose.gpu.yml)
+    # without reading the logs: "cuda:0" when torch sees a GPU, "cpu" otherwise.
+    return {"status": "ok", "device": _inference_device()}
 
 
 @app.get("/metrics", summary="Prometheus-compatible metrics")

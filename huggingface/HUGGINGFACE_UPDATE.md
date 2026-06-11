@@ -88,7 +88,7 @@ tags:
 ---
 ```
 
-The key field is `license: cc-by-nc-4.0` which updates the repository license. **Do not change this to `apache-2.0`** — Экспертиза 2.0 §1.1 explicitly prohibited Apache 2.0 for the model weights since they are derived from CC-BY-NC-4.0 Happy Whale data.
+The key field is `license: cc-by-nc-4.0` which updates the repository license. **Do not change this to `apache-2.0`** — the model weights are derived from CC-BY-NC-4.0 Happy Whale data, so by licence inheritance Apache 2.0 is not applicable.
 
 ## Keeping in Sync
 

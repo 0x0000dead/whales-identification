@@ -34,7 +34,7 @@ This guide provides step-by-step instructions for installing and running the Wha
 
 - **RAM:** Minimum 8GB (16GB recommended for training)
 - **Storage:** ~5GB for models + dependencies
-- **GPU:** Optional (CUDA-compatible for faster inference)
+- **GPU:** Optional ([CUDA-compatible](#gpu-acceleration-optional) for faster inference — see the [NVIDIA Container Toolkit guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html))
 
 ### GPU Acceleration (Optional)
 
@@ -64,6 +64,15 @@ sudo systemctl restart docker
 docker run --rm --gpus all nvidia/cuda:12.0-base nvidia-smi
 ```
 
+**Running the stack with GPU** — use the GPU overlay file:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.gpu.yml up --build
+```
+
+Verify the backend picked up the GPU: `curl http://localhost:8000/health` →
+`"device": "cuda:0"`.
+
 **Note:** GPU support is optional. The project works on CPU-only systems with slower inference times.
 
 ---
@@ -81,74 +90,46 @@ git clone https://github.com/0x0000dead/whales-identification.git
 cd whales-identification
 ```
 
-#### Step 2: Install Hugging Face CLI
-
-```bash
-pip install huggingface_hub==0.20.3
-```
-
-#### Step 3: Download Models
-
-```bash
-# Make script executable (if needed)
-chmod +x scripts/download_models.sh
-
-# Download models from Hugging Face
-./scripts/download_models.sh
-```
-
-**Expected output:**
-
-```
-Downloading resnet101.pth...
-✓ Downloaded to models/resnet101.pth
-```
-
-**Alternative (manual download):**
-
-- [Hugging Face](https://huggingface.co/baltsat/Whales-Identification/tree/main)
-- [Yandex Disk](https://disk.yandex.ru/d/GshqU9o6nNz7ZA)
-
-Place models in `models/` directory.
-
-#### Step 4: Start Services
+#### Step 2: Start Services
 
 ```bash
 docker compose up --build
 ```
 
+> **No model download needed for Docker.** Model weights are baked into the
+> backend image; on first boot `docker-entrypoint.sh` automatically downloads
+> anything missing from Hugging Face, and named volumes keep the files
+> between restarts. (Downloading models manually is only required for
+> Method 2: Local Development.)
+
 **First build may take 10-15 minutes** (downloads dependencies, builds images).
 
-**Environment Variables (Docker Compose):**
+**Network access from other devices:** works out of the box. By default
+`VITE_BACKEND` is empty — the frontend calls the backend at
+`http://<host the UI is opened from>:8000` — and the dev compose sets
+`ALLOWED_ORIGINS=*`. Just open `http://<machine-IP>:8080` from any device on
+the network. Set `VITE_BACKEND` only for reverse-proxy setups or a
+non-standard backend port.
 
-| Variable       | Default in Docker     | Description                               |
-| -------------- | --------------------- | ----------------------------------------- |
-| `VITE_BACKEND` | `http://backend:8000` | Backend API URL (internal Docker network) |
-
-The `VITE_BACKEND` variable is pre-configured in `docker-compose.yml` for inter-container communication. For network access from external machines, you **must** set two variables and force a clean rebuild:
+**GPU mode (optional):** with the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) installed, start the stack with the GPU overlay:
 
 ```bash
-# Override for external access (e.g., from mobile or another machine on the LAN)
-# Replace 192.168.1.100 with the IP of the machine running Docker
-export HOST_IP=192.168.1.100
-VITE_BACKEND=http://${HOST_IP}:8000 \
-ALLOWED_ORIGINS=http://${HOST_IP}:8080 \
-  docker compose up --build --no-cache
+docker compose -f docker-compose.yml -f docker-compose.gpu.yml up --build
 ```
 
-> **Important:** `--no-cache` is required — without it Docker may reuse a cached layer with the old `localhost:8000` baked into the frontend bundle. Both `VITE_BACKEND` (frontend URL for the backend API) and `ALLOWED_ORIGINS` (backend CORS allowlist) must match the server IP.
+Verify with `curl http://localhost:8000/health` — expect `"device": "cuda:0"`.
 
-#### Step 5: Verify Services
+#### Step 3: Verify Services
 
 Open in browser:
 
 - **Backend API:** http://localhost:8000/docs (Swagger UI)
 - **Frontend UI:** http://localhost:8080
-- **Health Check:** http://localhost:8000/docs
+- **Health Check:** http://localhost:8000/health
 
 **Expected:**
 
-- Swagger UI shows 2 endpoints: `/predict-single`, `/predict-batch`
+- Swagger UI lists the API endpoints: `/v1/predict-single`, `/v1/predict-batch`, `/health`, `/metrics` (plus backwards-compatible aliases `/predict-single`, `/predict-batch`)
 - Frontend displays file upload interface
 
 ---
@@ -182,6 +163,7 @@ brew install opencv
 
 # Download models (from project root)
 cd ..
+pip install huggingface_hub==0.20.3   # 0.21+ moved huggingface-cli into an extra
 ./scripts/download_models.sh
 
 # Start backend (from whales_be_service)
@@ -189,6 +171,28 @@ cd whales_be_service
 poetry run python -m uvicorn whales_be_service.main:app \
   --host 0.0.0.0 --port 8000 --reload
 ```
+
+**Expected output of `./scripts/download_models.sh`:**
+
+```
+→ 0x0000dead/ecomarineai-cetacean-effb4 / efficientnet_b4_512_fold0.ckpt → whales_be_service/src/whales_be_service/models/
+✓ SHA256 OK
+→ 0x0000dead/ecomarineai-cetacean-effb4 / encoder_classes.npy → whales_be_service/src/whales_be_service/models/
+✓ SHA256 OK
+→ 0x0000dead/ecomarineai-cetacean-effb4 / species_map.csv → whales_be_service/src/whales_be_service/resources/
+✓ SHA256 OK
+→ 0x0000dead/ecomarineai-cetacean-effb4 / anti_fraud_threshold.yaml → whales_be_service/src/whales_be_service/configs/
+✓ SHA256 OK
+→ 0x0000dead/ecomarineai-cetacean-effb4 / metrics_baseline.json → reports/
+✓ SHA256 OK
+→ baltsat/Whales-Identification / resnet101.pth → whales_be_service/src/whales_be_service/models/   (legacy)
+✓ SHA256 OK
+```
+
+> **Note:** on the first backend start, `open_clip` additionally downloads the
+> CLIP ViT-B-32 weights (~605 MB, `open_clip_model.safetensors` from
+> `laion/CLIP-ViT-B-32-laion2B-s34B-b79K`) for the anti-fraud gate. In the
+> Docker image these weights are already baked in.
 
 **Backend will be available at:**
 
@@ -214,22 +218,24 @@ npm run dev
 
 **Environment Variables:**
 
-| Variable       | Default                 | Description     |
-| -------------- | ----------------------- | --------------- |
-| `VITE_BACKEND` | `http://localhost:8000` | Backend API URL |
+| Variable       | Default                          | Description                       |
+| -------------- | -------------------------------- | --------------------------------- |
+| `VITE_BACKEND` | empty (runtime same-host:8000)   | Backend API URL override (build-time) |
 
 **Network Access Configuration:**
 
-By default, the frontend connects to `http://localhost:8000`. To access the backend from a different machine or IP address, set the `VITE_BACKEND` environment variable:
+By default `VITE_BACKEND` is empty and the frontend resolves the backend at
+runtime as `http://<host the page is opened from>:8000` — opening the UI from
+another machine works without configuration. Set `VITE_BACKEND` only when the
+API lives behind a reverse proxy or on a non-standard port:
 
 ```bash
-# Access backend on a specific IP (for network access)
-VITE_BACKEND=http://192.168.1.100:8000 npm run dev
-
-# Or export for the session
-export VITE_BACKEND=http://your-server-ip:8000
-npm run dev
+VITE_BACKEND=https://api.example.com npm run dev
 ```
+
+When serving the UI to other machines, also start the backend with
+`ALLOWED_ORIGINS=*` (or an explicit origin list) — the dev Docker Compose
+already does this.
 
 **Production build:**
 
@@ -315,35 +321,51 @@ poetry run streamlit run streamlit_app.py --server.port=8502
 
 **What it does:**
 
-1. Creates `models/` directory
-2. Uses `huggingface-cli` to download `resnet101.pth`
-3. Verifies download integrity
+1. Creates the target directories
+2. Uses `huggingface-cli` to download 6 files:
+   - `efficientnet_b4_512_fold0.ckpt` (production model) → `whales_be_service/src/whales_be_service/models/`
+   - `encoder_classes.npy` → `whales_be_service/src/whales_be_service/models/`
+   - `species_map.csv` → `whales_be_service/src/whales_be_service/resources/`
+   - `anti_fraud_threshold.yaml` → `whales_be_service/src/whales_be_service/configs/`
+   - `metrics_baseline.json` → `reports/`
+   - `resnet101.pth` (legacy) → `whales_be_service/src/whales_be_service/models/`
+3. Verifies each file against `models/checksums.sha256` (`✓ SHA256 OK`)
 
 **Requirements:**
 
 - `huggingface_hub` installed: `pip install huggingface_hub==0.20.3`
+  (the script installs it automatically when `huggingface-cli` is missing)
 
 ### Option 2: Manual Download
 
 #### From Hugging Face
 
-1. Visit [baltsat/Whales-Identification](https://huggingface.co/baltsat/Whales-Identification/tree/main)
-2. Download `resnet101.pth`
-3. Place in `models/` directory
+1. Visit [0x0000dead/ecomarineai-cetacean-effb4](https://huggingface.co/0x0000dead/ecomarineai-cetacean-effb4/tree/main) (production) and [baltsat/Whales-Identification](https://huggingface.co/baltsat/Whales-Identification/tree/main) (legacy)
+2. Download the files listed above
+3. Place them into the directories listed above
 
 #### From Yandex Disk
 
 1. Visit [Yandex Disk link](https://disk.yandex.ru/d/GshqU9o6nNz7ZA)
 2. Download all models
-3. Place in `models/` directory
+3. Place them into the directories listed above
 
 **Directory structure:**
 
 ```
 whales-identification/
-├── models/
-│   └── resnet101.pth
 ├── whales_be_service/
+│   └── src/whales_be_service/
+│       ├── models/
+│       │   ├── efficientnet_b4_512_fold0.ckpt
+│       │   ├── encoder_classes.npy
+│       │   └── resnet101.pth        # legacy
+│       ├── resources/
+│       │   └── species_map.csv
+│       └── configs/
+│           └── anti_fraud_threshold.yaml
+├── reports/
+│   └── metrics_baseline.json
 ├── frontend/
 └── research/
 ```
@@ -358,10 +380,10 @@ whales-identification/
 
 ```bash
 # Health check
-curl http://localhost:8000/docs
+curl http://localhost:8000/health
 
 # Single image prediction
-curl -X POST "http://localhost:8000/predict-single" \
+curl -X POST "http://localhost:8000/v1/predict-single" \
   -H "Content-Type: multipart/form-data" \
   -F "file=@path/to/whale_image.jpg"
 ```
@@ -374,7 +396,7 @@ import requests
 # Single image
 with open("whale_image.jpg", "rb") as f:
     response = requests.post(
-        "http://localhost:8000/predict-single",
+        "http://localhost:8000/v1/predict-single",
         files={"file": f}
     )
     print(response.json())
@@ -385,11 +407,20 @@ with open("whale_image.jpg", "rb") as f:
 ```json
 {
   "image_ind": "whale_image.jpg",
-  "bbox": [100, 150, 300, 250],
-  "class_animal": "a1b2c3d4",
-  "id_animal": "Humpback Whale",
-  "probability": 0.95,
-  "mask": "iVBORw0KGgoAAAANS..."
+  "bbox": [0, 0, 512, 341],
+  "class_animal": "1a71fbb72250",
+  "id_animal": "humpback_whale",
+  "probability": 0.847,
+  "mask": "iVBORw0KGgoAAAANS...",
+  "is_cetacean": true,
+  "cetacean_score": 0.993,
+  "rejected": false,
+  "rejection_reason": null,
+  "model_version": "effb4-arcface-v1",
+  "candidates": [
+    {"class_animal": "abc456def789", "id_animal": "humpback_whale", "probability": 0.543},
+    {"class_animal": "cafe0987ba54", "id_animal": "fin_whale", "probability": 0.271}
+  ]
 }
 ```
 
@@ -504,19 +535,21 @@ docker compose build --no-cache
 
 ### Issue 5: Models not found error
 
-**Cause:** Models not downloaded to `models/` directory
+**Cause:** Models not downloaded (local development without Docker). In Docker
+the weights are baked into the image and re-downloaded automatically by the
+entrypoint, so this issue applies to Method 2 only.
 
 **Solution:**
 
 ```bash
-# Check models directory
-ls -lh models/
+# Check the service models directory
+ls -lh whales_be_service/src/whales_be_service/models/
 
-# If empty, download models
+# If empty, download models (from project root)
 ./scripts/download_models.sh
 
-# Verify model exists
-ls -lh models/resnet101.pth
+# Verify the production checkpoint exists
+ls -lh whales_be_service/src/whales_be_service/models/efficientnet_b4_512_fold0.ckpt
 ```
 
 ---
