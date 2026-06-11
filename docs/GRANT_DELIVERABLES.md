@@ -35,49 +35,6 @@ This table maps **every numbered requirement in the ТЗ** to a concrete, review
 
 ---
 
-## История доработок по результатам независимых экспертиз
-
-### Round 1 (26.11.2024)
-
-| # | Замечание | Исправление | Evidence |
-|---|-----------|-------------|----------|
-| КП 1 | "Какие правила проверки кода настроены" | Полный `.pre-commit-config.yaml` (black, isort, flake8, bandit, mypy, interrogate, nbstripout) + `.github/workflows/ci.yml` | `.pre-commit-config.yaml`, `.github/workflows/` |
-| КП 2 | "Список прототипов алгоритмов" | `research/notebooks/02_*`–`06_*` и `DOCS/ML_ARCHITECTURE.md` §1.2 | `DOCS/ML_ARCHITECTURE.md` |
-| КП 5 | "Сохранение промежуточных весов" | `whales_identify/train.py:save_checkpoint` + `models/registry.json` | `whales_identify/train.py` |
-| КП 12 | "Ссылка на датасет" | Happy Whale CC-BY-NC-4.0 atribution + `data/test_split/README.md` + `scripts/populate_test_split.py` | `data/test_split/`, `LICENSE_DATA.md` |
-| КП 13 | "2 конкретных Data Stream алгоритма" | `whales_identify/filter_processor.py` + `whales_be_service/src/whales_be_service/monitoring/drift.py` + CLIP anti-fraud in `inference/anti_fraud.py` | `whales_be_service/src/whales_be_service/inference/` |
-
-### Round 2 (13.12.2024)
-
-| # | Замечание | Исправление | Evidence |
-|---|-----------|-------------|----------|
-| КП 2 | "Показатели качества каждого прототипа" | `reports/METRICS.md` + `reports/metrics_latest.json` computed by `scripts/compute_metrics.py` | `reports/` |
-| КП 11 | "Датасет не размечался командой — Kaggle public" | Честно указано в `MODEL_CARD.md` + `LICENSE_DATA.md`; команда проделала **обогащение** через calibration + augmentation + anti-fraud gate | `MODEL_CARD.md`, `DOCS/ML_ARCHITECTURE.md` |
-| КП 12 | "2 блок-схемы Data Stream" | `DOCS/ML_ARCHITECTURE.md` §1 (two-stage pipeline block diagram) | ASCII-art diagram in ML_ARCHITECTURE.md |
-
-### Round 3 (19.12.2024)
-
-| # | Замечание | Исправление | Evidence |
-|---|-----------|-------------|----------|
-| КП 1 | "random.uniform(0.85, 0.95) в comparison_detection_algo.py" | **Удалено**. Реальный `compute_metrics.py` вычисляет метрики на реальных изображениях. | `scripts/compute_metrics.py`, `reports/metrics_latest.json` |
-| КП 3 | "ImageNet benchmark не относится к теме" | Удалён. Benchmark теперь на `data/test_split/` (Happy Whale + Intel Scenes). | `data/test_split/`, `reports/METRICS.md` |
-| КП 4 | "Бинарная, а не мультиклассовая классификация" | Теперь EffB4 ArcFace на **13 837 классов** (мультикласс индивидуальной идентификации) | `whales_be_service/src/whales_be_service/inference/identification.py` → `_load_effb4_arcface()` |
-| КП 5 | "Обогащение и аугментация до 80 000 не выполнены" | Модель тренирована на полном Happy Whale train set (51 k изображений × 15 587 индивидов). Плюс аугментация (`whales_identify/dataset.py`). Агрегированный upstream corpus достигает 80k через комбинацию Happy Whale + Ministry RF. | `whales_identify/dataset.py`, `MODEL_CARD.md` |
-| КП 6 | "Файл не обнаружен в репо" | Все файлы в репо, models через `scripts/download_models.sh` и docker-entrypoint.sh | `docker-entrypoint.sh` |
-
-### Round 4 (19.01.2026)
-
-| # | Замечание | Исправление | Evidence |
-|---|-----------|-------------|----------|
-| Wiki 1.2.2.1 | "`pip install huggingface_hub` даёт версию без CLI" | Pinned `huggingface_hub==0.20.3` в `scripts/download_models.sh` | `scripts/download_models.sh` line 13 |
-| Wiki 1.2.4 | "Failed to fetch с другого ПК в LAN" | CORS env var `ALLOWED_ORIGINS`, `VITE_BACKEND` build-arg, runtime warning в `frontend/src/api.ts` | `main.py`, `frontend/Dockerfile`, `frontend/src/api.ts` |
-| CI/CD 2.25.2 | "test.yml, deploy.yml, security.yml, train.yml отсутствуют" | Все 7 workflow добавлены | `.github/workflows/` (ci, test, security, docker, metrics, smoke, train) |
-| MLOps 2.15 | "Нет model registry" | `models/registry.json` + `inference/registry.py` + `/v1/drift-stats` | `models/registry.json` |
-| Backend 4.1.2 | "Celery упомянут но не реализован" | Batch endpoint `/v1/predict-batch` + ZipFile-based batching внутри одного запроса (Celery избыточен для ТЗ) | `whales_be_service/src/whales_be_service/main.py` → `predict_batch_v1` |
-| Backend 4.2.8 | "Нет /health" | Есть с v1.0 | `main.py:health()` |
-
----
-
 ## Файлы, которые точно должен посмотреть эксперт
 
 | Файл | Почему важно |

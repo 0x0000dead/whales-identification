@@ -136,7 +136,7 @@ All numbers computed by `scripts/compute_metrics.py` on `data/test_split/manifes
 | Top-1 accuracy        | 0.1667 (5 / 30 exact individual matches) |
 | Unique ground-truth   | 30                                |
 
-Top-1 looks modest because the test split mixes individuals from all 5 k-folds, while the public EfficientNet-B4 checkpoint was trained on fold 0 only. For individuals it actually saw during training, the top-1 cosine response is strong (e.g. `11df01f53e2747.jpg` → probability 0.746 on the correct ID).
+The aggregate top-1 reflects that the test split mixes individuals from all 5 k-folds, while the public EfficientNet-B4 checkpoint was trained on fold 0 only. For individuals it saw during training, the top-1 cosine response is strong (e.g. `11df01f53e2747.jpg` → probability 0.746 on the correct ID).
 
 ### Performance & scalability
 

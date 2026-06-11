@@ -151,7 +151,7 @@ Idea: add Gaussian noise to negative prompts' text embeddings to make the gate m
 - **Darwin Core** — https://dwc.tdwg.org/terms/ — structured output format for biodiversity observations.
 - **GBIF** — https://www.gbif.org/ — global biodiversity data aggregator.
 
-## 7. Honest limitations
+## 7. Область применения и ограничения
 
 1. **The training set has class imbalance.** Some species have thousands of images; others have a handful. Per-species precision varies substantially.
 2. **Geographic bias.** Happy Whale data is overwhelmingly North Atlantic and North Pacific. Southern Ocean species (e.g., Antarctic minke whale) are under-represented.

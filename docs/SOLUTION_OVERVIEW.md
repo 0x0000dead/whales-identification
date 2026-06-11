@@ -61,7 +61,7 @@ All numbers below are computed by `scripts/compute_metrics.py` on a reproducible
 - **Open data × open models.** Code is MIT, models inherit CC-BY-NC-4.0 from the upstream Happy Whale dataset, everything is reproducible from Kaggle + HuggingFace mirrors.
 - **Scientific rigour.** Every number in this document comes from a script that any reviewer can re-run on their own laptop in under a minute.
 - **Extensibility.** Adding a new species means adding rows to the training CSV and re-fitting the ArcFace head — the rest of the pipeline doesn't change. Adding a new export integration is ~80 lines of Python (see `integrations/sqlite_sink.py`).
-- **Failure visibility.** The CLIP anti-fraud gate makes the system honest about the edges of its knowledge. When you feed it a photo of your cat, it says so, loudly.
+- **Failure visibility.** The CLIP anti-fraud gate makes the system explicit about the edges of its knowledge. When you feed it a photo of your cat, it says so, loudly.
 
 ## What's next
 

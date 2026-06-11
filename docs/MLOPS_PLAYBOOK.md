@@ -119,7 +119,7 @@ Check `errors_total` rate. Common causes:
 
 ### Incident: user says "it called my whale a dolphin"
 
-Remember: the identification model knows 30 species but only ~13 837 individuals. For unseen individuals the top-1 is unreliable. Tell the user to rely on `id_animal` (species) rather than `class_animal` (individual). The `cetacean_score` value is the honest "is this a cetacean at all" signal.
+Remember: the identification model knows 30 species but only ~13 837 individuals. For unseen individuals the top-1 is unreliable. Tell the user to rely on `id_animal` (species) rather than `class_animal` (individual). The `cetacean_score` value is the "is this a cetacean at all" signal.
 
 ---
 
