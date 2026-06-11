@@ -38,7 +38,7 @@ From `reports/metrics_latest.json` (`scripts/compute_metrics.py`):
 | Top-1 accuracy        | 0.2200 (22 / 100) |
 | Top-5 accuracy        | 0.2500 (25 / 100) |
 
-Top-1 looks modest because the test split mixes all 5 Happy Whale k-folds while the public EfficientNet-B4 checkpoint was trained on fold 0 only. For in-fold examples the model is strong (e.g. `11df01f53e2747.jpg → 0.746` on the correct individual). Top-5 honestly computed by `IdentificationModel.predict_topk(k=5)` — not a placeholder.
+The aggregate top-1 reflects that the test split mixes all 5 Happy Whale k-folds while the public EfficientNet-B4 checkpoint was trained on fold 0 only. For in-fold examples the model is strong (e.g. `11df01f53e2747.jpg → 0.746` on the correct individual). Top-5 is computed by `IdentificationModel.predict_topk(k=5)`.
 
 ## 3. Image clarity — ТЗ §Параметр 1 Laplacian variance check
 

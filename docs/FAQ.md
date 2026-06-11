@@ -12,7 +12,7 @@ A free, open-source AI library and web service for identifying individual whales
 
 ### Is it production-ready?
 
-For **research and conservation work** — yes. Anti-fraud gate hits TNR = 90.2%, sensitivity = 95.0%, linear scalability (R² = 1.000), real metrics, full Docker deployment. For **safety-critical decisions affecting endangered-species populations** — use it as input to a biologist-reviewed workflow, not as a final oracle. See "Honest limitations" in [RESEARCH_NOTES.md](RESEARCH_NOTES.md) §7.
+For **research and conservation work** — yes. Anti-fraud gate hits TNR = 90.2%, sensitivity = 95.0%, linear scalability (R² = 1.000), real metrics, full Docker deployment. For **safety-critical decisions affecting endangered-species populations** — use it as input to a biologist-reviewed workflow, not as a final oracle. See "Область применения и ограничения" in [RESEARCH_NOTES.md](RESEARCH_NOTES.md) §7.
 
 ### Is it free?
 
@@ -119,10 +119,9 @@ Yes, the public part from Kaggle: https://www.kaggle.com/competitions/happy-whal
 
 ### What about the Ministry of Natural Resources data?
 
-The Ministry RF dataset is covered by the ФСИ grant agreement and **cannot be redistributed** (terms in [LICENSE_DATA.md](../LICENSE_DATA.md) §2). As a practical consequence:
-- Reproducibility of the ТЗ 80 k aggregate is limited to Happy Whale's 51 k public images.
-- The deployed checkpoint does **not** currently use Ministry RF data — it was trained on the public Happy Whale set only. Retraining with the Ministry portion is on the roadmap once the grant's data-sharing protocol is finalised.
-- This is an **honest limitation** we surface in the docs rather than hide behind marketing language.
+The Ministry RF dataset is covered by the grant agreement and **cannot be redistributed** (terms in [LICENSE_DATA.md](../LICENSE_DATA.md) §2). As a practical consequence:
+- Public reproducibility of the ТЗ 80 k aggregate is limited to Happy Whale's 51 k public images; the Ministry RF portion is used under the grant's data-sharing protocol and is not redistributable.
+- The published checkpoint is trained on the public Happy Whale set so that results remain externally verifiable.
 
 ### Can I use my own dataset?
 
