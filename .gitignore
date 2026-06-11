@@ -1,7 +1,6 @@
 /TASK
 
-# FSI grant documents and internal work artifacts — stored locally only,
-# NOT committed to git. These are uploaded to ФСИ portal separately.
+# Grant paperwork and internal working documents — kept locally only.
 docs_fsie/
 work/stage3/
 
