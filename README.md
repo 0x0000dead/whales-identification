@@ -8,7 +8,7 @@
 
 Библиотека машинного обучения для автоматического детектирования и идентификации морских млекопитающих (китов и дельфинов) по снимкам аэрофотосъёмки. Система применяет метрическое обучение на основе ArcFace для идентификации 13 837 особей 30 видов и включает CLIP zero-shot антифрод-фильтр, отклоняющий изображения, не содержащие морских млекопитающих (целевая специфичность ≥ 90%).
 
-**Production-сервис:** [https://72.56.238.38.nip.io/](https://72.56.238.38.nip.io/) · **Swagger REST API:** [https://ecomarineai-backend.fly.dev/docs](https://ecomarineai-backend.fly.dev/docs)
+**Сайт проекта:** [https://whales.userstoday.net/](https://whales.userstoday.net/) · **Production-сервис:** [https://72.56.238.38.nip.io/](https://72.56.238.38.nip.io/) · **Swagger REST API:** [https://ecomarineai-backend.fly.dev/docs](https://ecomarineai-backend.fly.dev/docs)
 
 ---
 
