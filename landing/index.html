@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EcoMarineAI — идентификация китов и дельфинов по аэрофотоснимкам</title>
+<meta name="description" content="Система компьютерного зрения для детектирования и идентификации морских млекопитающих: 13 837 особей, 30 видов, ArcFace + CLIP-антифрод. REST API, точность 0.905, p95 519 мс.">
+<meta property="og:title" content="EcoMarineAI — идентификация морских млекопитающих">
+<meta property="og:description" content="Определяет вид и конкретную особь кита или дельфина по аэрофотоснимку. 13 837 особей, 30 видов, ROC-AUC 0.984.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://whales.userstoday.net/">
+<meta property="og:image" content="https://whales.userstoday.net/assets/ui_detection_result.png">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐋</text></svg>">
+<style>
+  :root {
+    --bg: #04121e;
+    --bg-2: #072338;
+    --card: rgba(255, 255, 255, 0.045);
+    --card-border: rgba(148, 211, 235, 0.14);
+    --text: #e8f3f8;
+    --muted: #9db8c6;
+    --accent: #3fd6e0;
+    --accent-2: #7cc4ff;
+    --ok: #5ee0a0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background:
+      radial-gradient(900px 500px at 85% -10%, rgba(63, 214, 224, 0.16), transparent 60%),
+      radial-gradient(700px 420px at -10% 25%, rgba(124, 196, 255, 0.10), transparent 55%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+    background-attachment: fixed;
+    color: var(--text);
+    line-height: 1.6;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  header {
+    position: sticky; top: 0; z-index: 10;
+    backdrop-filter: blur(12px);
+    background: rgba(4, 18, 30, 0.75);
+    border-bottom: 1px solid var(--card-border);
+  }
+  .nav { display: flex; align-items: center; gap: 28px; padding: 14px 0; }
+  .brand { font-weight: 700; font-size: 18px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+  .brand:hover { text-decoration: none; }
+  .nav-links { display: flex; gap: 22px; margin-left: auto; font-size: 15px; }
+  .nav-links a { color: var(--muted); }
+  .nav-links a:hover { color: var(--text); text-decoration: none; }
+  .nav-gh {
+    border: 1px solid var(--card-border); border-radius: 8px;
+    padding: 6px 14px; font-size: 14px; color: var(--text) !important;
+  }
+  .nav-gh:hover { border-color: var(--accent); }
+
+  .hero { padding: 88px 0 48px; text-align: center; }
+  .hero h1 {
+    font-size: clamp(32px, 5vw, 52px); line-height: 1.15; font-weight: 800;
+    letter-spacing: -0.5px; max-width: 880px; margin: 0 auto 20px;
+  }
+  .hero h1 em {
+    font-style: normal;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero p.lead { max-width: 760px; margin: 0 auto 32px; color: var(--muted); font-size: 18px; }
+  .cta { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px; }
+  .btn {
+    display: inline-block; border-radius: 10px; padding: 12px 24px;
+    font-size: 16px; font-weight: 600; transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .btn:hover { text-decoration: none; transform: translateY(-1px); }
+  .btn-primary { background: linear-gradient(90deg, var(--accent), #35b8d8); color: #03222b; box-shadow: 0 6px 24px rgba(63, 214, 224, 0.25); }
+  .btn-ghost { border: 1px solid var(--card-border); color: var(--text); background: var(--card); }
+  .btn-ghost:hover { border-color: var(--accent); }
+
+  .stats { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .chip {
+    border: 1px solid var(--card-border); background: var(--card);
+    border-radius: 999px; padding: 8px 18px; font-size: 14px; color: var(--muted);
+  }
+  .chip b { color: var(--ok); font-variant-numeric: tabular-nums; }
+
+  .shot { margin: 56px auto 0; max-width: 920px; }
+  .browser {
+    border: 1px solid var(--card-border); border-radius: 14px; overflow: hidden;
+    background: #0b2c44; box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+  }
+  .browser-bar { display: flex; align-items: center; gap: 6px; padding: 10px 14px; background: rgba(255, 255, 255, 0.05); border-bottom: 1px solid var(--card-border); }
+  .dot { width: 11px; height: 11px; border-radius: 50%; background: #355a74; }
+  .browser-url { margin-left: 10px; font-size: 12px; color: var(--muted); border: 1px solid var(--card-border); border-radius: 6px; padding: 2px 10px; }
+  .browser img { display: block; width: 100%; }
+  .shot-caption { text-align: center; color: var(--muted); font-size: 14px; margin-top: 14px; }
+
+  section { padding: 72px 0 8px; }
+  .sec-title { font-size: 30px; font-weight: 700; margin-bottom: 10px; }
+  .sec-sub { color: var(--muted); margin-bottom: 36px; max-width: 720px; }
+
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .card {
+    background: var(--card); border: 1px solid var(--card-border);
+    border-radius: 14px; padding: 26px;
+  }
+  .card .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; border-radius: 10px; margin-bottom: 14px;
+    background: rgba(63, 214, 224, 0.12); color: var(--accent); font-weight: 700;
+  }
+  .card h3 { font-size: 18px; margin-bottom: 8px; }
+  .card p { color: var(--muted); font-size: 15px; }
+
+  .diagram { margin-top: 28px; background: #ffffff; border-radius: 14px; padding: 18px; border: 1px solid var(--card-border); }
+  .diagram img { display: block; width: 100%; }
+
+  table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--card-border); border-radius: 14px; overflow: hidden; }
+  thead th { text-align: left; font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); padding: 14px 18px; border-bottom: 1px solid var(--card-border); }
+  tbody td { padding: 12px 18px; border-bottom: 1px solid rgba(148, 211, 235, 0.07); font-size: 15px; }
+  tbody tr:last-child td { border-bottom: none; }
+  td.v { color: var(--ok); font-weight: 700; font-variant-numeric: tabular-nums; }
+  td.t { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .table-note { color: var(--muted); font-size: 13px; margin-top: 12px; }
+
+  .api-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 18px; align-items: start; }
+  pre {
+    background: #03101b; border: 1px solid var(--card-border); border-radius: 14px;
+    padding: 22px; overflow-x: auto; font-size: 13.5px; line-height: 1.7;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: #c9e6f2;
+  }
+  pre .c { color: #5d7f93; }
+  pre .k { color: var(--accent); }
+  .endpoints { display: flex; flex-direction: column; gap: 12px; }
+  .ep { display: flex; gap: 12px; align-items: baseline; background: var(--card); border: 1px solid var(--card-border); border-radius: 12px; padding: 14px 18px; }
+  .method { font-family: ui-monospace, Menlo, monospace; font-size: 12px; font-weight: 700; border-radius: 6px; padding: 2px 8px; }
+  .post { background: rgba(94, 224, 160, 0.15); color: var(--ok); }
+  .get { background: rgba(124, 196, 255, 0.15); color: var(--accent-2); }
+  .ep code { font-size: 14px; }
+  .ep span { color: var(--muted); font-size: 13.5px; }
+
+  .res-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  .res { background: var(--card); border: 1px solid var(--card-border); border-radius: 14px; padding: 22px; transition: border-color 0.12s ease; }
+  .res:hover { border-color: var(--accent); text-decoration: none; }
+  .res h3 { font-size: 16px; color: var(--text); margin-bottom: 6px; }
+  .res p { color: var(--muted); font-size: 13.5px; }
+
+  footer { margin-top: 80px; border-top: 1px solid var(--card-border); padding: 36px 0 48px; color: var(--muted); font-size: 14px; }
+  .foot { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+
+  @media (max-width: 860px) {
+    .cards, .api-grid { grid-template-columns: 1fr; }
+    .res-grid { grid-template-columns: 1fr 1fr; }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#">🐋 EcoMarineAI</a>
+    <nav class="nav-links">
+      <a href="#how">Как работает</a>
+      <a href="#metrics">Метрики</a>
+      <a href="#api">API</a>
+      <a href="#docs">Документация</a>
+    </nav>
+    <a class="nav-gh" href="https://github.com/0x0000dead/whales-identification">GitHub</a>
+  </div>
+</header>
+
+<main>
+  <div class="wrap hero">
+    <h1>Идентификация китов и дельфинов <em>по аэрофотоснимкам</em></h1>
+    <p class="lead">
+      EcoMarineAI определяет вид и конкретную особь морского млекопитающего —
+      среди 13 837 животных 30 видов. Метрическое обучение ArcFace,
+      CLIP-антифрод против нецелевых снимков, REST API для интеграции.
+    </p>
+    <div class="cta">
+      <a class="btn btn-primary" href="https://72.56.238.38.nip.io/">Попробовать демо</a>
+      <a class="btn btn-ghost" href="https://ecomarineai-backend.fly.dev/docs">Swagger API</a>
+      <a class="btn btn-ghost" href="https://github.com/0x0000dead/whales-identification/wiki">Документация</a>
+    </div>
+    <div class="stats">
+      <span class="chip">Чувствительность <b>0.950</b></span>
+      <span class="chip">Специфичность <b>0.902</b></span>
+      <span class="chip">ROC-AUC <b>0.984</b></span>
+      <span class="chip">Задержка p95 <b>519 мс</b></span>
+      <span class="chip">Доступность <b>99.4%</b></span>
+    </div>
+
+    <div class="shot">
+      <div class="browser">
+        <div class="browser-bar">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span class="browser-url">72.56.238.38.nip.io</span>
+        </div>
+        <img src="assets/ui_detection_result.png" alt="Результат идентификации горбатого кита в веб-интерфейсе EcoMarineAI" loading="lazy">
+      </div>
+      <p class="shot-caption">Результат идентификации: вид, ID особи, уверенность модели и топ-5 альтернативных кандидатов</p>
+    </div>
+  </div>
+
+  <section id="how">
+    <div class="wrap">
+      <h2 class="sec-title">Как работает</h2>
+      <p class="sec-sub">Двухступенчатый inference-пайплайн: сначала фильтрация нецелевых изображений, затем идентификация особи.</p>
+      <div class="cards">
+        <div class="card">
+          <span class="num">1</span>
+          <h3>CLIP-антифрод</h3>
+          <p>Zero-shot фильтр на OpenCLIP ViT-B/32 отклоняет изображения, не содержащие морских млекопитающих, — специфичность 0.902 при целевых ≥ 0.90.</p>
+        </div>
+        <div class="card">
+          <span class="num">2</span>
+          <h3>Идентификация особи</h3>
+          <p>EfficientNet-B4 с головой ArcFace: 15 587 слотов классификации, 13 837 активных особей. Метрическое обучение кластеризует эмбеддинги похожих животных.</p>
+        </div>
+        <div class="card">
+          <span class="num">3</span>
+          <h3>Структурированный ответ</h3>
+          <p>REST API возвращает вид, уникальный идентификатор животного, уверенность модели и топ-5 альтернативных кандидатов.</p>
+        </div>
+      </div>
+      <div class="diagram">
+        <img src="assets/pipeline_diagram.png" alt="Диаграмма inference-пайплайна EcoMarineAI" loading="lazy">
+      </div>
+    </div>
+  </section>
+
+  <section id="metrics">
+    <div class="wrap">
+      <h2 class="sec-title">Метрики качества</h2>
+      <p class="sec-sub">Все целевые показатели технического задания выполнены с запасом.</p>
+      <table>
+        <thead>
+          <tr><th>Метрика</th><th>Значение</th><th>Целевое значение по ТЗ</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>TPR / Чувствительность</td><td class="v">0.950</td><td class="t">&gt; 0.85</td></tr>
+          <tr><td>TNR / Специфичность</td><td class="v">0.902</td><td class="t">&gt; 0.90</td></tr>
+          <tr><td>Precision</td><td class="v">0.905</td><td class="t">≥ 0.80</td></tr>
+          <tr><td>F1</td><td class="v">0.927</td><td class="t">&gt; 0.60</td></tr>
+          <tr><td>ROC-AUC</td><td class="v">0.984</td><td class="t">—</td></tr>
+          <tr><td>Задержка p95</td><td class="v">519 мс</td><td class="t">≤ 8000 мс</td></tr>
+          <tr><td>Снижение точности при зашумлении</td><td class="v">0.0%</td><td class="t">≤ 20%</td></tr>
+          <tr><td>Доступность сервиса (7 дней)</td><td class="v">99.40%</td><td class="t">≥ 95%</td></tr>
+        </tbody>
+      </table>
+      <p class="table-note">
+        Измерено на 202 изображениях: 100 снимков китов (Happy Whale) + 102 сцены без морских млекопитающих (Intel Image Dataset).
+        Доступность — 2 016 проверок раз в 5 минут, 23–29 марта 2026 UTC.
+      </p>
+    </div>
+  </section>
+
+  <section id="api">
+    <div class="wrap">
+      <h2 class="sec-title">REST API</h2>
+      <p class="sec-sub">Версионированный API (/v1/), Prometheus-метрики, rate limiting. Полная спецификация — в <a href="https://ecomarineai-backend.fly.dev/docs">Swagger UI</a>.</p>
+      <div class="api-grid">
+        <pre><span class="c"># Идентификация одного снимка</span>
+<span class="k">curl</span> -X POST \
+  https://ecomarineai-backend.fly.dev/v1/predict-single \
+  -F <span class="c">"file=@whale.jpg"</span>
+
+<span class="c"># Пакетная обработка ZIP-архива</span>
+<span class="k">curl</span> -X POST \
+  https://ecomarineai-backend.fly.dev/v1/predict-batch \
+  -F <span class="c">"file=@images.zip"</span></pre>
+        <div class="endpoints">
+          <div class="ep"><span class="method post">POST</span><code>/v1/predict-single</code><span>идентификация одного изображения</span></div>
+          <div class="ep"><span class="method post">POST</span><code>/v1/predict-batch</code><span>пакетная обработка ZIP-архива</span></div>
+          <div class="ep"><span class="method get">GET</span><code>/metrics</code><span>Prometheus-метрики сервиса</span></div>
+          <div class="ep"><span class="method get">GET</span><code>/docs</code><span>интерактивная документация Swagger</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="docs">
+    <div class="wrap">
+      <h2 class="sec-title">Документация и артефакты</h2>
+      <p class="sec-sub">Исходный код, обученные модели и полная документация проекта.</p>
+      <div class="res-grid">
+        <a class="res" href="https://github.com/0x0000dead/whales-identification">
+          <h3>GitHub</h3>
+          <p>Исходный код, CI/CD, issues и история разработки</p>
+        </a>
+        <a class="res" href="https://github.com/0x0000dead/whales-identification/wiki">
+          <h3>Wiki</h3>
+          <p>Установка, API Reference, архитектура, Model Cards</p>
+        </a>
+        <a class="res" href="https://huggingface.co/baltsat/Whales-Identification">
+          <h3>Hugging Face</h3>
+          <p>Обученные веса моделей и реестр версий</p>
+        </a>
+        <a class="res" href="https://0x0000dead.github.io/whales-identification/">
+          <h3>GitHub Pages</h3>
+          <p>Документация проекта и руководства</p>
+        </a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <div>
+      <b>EcoMarineAI</b> · Baltsat Konstantin, Tarasov Artem, Vandanov Sergey, Serov Alexandr · 2024–2026
+    </div>
+    <div>
+      Код — MIT · Модели и данные — CC-BY-NC-4.0
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
